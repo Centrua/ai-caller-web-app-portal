@@ -56,7 +56,7 @@ export default function Dashboard() {
                 {stats.map((stat) => (
                     <div key={stat.label} className="bg-white rounded-xl border border-slate-200 p-5 shadow-sm">
                         <p className="text-xs text-slate-500 font-medium uppercase tracking-wide mb-2">{stat.label}</p>
-                        <p className="text-3xl font-bold text-slate-900">
+                        <p className="text-3xl font-bold text-indigo-600">
                             {loading && !metrics ? (
                                 <span className="inline-block w-16 h-8 bg-slate-100 animate-pulse rounded"></span>
                             ) : (
