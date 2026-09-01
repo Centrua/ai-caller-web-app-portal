@@ -1,4 +1,5 @@
 import { ElevenLabsRepository } from '../repositories/http/eleven-labs.repository'
+import { VenueService } from './venue.service'
 
 export interface DashboardMetrics {
   callsToday: number
@@ -13,13 +14,25 @@ export interface DashboardMetrics {
 
 export class DashboardService {
   private elevenLabsRepo: ElevenLabsRepository
+  private venueService: VenueService
 
-  constructor(elevenLabsRepo?: ElevenLabsRepository) {
+  constructor(elevenLabsRepo?: ElevenLabsRepository, venueService?: VenueService) {
     this.elevenLabsRepo = elevenLabsRepo || new ElevenLabsRepository()
+    this.venueService = venueService || new VenueService()
   }
 
-  async getDashboardMetrics(agentId?: string): Promise<DashboardMetrics> {
-    const conversations = await this.elevenLabsRepo.getConversations(agentId)
+  async getDashboardMetrics(agentId?: string, userId?: number): Promise<DashboardMetrics> {
+    let targetAgentId = agentId
+
+    if (!targetAgentId && userId) {
+      targetAgentId = (await this.venueService.getAgentIdFromUserId(userId)) || undefined
+    }
+
+    if (!targetAgentId) {
+      throw new Error('Agent ID could not be found for the given user or request.')
+    }
+
+    const conversations = await this.elevenLabsRepo.getConversations(targetAgentId)
 
     const nowSecs = Math.floor(Date.now() / 1000)
     const oneDayAgoSecs = nowSecs - 86400
@@ -30,7 +43,6 @@ export class DashboardService {
     let callsToday = 0
     let callsThisWeek = 0
 
-    // Initialize 7-day charting buckets for historical tracking
     const dailyBuckets: Record<string, number> = {}
     for (let i = 6; i >= 0; i--) {
       const d = new Date()
@@ -45,12 +57,10 @@ export class DashboardService {
 
       totalDurationSecs += duration
 
-      // Evaluate success criteria based on known status values
       if (['success', 'done', 'completed'].includes(conv.status?.toLowerCase())) {
         successfulCallsCount++
       }
 
-      // Compute timeframe metrics
       if (startTime >= oneDayAgoSecs) {
         callsToday++
       }
@@ -58,7 +68,6 @@ export class DashboardService {
         callsThisWeek++
       }
 
-      // Populate chart data bins by date string
       const dateKey = new Date(startTime * 1000).toISOString().split('T')[0]
       if (dailyBuckets[dateKey] !== undefined) {
         dailyBuckets[dateKey] += 1

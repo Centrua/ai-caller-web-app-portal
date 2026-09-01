@@ -1,6 +1,5 @@
 import { Request, Response } from 'express'
 import { DashboardService } from '../services/dashboard.service'
-import { ElevenLabsRepository } from '../repositories/http/eleven-labs.repository'
 
 export class DashboardController {
   private dashboardService: DashboardService
@@ -11,14 +10,25 @@ export class DashboardController {
 
   public getDashboardMetrics = async (req: Request, res: Response): Promise<void> => {
     try {
+      const userId = req.user?.id;
+
+      if (!userId) {
+        res.status(401).json({
+          success: false,
+          error: 'Unauthorized: User context missing from request',
+        })
+        return
+      }
+
       const agentId = req.query.agent_id as string | undefined
-      const metrics = await this.dashboardService.getDashboardMetrics(agentId)
+      const metrics = await this.dashboardService.getDashboardMetrics(agentId, userId)
 
       res.status(200).json({
         success: true,
         data: metrics,
       })
-    } catch (error: any) {
+    } 
+    catch (error: any) {
       res.status(500).json({
         success: false,
         error: error.message || 'Internal server error while retrieving dashboard metrics',
