@@ -5,7 +5,7 @@ export class VenueRepository {
   async getAgentIdByUserId(userId: number): Promise<string | null> {
     const venue = await Venue.findOne({
       where: {
-        associated_users: {
+        associated_user_ids: {
           [Op.contains]: [userId],
         },
       },

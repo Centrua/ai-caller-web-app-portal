@@ -53,15 +53,15 @@ async function seedDatabase() {
         name: venueName,
         email: venueEmail,
         phone: venuePhone,
-        associated_users: [user.id],
+        associated_user_ids: [user.id],
       },
     });
 
     if (!venueCreated) {
       venue.email = venueEmail;
       venue.phone = venuePhone;
-      if (!venue.associated_users.includes(user.id)) {
-        venue.associated_users = [...venue.associated_users, user.id];
+      if (!venue.associated_user_ids.includes(user.id)) {
+        venue.associated_user_ids = [...venue.associated_user_ids, user.id];
       }
       await venue.save();
     }

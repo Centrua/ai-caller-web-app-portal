@@ -8,11 +8,11 @@ interface VenueAttributes {
   phone: string | null;
   elevenlabs_agent_id: string | null;
   elevenlabs_phone_number_id: string | null;
-  associated_users: number[];
+  associated_user_ids: number[];
   created_at?: Date;
 }
 
-interface VenueCreationAttributes extends Optional<VenueAttributes, 'id' | 'email' | 'phone' | 'elevenlabs_agent_id' | 'elevenlabs_phone_number_id' | 'associated_users' | 'created_at'> {}
+interface VenueCreationAttributes extends Optional<VenueAttributes, 'id' | 'email' | 'phone' | 'elevenlabs_agent_id' | 'elevenlabs_phone_number_id' | 'associated_user_ids' | 'created_at'> {}
 
 export class Venue extends Model<VenueAttributes, VenueCreationAttributes> implements VenueAttributes {
   public declare id: number;
@@ -21,7 +21,7 @@ export class Venue extends Model<VenueAttributes, VenueCreationAttributes> imple
   public declare phone: string | null;
   public declare elevenlabs_agent_id: string | null;
   public declare elevenlabs_phone_number_id: string | null;
-  public declare associated_users: number[];
+  public declare associated_user_ids: number[];
   public declare readonly created_at: Date;
 
   public static associate(models: any) {
@@ -60,7 +60,7 @@ Venue.init(
       type: DataTypes.STRING,
       allowNull: true,
     },
-    associated_users: {
+    associated_user_ids: {
       type: DataTypes.ARRAY(DataTypes.INTEGER),
       allowNull: true,
       defaultValue: [],
