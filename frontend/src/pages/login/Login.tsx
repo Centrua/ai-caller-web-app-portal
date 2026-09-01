@@ -1,15 +1,19 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { useLogin } from '../../hooks/authHooks'
 
 export default function Login() {
     const navigate = useNavigate()
     const [email, setEmail] = useState('')
     const [password, setPassword] = useState('')
+    const { login, loading, error } = useLogin()
 
-    const handleSubmit = (e: React.FormEvent) => {
+    const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault()
-        // Mock auth — replace with real API call later
-        navigate('/dashboard')
+        const user = await login({ email, password })
+        if (user) {
+            navigate('/dashboard')
+        }
     }
 
     return (
@@ -31,6 +35,11 @@ export default function Login() {
                 </div>
 
                 <form onSubmit={handleSubmit} className="bg-white border border-slate-200 rounded-2xl shadow-sm p-8 flex flex-col gap-4">
+                    {error && (
+                        <div className="bg-red-50 border border-red-200 text-red-600 text-xs rounded-lg p-3">
+                            {error}
+                        </div>
+                    )}
                     <div>
                         <label className="block text-xs font-medium text-slate-600 mb-1.5">Email</label>
                         <input
@@ -57,9 +66,10 @@ export default function Login() {
                     </div>
                     <button
                         type="submit"
-                        className="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-2.5 rounded-lg transition-colors text-sm mt-2"
+                        disabled={loading}
+                        className="w-full bg-indigo-600 hover:bg-indigo-700 disabled:bg-indigo-400 text-white font-semibold py-2.5 rounded-lg transition-colors text-sm mt-2 flex items-center justify-center cursor-pointer disabled:cursor-not-allowed"
                     >
-                        Sign in
+                        {loading ? 'Signing in...' : 'Sign in'}
                     </button>
                 </form>
             </div>
