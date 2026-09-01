@@ -21,8 +21,8 @@ export class DashboardService {
     this.venueService = venueService || new VenueService()
   }
 
-  async getDashboardMetrics(agentId?: string, userId?: number): Promise<DashboardMetrics> {
-    let targetAgentId = agentId
+  async getDashboardMetrics(userId?: number): Promise<DashboardMetrics> {
+    let targetAgentId;
 
     if (!targetAgentId && userId) {
       targetAgentId = (await this.venueService.getAgentIdFromUserId(userId)) || undefined

@@ -1,4 +1,5 @@
-import { Model, DataTypes, Sequelize, Optional } from 'sequelize';
+import { Model, DataTypes, Optional } from 'sequelize';
+import { sequelize } from '../config/database';
 
 interface VenueAttributes {
   id: number;
@@ -14,14 +15,14 @@ interface VenueAttributes {
 interface VenueCreationAttributes extends Optional<VenueAttributes, 'id' | 'email' | 'phone' | 'elevenlabs_agent_id' | 'elevenlabs_phone_number_id' | 'associated_users' | 'created_at'> {}
 
 export class Venue extends Model<VenueAttributes, VenueCreationAttributes> implements VenueAttributes {
-  public id!: number;
-  public name!: string;
-  public email!: string | null;
-  public phone!: string | null;
-  public elevenlabs_agent_id!: string | null;
-  public elevenlabs_phone_number_id!: string | null;
-  public associated_users!: number[];
-  public readonly created_at!: Date;
+  public declare id: number;
+  public declare name: string;
+  public declare email: string | null;
+  public declare phone: string | null;
+  public declare elevenlabs_agent_id: string | null;
+  public declare elevenlabs_phone_number_id: string | null;
+  public declare associated_users: number[];
+  public declare readonly created_at: Date;
 
   public static associate(models: any) {
     models.Venue.hasMany(models.KnowledgeSource, {
@@ -31,50 +32,48 @@ export class Venue extends Model<VenueAttributes, VenueCreationAttributes> imple
   }
 }
 
-export default function (sequelize: Sequelize): typeof Venue {
-  Venue.init(
-    {
-      id: {
-        type: DataTypes.INTEGER,
-        autoIncrement: true,
-        primaryKey: true,
-        allowNull: false,
-      },
-      name: {
-        type: DataTypes.STRING,
-        allowNull: false,
-      },
-      email: {
-        type: DataTypes.STRING,
-        allowNull: true,
-      },
-      phone: {
-        type: DataTypes.STRING,
-        allowNull: true,
-      },
-      elevenlabs_agent_id: {
-        type: DataTypes.STRING,
-        allowNull: true,
-      },
-      elevenlabs_phone_number_id: {
-        type: DataTypes.STRING,
-        allowNull: true,
-      },
-      associated_users: {
-        type: DataTypes.ARRAY(DataTypes.INTEGER),
-        allowNull: true,
-        defaultValue: [],
-      },
+Venue.init(
+  {
+    id: {
+      type: DataTypes.INTEGER,
+      autoIncrement: true,
+      primaryKey: true,
+      allowNull: false,
     },
-    {
-      sequelize,
-      modelName: 'Venue',
-      tableName: 'venues',
-      underscored: true,
-      timestamps: true,
-      updatedAt: false,
-    }
-  );
+    name: {
+      type: DataTypes.STRING,
+      allowNull: false,
+    },
+    email: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
+    phone: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
+    elevenlabs_agent_id: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
+    elevenlabs_phone_number_id: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
+    associated_users: {
+      type: DataTypes.ARRAY(DataTypes.INTEGER),
+      allowNull: true,
+      defaultValue: [],
+    },
+  },
+  {
+    sequelize,
+    modelName: 'Venue',
+    tableName: 'venues',
+    underscored: true,
+    timestamps: true,
+    updatedAt: false,
+  }
+);
 
-  return Venue;
-}
+export default Venue;

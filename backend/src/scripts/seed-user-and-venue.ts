@@ -7,12 +7,8 @@ dotenv.config();
 
 import bcrypt from 'bcryptjs';
 import { sequelize } from '../config/database';
-import initUser from '../models/user.model';
-import initVenue from '../models/venue.model';
-
-// Initialize models with the sequelize instance
-const User = initUser(sequelize);
-const Venue = initVenue(sequelize);
+import { User } from '../models/user.model';
+import { Venue } from '../models/venue.model';
 
 async function seedDatabase() {
   try {

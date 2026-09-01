@@ -20,8 +20,7 @@ export class DashboardController {
         return
       }
 
-      const agentId = req.query.agent_id as string | undefined
-      const metrics = await this.dashboardService.getDashboardMetrics(agentId, userId)
+      const metrics = await this.dashboardService.getDashboardMetrics(userId)
 
       res.status(200).json({
         success: true,

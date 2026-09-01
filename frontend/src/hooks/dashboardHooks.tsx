@@ -27,8 +27,19 @@ export const useDashboard = () => {
         throw new Error('VITE_API_URL is not defined')
       }
 
+      const token = localStorage.getItem('token')
+      if (!token) {
+        throw new Error('No authentication token found. Please log in.')
+      }
+
       const query = agentId ? `?agent_id=${agentId}` : ''
-      const response = await fetch(`${API_BASE_URL}/api/dashboard${query}`)
+      const response = await fetch(`${API_BASE_URL}/api/dashboard${query}`, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+      })
+
       const json = await response.json()
 
       if (!response.ok || !json.success) {
