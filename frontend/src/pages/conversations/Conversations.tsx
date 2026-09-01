@@ -1,18 +1,37 @@
-const mockConversations = [
-  { id: 1, caller: '+1 (555) 012-3456', duration: '4m 12s', status: 'Completed', date: 'Today, 2:14 PM' },
-  { id: 2, caller: '+1 (555) 987-6543', duration: '1m 58s', status: 'Completed', date: 'Today, 11:02 AM' },
-  { id: 3, caller: '+1 (555) 333-4444', duration: '0m 32s', status: 'No Answer', date: 'Yesterday, 6:45 PM' },
-  { id: 4, caller: '+1 (555) 111-2222', duration: '7m 01s', status: 'Completed', date: 'Yesterday, 3:10 PM' },
-  { id: 5, caller: '+1 (555) 555-0001', duration: '2m 20s', status: 'Completed', date: 'Aug 29, 10:30 AM' },
-]
+import { useEffect } from 'react'
+import { useNavigate } from 'react-router-dom'
+import { useConversations } from '../../hooks/conversationsHooks'
 
 const statusColor: Record<string, string> = {
-  Completed: 'bg-emerald-100 text-emerald-700',
-  'No Answer': 'bg-slate-100 text-slate-500',
-  Failed: 'bg-red-100 text-red-600',
+  success: 'bg-emerald-100 text-emerald-700',
+  failure: 'bg-red-100 text-red-600',
+  unknown: 'bg-slate-100 text-slate-500',
+}
+
+function formatOutcome(val: any) {
+  if (val === null || val === undefined) return 'Unknown'
+  const s = String(val)
+  if (!s) return 'Unknown'
+  return s.charAt(0).toUpperCase() + s.slice(1)
+}
+
+function isTodayIso(iso?: string) {
+  if (!iso) return false
+  const d = new Date(iso)
+  if (isNaN(d.getTime())) return false
+  const now = new Date()
+  return d.getFullYear() === now.getFullYear() && d.getMonth() === now.getMonth() && d.getDate() === now.getDate()
 }
 
 export default function Conversations() {
+  const { conversations, loading, error, hasMore, fetchNext, refresh } = useConversations()
+  const navigate = useNavigate()
+
+  useEffect(() => {
+    // initial load
+    refresh()
+  }, [refresh])
+
   return (
     <div className="p-8">
       <h1 className="text-2xl font-semibold text-slate-900 mb-1">Conversations</h1>
@@ -22,27 +41,58 @@ export default function Conversations() {
         <table className="w-full text-sm">
           <thead>
             <tr className="border-b border-slate-100 bg-slate-50">
+              <th className="text-left px-5 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wide">Date</th>
               <th className="text-left px-5 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wide">Caller</th>
               <th className="text-left px-5 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wide">Duration</th>
-              <th className="text-left px-5 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wide">Status</th>
-              <th className="text-left px-5 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wide">Date</th>
+              <th className="text-left px-5 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wide">Outcome</th>
             </tr>
           </thead>
           <tbody>
-            {mockConversations.map((c) => (
-              <tr key={c.id} className="border-b border-slate-100 last:border-0 hover:bg-slate-50 transition-colors cursor-pointer">
-                <td className="px-5 py-4 font-medium text-slate-800">{c.caller}</td>
-                <td className="px-5 py-4 text-slate-500">{c.duration}</td>
-                <td className="px-5 py-4">
-                  <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${statusColor[c.status]}`}>
-                    {c.status}
-                  </span>
+            {loading && (
+              <tr>
+                <td colSpan={4} className="px-5 py-8 text-center text-slate-400">Loading conversations...</td>
+              </tr>
+            )}
+
+            {!loading && conversations.length === 0 && (
+              <tr>
+                <td colSpan={4} className="px-5 py-8 text-center text-slate-400">No conversations found for this venue.</td>
+              </tr>
+            )}
+
+            {conversations.map((c) => (
+              <tr key={c.id} className="border-b border-slate-100 last:border-0 hover:bg-slate-50 transition-colors cursor-pointer" onClick={() => navigate(`/conversations/${c.id}`)}>
+                <td className="px-5 py-4 text-slate-400">{c.startTime ? new Date(c.startTime).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) : ''}</td>
+                <td className="px-5 py-4 font-medium text-slate-800">
+                  <div className="flex items-center">
+                    <span>{c.callSummaryTitle || c.agentName || 'Unknown'}</span>
+                    {isTodayIso(c.startTime) && (
+                      <span title="New conversation today" className="ml-3 inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-amber-100 text-amber-700">New</span>
+                    )}
+                  </div>
                 </td>
-                <td className="px-5 py-4 text-slate-400">{c.date}</td>
+                <td className="px-5 py-4 text-slate-500">{c.durationDisplay || '-'}</td>
+                <td className="px-5 py-4">
+                  {(() => {
+                    const key = String(c.callSuccessful ?? 'unknown').toLowerCase()
+                    return (
+                      <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${statusColor[key] || 'bg-slate-100 text-slate-500'}`}>
+                        {formatOutcome(c.callSuccessful)}
+                      </span>
+                    )
+                  })()}
+                </td>
               </tr>
             ))}
           </tbody>
         </table>
+
+        <div className="p-4 text-center">
+          {error && <div className="text-red-600 mb-2">{error}</div>}
+          {hasMore && (
+            <button className="px-4 py-2 bg-slate-100 rounded" onClick={() => fetchNext()}>Load more</button>
+          )}
+        </div>
       </div>
     </div>
   )
