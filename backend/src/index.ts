@@ -9,7 +9,7 @@ app.use(express.json());
 app.get('/', (req: Request, res: Response) => {
   res.json({ message: 'Hello from Express + TypeScript!' });
 });
-app.use('/dashboard', dashboardRouter);
+app.use('/api/dashboard', dashboardRouter);
 
 app.listen(PORT, () => {
   console.log(`Server running on http://localhost:${PORT}`);
