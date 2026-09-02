@@ -1,3 +1,4 @@
+import 'dotenv/config';
 import express, { type Request, type Response } from 'express';
 import cors from 'cors';
 import dashboardRouter from './routes/dashboard.route';
@@ -13,9 +14,9 @@ const PORT = process.env.PORT || 3001;
 app.use(express.json());
 
 app.use(cors({
-  origin: ['http://localhost:5173', 'http://localhost:3000'],
+  origin: process.env.CORS_ORIGIN ? process.env.CORS_ORIGIN.split(',') : '*',
   credentials: true,
-}))
+}));
 
 app.get('/', (req: Request, res: Response) => {
   res.json({ message: 'Hello from Express + TypeScript!' });
@@ -27,6 +28,10 @@ app.use('/api/conversations', actionItemsRouter);
 app.use('/api/knowledge-base', knowledgeBaseRouter);
 app.use('/api/venue', venueRouter);
 
-app.listen(PORT, () => {
-  console.log(`Server running on http://localhost:${PORT}`);
-});
+if (process.env.NODE_ENV !== 'production') {
+  app.listen(PORT, () => {
+    console.log(`Server running on http://localhost:${PORT}`);
+  });
+}
+
+export default app;
