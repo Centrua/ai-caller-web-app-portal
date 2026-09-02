@@ -2,7 +2,7 @@ import { Request, Response } from 'express'
 import { ElevenLabsRepository } from '../repositories/http/eleven-labs.repository'
 import { VenueService } from '../services/venue.service'
 import ActionItemsService from '../services/action-items.service'
-import { sendError, sendSuccess } from '../utils/http'
+import { requireConversationId, sendError, sendSuccess } from '../utils/http'
 
 function formatDuration(seconds?: number) {
   if (!seconds && seconds !== 0) return null
@@ -103,12 +103,8 @@ export class ConversationsController {
 
   public get = async (req: Request, res: Response): Promise<void> => {
     try {
-      const conversationIdRaw = req.params.id
-      const conversationId = Array.isArray(conversationIdRaw) ? conversationIdRaw[0] : conversationIdRaw
-      if (!conversationId) {
-        sendError(res, 400, 'conversation id required')
-        return
-      }
+      const conversationId = requireConversationId(req, res)
+      if (!conversationId) return
 
       const data = await this.elevenLabsRepo.getConversationById(String(conversationId))
       const normalized = normalizeConversation(data)
@@ -152,12 +148,8 @@ export class ConversationsController {
 
   public summary = async (req: Request, res: Response): Promise<void> => {
     try {
-      const conversationIdRaw = req.params.id
-      const conversationId = Array.isArray(conversationIdRaw) ? conversationIdRaw[0] : conversationIdRaw
-      if (!conversationId) {
-        sendError(res, 400, 'conversation id required')
-        return
-      }
+      const conversationId = requireConversationId(req, res)
+      if (!conversationId) return
 
       const maxMessagesRaw = req.query.max_messages
       const maxMessages = maxMessagesRaw ? parseInt(String(maxMessagesRaw), 10) : undefined
@@ -186,12 +178,8 @@ export class ConversationsController {
 
   public audio = async (req: Request, res: Response): Promise<void> => {
     try {
-      const conversationIdRaw = req.params.id
-      const conversationId = Array.isArray(conversationIdRaw) ? conversationIdRaw[0] : conversationIdRaw
-      if (!conversationId) {
-        sendError(res, 400, 'conversation id required')
-        return
-      }
+      const conversationId = requireConversationId(req, res)
+      if (!conversationId) return
 
       const data = await this.elevenLabsRepo.getConversationAudio(String(conversationId))
       const buffer = Buffer.from(data.arrayBuffer)

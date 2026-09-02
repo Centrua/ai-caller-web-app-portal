@@ -1,7 +1,7 @@
 import { Request, Response } from 'express'
 import { ElevenLabsRepository } from '../repositories/http/eleven-labs.repository'
 import ActionItemsService from '../services/action-items.service'
-import { sendError, sendSuccess } from '../utils/http'
+import { requireConversationId, sendError, sendSuccess } from '../utils/http'
 
 export class ActionItemsController {
   private elevenLabsRepo: ElevenLabsRepository
@@ -11,21 +11,9 @@ export class ActionItemsController {
     this.elevenLabsRepo = elevenLabsRepo || new ElevenLabsRepository()
   }
 
-  private getConversationId(req: Request, res: Response): string | null {
-    const conversationIdRaw = req.params.id
-    const conversationId = Array.isArray(conversationIdRaw) ? conversationIdRaw[0] : conversationIdRaw
-
-    if (!conversationId) {
-      sendError(res, 400, 'conversation id required')
-      return null
-    }
-
-    return String(conversationId)
-  }
-
   public actionsList = async (req: Request, res: Response): Promise<void> => {
     try {
-      const conversationId = this.getConversationId(req, res)
+      const conversationId = requireConversationId(req, res)
       if (!conversationId) return
 
       const data = await this.elevenLabsRepo.getConversationById(conversationId)
