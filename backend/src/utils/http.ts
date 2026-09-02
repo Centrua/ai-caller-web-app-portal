@@ -1,4 +1,4 @@
-import { Request, Response } from 'express'
+import { Response } from 'express'
 
 export function sendError(res: Response, status: number, message: string): void {
   res.status(status).json({ success: false, error: message })
@@ -6,22 +6,4 @@ export function sendError(res: Response, status: number, message: string): void 
 
 export function sendSuccess<T>(res: Response, status: number, data: T): void {
   res.status(status).json({ success: true, data })
-}
-
-export function getConversationId(req: Request): string | null {
-  const conversationIdRaw = req.params.id
-  const conversationId = Array.isArray(conversationIdRaw) ? conversationIdRaw[0] : conversationIdRaw
-
-  return conversationId ? String(conversationId) : null
-}
-
-export function requireConversationId(req: Request, res: Response): string | null {
-  const conversationId = getConversationId(req)
-
-  if (!conversationId) {
-    sendError(res, 400, 'conversation id required')
-    return null
-  }
-
-  return conversationId
 }

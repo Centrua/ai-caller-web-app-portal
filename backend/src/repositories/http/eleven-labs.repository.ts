@@ -82,10 +82,9 @@ export class ElevenLabsRepository {
    * Fetch a conversation summary (lightweight) by id.
    * Calls GET /convai/conversations/{id}/summary
    */
-  async getConversationSummary(conversationId: string, max_messages?: number): Promise<any> {
+  async getConversationSummary(conversationId: string): Promise<any> {
     if (!conversationId) throw new Error('conversationId is required')
     const url = new URL(`${this.baseUrl}/convai/conversations/${encodeURIComponent(conversationId)}/summary`)
-    if (typeof max_messages === 'number') url.searchParams.append('max_messages', String(max_messages))
 
     const response = await fetch(url.toString(), {
       method: 'GET',

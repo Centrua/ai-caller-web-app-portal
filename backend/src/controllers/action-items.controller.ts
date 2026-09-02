@@ -1,7 +1,8 @@
 import { Request, Response } from 'express'
 import { ElevenLabsRepository } from '../repositories/http/eleven-labs.repository'
 import ActionItemsService from '../services/action-items.service'
-import { requireConversationId, sendError, sendSuccess } from '../utils/http'
+import { requireConversationId } from '../utils/conversation'
+import { sendError, sendSuccess } from '../utils/http'
 
 export class ActionItemsController {
   private elevenLabsRepo: ElevenLabsRepository
@@ -27,7 +28,7 @@ export class ActionItemsController {
 
   public setCompletionStatus = async (req: Request, res: Response): Promise<void> => {
     try {
-      const conversationId = this.getConversationId(req, res)
+      const conversationId = requireConversationId(req, res)
       if (!conversationId) return
 
       const body = req.body || {}
@@ -47,7 +48,7 @@ export class ActionItemsController {
 
   public getFlags = async (req: Request, res: Response): Promise<void> => {
     try {
-      const conversationId = this.getConversationId(req, res)
+      const conversationId = requireConversationId(req, res)
       if (!conversationId) return
 
       const flags = await this.actionItemsService.getConversationFlags(conversationId)

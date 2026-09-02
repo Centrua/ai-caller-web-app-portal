@@ -2,7 +2,8 @@ import { Request, Response } from 'express'
 import { ElevenLabsRepository } from '../repositories/http/eleven-labs.repository'
 import { VenueService } from '../services/venue.service'
 import ActionItemsService from '../services/action-items.service'
-import { requireConversationId, sendError, sendSuccess } from '../utils/http'
+import { requireConversationId } from '../utils/conversation'
+import { sendError, sendSuccess } from '../utils/http'
 
 function formatDuration(seconds?: number) {
   if (!seconds && seconds !== 0) return null
@@ -50,6 +51,20 @@ export class ConversationsController {
     this.venueService = venueService || new VenueService()
   }
 
+  private async enrichConversationList(conversations: any[]): Promise<any[]> {
+    return Promise.all(
+      conversations.map(async (conversation) => {
+        try {
+          const flags = await this.actionItemsService.getConversationFlags(String(conversation.id))
+          const hasPending = flags ? !flags.completed : false
+          return { ...conversation, hasUnacknowledgedActions: hasPending }
+        } catch {
+          return { ...conversation, hasUnacknowledgedActions: false }
+        }
+      })
+    )
+  }
+
   public list = async (req: Request, res: Response): Promise<void> => {
     try {
       const userId = req.user?.id
@@ -63,37 +78,21 @@ export class ConversationsController {
         filters.page_size = Math.min(100, Math.max(1, isNaN(parsed) ? 30 : parsed))
       }
 
-      // If no agent_id provided, resolve from user's venue
-      if (!filters.agent_id) {
-        if (!userId) {
-          sendError(res, 401, 'Unauthorized: user context missing')
-          return
-        }
-        const agentId = await this.venueService.getAgentIdFromUserId(userId)
-        if (!agentId) {
-          sendError(res, 400, 'Agent ID could not be resolved for user')
-          return
-        }
-        filters.agent_id = agentId
+      if (!userId) {
+        sendError(res, 401, 'Unauthorized: user context missing')
+        return
       }
+      const agentId = await this.venueService.getAgentIdFromUserId(userId)
+      if (!agentId) {
+        sendError(res, 400, 'Agent ID could not be resolved for user')
+        return
+      }
+      filters.agent_id = agentId
 
       const repoResp = await this.elevenLabsRepo.getConversations(filters)
 
       const normalized = (repoResp.conversations || []).map(normalizeConversation)
-
-      // enrich with action-item presence info (pending = not completed)
-        const enriched = await Promise.all(
-          normalized.map(async (c) => {
-            try {
-              const flags = await this.actionItemsService.getConversationFlags(String(c.id))
-              const hasPending = flags ? !flags.completed : false
-              const out: any = { ...(c as any), hasUnacknowledgedActions: hasPending }
-              return out
-            } catch {
-              return { ...(c as any), hasUnacknowledgedActions: false }
-            }
-          })
-        )
+      const enriched = await this.enrichConversationList(normalized)
 
       sendSuccess(res, 200, { conversations: enriched, hasMore: !!repoResp.has_more, nextCursor: repoResp.next_cursor })
     } catch (error: any) {
@@ -108,33 +107,13 @@ export class ConversationsController {
 
       const data = await this.elevenLabsRepo.getConversationById(String(conversationId))
       const normalized = normalizeConversation(data)
-      // include action items state
       const normalizedAny: any = normalized
+
       try {
         const dcr = data.analysis?.data_collection_results ?? data.data_collection_results ?? normalizedAny.dataCollectionResults
         const items = await this.actionItemsService.getActionItems(String(normalizedAny.id), dcr)
         normalizedAny.actionItems = items
         normalizedAny.hasUnacknowledgedActions = items.some((it: any) => it.actionable && !it.completed)
-        try {
-          const rawDcr = data.analysis?.data_collection_results ?? data.data_collection_results ?? normalizedAny.dataCollectionResults
-          const next = items.find((it: any) => it.actionable && !it.completed) || null
-          if (Array.isArray(rawDcr)) {
-            const arr = (rawDcr as any[]).map((it: any) => {
-              const id = String(it.data_collection_id ?? it.id ?? JSON.stringify(it))
-              if (next && id === next.id) return { ...it, nextActionableStep: true }
-              return it
-            })
-            normalizedAny.dataCollectionResults = arr
-          } else if (next && rawDcr && typeof rawDcr === 'object') {
-            const key = next.id
-            normalizedAny.dataCollectionResults = { ...(normalizedAny.dataCollectionResults || {}), [key]: { value: rawDcr[key]?.value ?? rawDcr[key], nextActionableStep: true } }
-          } else {
-            normalizedAny.dataCollectionResults = normalizedAny.dataCollectionResults || {}
-            if (next) normalizedAny.dataCollectionResults['Next Actionable Step'] = next.value ?? next.label
-          }
-        } catch {
-          // ignore
-        }
       } catch {
         normalizedAny.actionItems = []
         normalizedAny.hasUnacknowledgedActions = false
@@ -151,10 +130,7 @@ export class ConversationsController {
       const conversationId = requireConversationId(req, res)
       if (!conversationId) return
 
-      const maxMessagesRaw = req.query.max_messages
-      const maxMessages = maxMessagesRaw ? parseInt(String(maxMessagesRaw), 10) : undefined
-
-      const data = await this.elevenLabsRepo.getConversationSummary(String(conversationId), maxMessages)
+      const data = await this.elevenLabsRepo.getConversationSummary(String(conversationId))
 
       // Map summary fields into normalized shape similar to normalizeConversation
       const normalized = {

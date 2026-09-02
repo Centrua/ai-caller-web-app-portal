@@ -176,6 +176,7 @@ export default function ConversationDetails() {
     : Array.isArray(conv.transcript)
     ? conv.transcript
     : []
+  const nextActionText = action?.value || action?.label || 'Next actionable step'
 
   return (
     <div className="p-8">
@@ -189,10 +190,8 @@ export default function ConversationDetails() {
             {action && (
               <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden mb-4">
                 <div className="p-4 flex items-start justify-between gap-3">
-                  <div>
-                    <div className="text-xs text-slate-500 mb-1">Action Item</div>
-                    <div className="text-sm font-medium text-slate-800">{action.label}</div>
-                    <div className="text-slate-700 text-sm">{String(action.value ?? '')}</div>
+                  <div className="text-slate-800 text-base font-medium leading-relaxed">
+                    {nextActionText}
                   </div>
                   <button
                     className={`px-2 py-1 text-sm rounded ${action.completed ? 'bg-slate-200 text-slate-800 hover:bg-slate-300' : 'bg-amber-100 text-amber-800 hover:bg-amber-200'}`}
