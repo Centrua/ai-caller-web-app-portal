@@ -8,7 +8,6 @@ export interface DashboardMetrics {
   averageCallDurationFormatted: string
   successfulCalls: number
   successRate: string
-  recentConversations: any[]
   callsOverTime: Array<{ date: string; count: number }>
 }
 
@@ -32,7 +31,9 @@ export class DashboardService {
       throw new Error('Agent ID could not be found for the given user or request.')
     }
 
-    const conversations = await this.elevenLabsRepo.getConversations(targetAgentId)
+    // Call the repository with filters; repository returns { conversations, has_more, next_cursor }
+    const repoResp = await this.elevenLabsRepo.getConversations({ agent_id: targetAgentId, page_size: 100 })
+    const conversations = Array.isArray(repoResp?.conversations) ? repoResp.conversations : []
 
     const nowSecs = Math.floor(Date.now() / 1000)
     const oneDayAgoSecs = nowSecs - 86400
@@ -86,10 +87,6 @@ export class DashboardService {
       count,
     }))
 
-    const sortedConversations = [...conversations].sort(
-      (a, b) => (b.start_time_unix_secs || 0) - (a.start_time_unix_secs || 0)
-    )
-
     return {
       callsToday,
       callsThisWeek,
@@ -97,7 +94,6 @@ export class DashboardService {
       averageCallDurationFormatted: `${minutes}m ${seconds}s`,
       successfulCalls: successfulCallsCount,
       successRate: `${successRateValue}%`,
-      recentConversations: sortedConversations.slice(0, 10),
       callsOverTime,
     }
   }

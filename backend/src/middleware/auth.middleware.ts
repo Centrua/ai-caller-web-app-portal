@@ -1,5 +1,6 @@
 import { Request, Response, NextFunction } from 'express';
 import jwt from 'jsonwebtoken';
+import { sendError } from '../utils/http';
 
 interface JwtPayload {
   id: number;
@@ -21,13 +22,13 @@ export const authenticateToken = (req: Request, res: Response, next: NextFunctio
   const token = authHeader && authHeader.split(' ')[1]; // Bearer <token>
 
   if (!token) {
-    res.status(401).json({ error: 'Access token missing or malformed' });
+    sendError(res, 401, 'Access token missing or malformed');
     return;
   }
 
   jwt.verify(token, process.env.JWT_SECRET || 'supersecret', (err, user) => {
     if (err) {
-      res.status(403).json({ error: 'Invalid or expired token' });
+      sendError(res, 403, 'Invalid or expired token');
       return;
     }
 
@@ -39,7 +40,7 @@ export const authenticateToken = (req: Request, res: Response, next: NextFunctio
 export const requireRole = (role: string) => {
   return (req: Request, res: Response, next: NextFunction): void => {
     if (!req.user || req.user.role !== role) {
-      res.status(403).json({ error: 'Forbidden: Insufficient permissions' });
+      sendError(res, 403, 'Forbidden: Insufficient permissions');
       return;
     }
     next();

@@ -1,5 +1,6 @@
 import { Request, Response } from 'express'
 import { DashboardService } from '../services/dashboard.service'
+import { sendError, sendSuccess } from '../utils/http'
 
 export class DashboardController {
   private dashboardService: DashboardService
@@ -13,25 +14,16 @@ export class DashboardController {
       const userId = req.user?.id;
 
       if (!userId) {
-        res.status(401).json({
-          success: false,
-          error: 'Unauthorized: User context missing from request',
-        })
+        sendError(res, 401, 'Unauthorized: User context missing from request')
         return
       }
 
       const metrics = await this.dashboardService.getDashboardMetrics(userId)
 
-      res.status(200).json({
-        success: true,
-        data: metrics,
-      })
+      sendSuccess(res, 200, metrics)
     } 
     catch (error: any) {
-      res.status(500).json({
-        success: false,
-        error: error.message || 'Internal server error while retrieving dashboard metrics',
-      })
+      sendError(res, 500, error.message || 'Internal server error while retrieving dashboard metrics')
     }
   }
 }

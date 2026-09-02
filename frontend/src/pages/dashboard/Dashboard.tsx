@@ -4,8 +4,6 @@ import { useDashboard } from '../../hooks/dashboardHooks'
 export default function Dashboard() {
     const { metrics, getMetrics, loading, error } = useDashboard()
     const [hoveredBar, setHoveredBar] = useState<{ date: string; count: number } | null>(null)
-    const [currentPage, setCurrentPage] = useState(1)
-    const itemsPerPage = 5
 
     useEffect(() => {
         getMetrics()
@@ -19,26 +17,6 @@ export default function Dashboard() {
         { label: 'Successful Calls', value: metrics ? metrics.successfulCalls.toLocaleString() : '—' },
         { label: 'Success Rate', value: metrics ? metrics.successRate : '—' },
     ]
-
-    const recentConversations = metrics?.recentConversations ?? []
-    const totalPages = Math.ceil(recentConversations.length / itemsPerPage) || 1
-    const paginatedConversations = recentConversations.slice(
-        (currentPage - 1) * itemsPerPage,
-        currentPage * itemsPerPage
-    )
-
-    const formatDuration = (secs?: number) => {
-        if (!secs) return '0s'
-        const mins = Math.floor(secs / 60)
-        const remainingSecs = secs % 60
-        return mins > 0 ? `${mins}m ${remainingSecs}s` : `${remainingSecs}s`
-    }
-
-    const formatTime = (unixSecs?: number) => {
-        if (!unixSecs) return '—'
-        const date = new Date(unixSecs * 1000)
-        return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
-    }
 
     return (
         <div className="p-8 max-w-7xl mx-auto">
@@ -124,90 +102,14 @@ export default function Dashboard() {
                 </div>
             </div>
 
-            {/* Recent Conversations List */}
-            <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
-                <div className="px-6 py-4 border-b border-slate-100 flex items-center justify-between">
-                    <h2 className="text-sm font-semibold text-slate-700">Recent Conversations</h2>
-                    {recentConversations.length > 0 && (
-                        <span className="text-xs text-slate-400">
-                            Showing {(currentPage - 1) * itemsPerPage + 1}–{Math.min(currentPage * itemsPerPage, recentConversations.length)} of {recentConversations.length}
-                        </span>
-                    )}
-                </div>
-                <div className="divide-y divide-slate-100">
-                    {loading && recentConversations.length === 0 ? (
-                        <div className="px-6 py-8 text-center text-sm text-slate-400">Loading conversations...</div>
-                    ) : recentConversations.length === 0 ? (
-                        <div className="px-6 py-8 text-center text-sm text-slate-400">No recent conversations found.</div>
-                    ) : (
-                        paginatedConversations.map((conv) => {
-                            const convId = conv.conversation_id || conv.id
-                            const durationStr = formatDuration(conv.call_duration_secs)
-                            const timeStr = formatTime(conv.start_time_unix_secs)
-                            const statusStr = conv.status || 'unknown'
-
-                            return (
-                                <a 
-                                    key={convId}
-                                    href={`/conversations/${convId}`}
-                                    className="flex items-center justify-between px-6 py-4 hover:bg-slate-50 transition-colors cursor-pointer"
-                                >
-                                    <div>
-                                        <p className="text-sm font-medium text-slate-900">
-                                            Conversation <span className="text-slate-400 font-normal">({convId})</span>
-                                        </p>
-                                        <p className="text-xs text-slate-500 mt-0.5">{timeStr}</p>
-                                    </div>
-                                    <div className="text-right">
-                                        <span className={`inline-block px-2.5 py-1 text-xs font-medium rounded-full mb-1 ${
-                                            ['success', 'done', 'completed'].includes(statusStr.toLowerCase())
-                                                ? 'bg-emerald-50 text-emerald-700'
-                                                : 'bg-amber-50 text-amber-700'
-                                        }`}>
-                                            {statusStr}
-                                        </span>
-                                        <p className="text-xs text-slate-500">{durationStr}</p>
-                                    </div>
-                                </a>
-                            )
-                        })
-                    )}
-                </div>
-
-                {/* Pagination Index Footer */}
-                {totalPages > 1 && (
-                    <div className="px-6 py-3 bg-slate-50 border-t border-slate-100 flex items-center justify-between">
-                        <button
-                            onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
-                            disabled={currentPage === 1}
-                            className="px-3 py-1.5 text-xs font-medium text-slate-600 bg-white border border-slate-200 rounded-md hover:bg-slate-100 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
-                        >
-                            Previous
-                        </button>
-                        <div className="flex items-center gap-1.5">
-                            {Array.from({ length: totalPages }, (_, i) => i + 1).map((num) => (
-                                <button
-                                    key={num}
-                                    onClick={() => setCurrentPage(num)}
-                                    className={`w-7 h-7 text-xs font-medium rounded-md transition-colors ${
-                                        currentPage === num
-                                            ? 'bg-indigo-600 text-white shadow-sm'
-                                            : 'text-slate-600 hover:bg-slate-200/60'
-                                    }`}
-                                >
-                                    {num}
-                                </button>
-                            ))}
-                        </div>
-                        <button
-                            onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
-                            disabled={currentPage === totalPages}
-                            className="px-3 py-1.5 text-xs font-medium text-slate-600 bg-white border border-slate-200 rounded-md hover:bg-slate-100 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
-                        >
-                            Next
-                        </button>
-                    </div>
-                )}
+            {/* See Conversations Button */}
+            <div>
+                <a
+                    href="/conversations"
+                    className="flex items-center justify-center w-full py-5 px-6 bg-white hover:bg-slate-50 border border-slate-200 text-indigo-600 font-semibold text-lg rounded-xl shadow-sm transition-colors text-center"
+                >
+                    See Conversations
+                </a>
             </div>
         </div>
     )

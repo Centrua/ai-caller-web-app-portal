@@ -1,6 +1,7 @@
 // src/controllers/auth.controller.ts
 import { Request, Response } from 'express';
 import { AuthService } from '../services/auth.service';
+import { sendError, sendSuccess } from '../utils/http';
 
 const authService = new AuthService();
 
@@ -10,19 +11,16 @@ export class AuthController {
       const { email, password } = req.body || {};
 
       if (!email || !password) {
-        res.status(400).json({ 
-          success: false, 
-          error: 'Email and password are required' 
-        });
+        sendError(res, 400, 'Email and password are required');
         return;
       }
 
       const result = await authService.login(email, password);
-      res.status(200).json({ success: true, data: result });
+      sendSuccess(res, 200, result);
     } 
     catch (error: any) {
       console.error('[AuthController Error]:', error);
-      res.status(401).json({ success: false, error: error.message });
+      sendError(res, 401, error.message);
     }
   }
 }
