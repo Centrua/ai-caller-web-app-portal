@@ -1,12 +1,11 @@
 export class ElevenLabsRepository {
-  private apiKey: string;
-  private baseUrl: string = 'https://api.elevenlabs.io/v1';
+  private apiKey: string
+  private baseUrl: string = 'https://api.elevenlabs.io/v1'
 
   constructor() {
     if (process.env.ELEVENLABS_API_KEY) {
       this.apiKey = process.env.ELEVENLABS_API_KEY
-    }
-    else {
+    } else {
       throw new Error('Missing ElevenLabs credentials')
     }
   }
@@ -65,8 +64,7 @@ export class ElevenLabsRepository {
       throw new Error(`ElevenLabs API error (${response.status}): ${errorBody || response.statusText}`)
     }
 
-    const data = await response.json()
-    return data
+    return await response.json()
   }
 
   async getConversationSummary(conversationId: string): Promise<any> {
@@ -86,8 +84,7 @@ export class ElevenLabsRepository {
       throw new Error(`ElevenLabs API error (${response.status}): ${errorBody || response.statusText}`)
     }
 
-    const data = await response.json()
-    return data
+    return await response.json()
   }
 
   async getConversationAudio(conversationId: string): Promise<{ arrayBuffer: ArrayBuffer; contentType: string }> {
@@ -111,11 +108,10 @@ export class ElevenLabsRepository {
     return { arrayBuffer, contentType }
   }
 
-  async createAgentKnowledgeBaseFromText(agentId: string, name: string, text: string): Promise<any> {
-    if (!agentId) throw new Error('agentId is required')
+  async createKnowledgeBaseDocument(name: string, text: string): Promise<any> {
     if (!text) throw new Error('text content is required')
 
-    const url = new URL(`${this.baseUrl}/convai/agents/${encodeURIComponent(agentId)}/knowledge-base/text`)
+    const url = new URL(`${this.baseUrl}/convai/knowledge-base/text`)
 
     const response = await fetch(url.toString(), {
       method: 'POST',
@@ -134,15 +130,19 @@ export class ElevenLabsRepository {
     return await response.json()
   }
 
-  async listKnowledgeBaseDocuments(): Promise<{ documents: any[] }> {
-    const url = new URL(`${this.baseUrl}/convai/knowledge-base`)
+  async updateKnowledgeBaseDocument(documentId: string, name: string, text: string): Promise<any> {
+    if (!documentId) throw new Error('documentId is required')
+    if (!text) throw new Error('text content is required')
+
+    const url = new URL(`${this.baseUrl}/convai/knowledge-base/${encodeURIComponent(documentId)}`)
 
     const response = await fetch(url.toString(), {
-      method: 'GET',
+      method: 'PATCH',
       headers: {
         'xi-api-key': this.apiKey,
         'Content-Type': 'application/json',
       },
+      body: JSON.stringify({ name, content: text }),
     })
 
     if (!response.ok) {
@@ -150,17 +150,13 @@ export class ElevenLabsRepository {
       throw new Error(`ElevenLabs API error (${response.status}): ${errorBody || response.statusText}`)
     }
 
-    const data = await response.json()
-    return {
-      documents: data.documents || data || [],
-    }
+    return await response.json()
   }
 
-  async getAgentKnowledgeBaseContent(agentId: string, documentId: string): Promise<string> {
-    if (!agentId) throw new Error('agentId is required')
+  async getKnowledgeBaseContent(documentId: string): Promise<any> {
     if (!documentId) throw new Error('documentId is required')
 
-    const url = new URL(`${this.baseUrl}/convai/agents/${encodeURIComponent(agentId)}/knowledge-base/${encodeURIComponent(documentId)}/content`)
+    const url = new URL(`${this.baseUrl}/convai/knowledge-base/${encodeURIComponent(documentId)}/content`)
 
     const response = await fetch(url.toString(), {
       method: 'GET',
@@ -175,7 +171,51 @@ export class ElevenLabsRepository {
       throw new Error(`ElevenLabs API error (${response.status}): ${errorBody || response.statusText}`)
     }
 
-    const data = await response.json()
-    return data.text || data.content || ''
+    const rawText = await response.text()
+
+    return rawText
+  }
+
+  async getAgentConfig(agentId: string): Promise<any> {
+    if (!agentId) throw new Error('agentId is required')
+
+    const url = new URL(`${this.baseUrl}/convai/agents/${encodeURIComponent(agentId)}`)
+
+    const response = await fetch(url.toString(), {
+      method: 'GET',
+      headers: {
+        'xi-api-key': this.apiKey,
+        'Content-Type': 'application/json',
+      },
+    })
+
+    if (!response.ok) {
+      const errorBody = await response.text()
+      throw new Error(`ElevenLabs API error (${response.status}): ${errorBody || response.statusText}`)
+    }
+
+    return await response.json()
+  }
+
+  async updateAgentConfig(agentId: string, payload: any): Promise<any> {
+    if (!agentId) throw new Error('agentId is required')
+
+    const url = new URL(`${this.baseUrl}/convai/agents/${encodeURIComponent(agentId)}`)
+
+    const response = await fetch(url.toString(), {
+      method: 'PATCH',
+      headers: {
+        'xi-api-key': this.apiKey,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(payload),
+    })
+
+    if (!response.ok) {
+      const errorBody = await response.text()
+      throw new Error(`ElevenLabs API error (${response.status}): ${errorBody || response.statusText}`)
+    }
+
+    return await response.json()
   }
 }

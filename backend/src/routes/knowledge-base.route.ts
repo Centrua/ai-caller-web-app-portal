@@ -6,6 +6,6 @@ const router = Router()
 const knowledgeBaseController = new KnowledgeBaseController()
 
 router.get('/', authenticateToken, knowledgeBaseController.getKnowledgeBaseContent)
-router.post('/', authenticateToken, knowledgeBaseController.createKnowledgeBase)
+router.post('/', authenticateToken, knowledgeBaseController.createOrUpdateKnowledgeBase)
 
 export default router

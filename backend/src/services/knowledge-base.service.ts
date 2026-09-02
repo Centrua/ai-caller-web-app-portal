@@ -2,56 +2,106 @@ import { ElevenLabsRepository } from '../repositories/http/eleven-labs.repositor
 import { VenueService } from './venue.service'
 
 export class KnowledgeBaseService {
-  private elevenLabsRepo: ElevenLabsRepository
-  private venueService: VenueService
+    private elevenLabsRepo: ElevenLabsRepository
+    private venueService: VenueService
 
-  constructor(elevenLabsRepo?: ElevenLabsRepository, venueService?: VenueService) {
-    this.elevenLabsRepo = elevenLabsRepo || new ElevenLabsRepository()
-    this.venueService = venueService || new VenueService()
-  }
-
-  private async resolveAgentId(agentId?: string, userId?: number): Promise<string> {
-    let targetAgentId = agentId
-
-    if (!targetAgentId && userId) {
-      targetAgentId = (await this.venueService.getAgentIdFromUserId(userId)) || undefined
+    constructor(
+        elevenLabsRepo?: ElevenLabsRepository,
+        venueService?: VenueService
+    ) {
+        this.elevenLabsRepo = elevenLabsRepo || new ElevenLabsRepository()
+        this.venueService = venueService || new VenueService()
     }
 
-    if (!targetAgentId) {
-      throw new Error('Agent ID could not be found for the given user or request.')
+    private async resolveAgentId(agentId?: string, userId?: number): Promise<string> {
+        let targetAgentId = agentId
+
+        if (!targetAgentId && userId) {
+            targetAgentId = (await this.venueService.getAgentIdFromUserId(userId)) || undefined
+        }
+
+        if (!targetAgentId) {
+            throw new Error('Agent ID could not be found for the given user or request.')
+        }
+
+        return targetAgentId
     }
 
-    return targetAgentId
-  }
+    async getCompiledKnowledgeBaseText(userId?: number): Promise<string> {
+        if (!userId) {
+            return ''
+        }
 
-  async getCompiledKnowledgeBaseText(userId?: number, agentId?: string): Promise<string> {
-    const targetAgentId = await this.resolveAgentId(agentId, userId)
+        const kbDocumentId = await this.venueService.getKbDocumentIdFromUserId(userId)
+        if (!kbDocumentId) {
+            return ''
+        }
 
-    const documentsResponse = await this.elevenLabsRepo.listKnowledgeBaseDocuments()
-    const documents = Array.isArray(documentsResponse?.documents) ? documentsResponse.documents : []
-
-    if (documents.length === 0) {
-      return ''
+        try {
+            const content = await this.elevenLabsRepo.getKnowledgeBaseContent(kbDocumentId)
+            return content;
+        }
+        catch {
+            throw new Error('Failed to retrieve knowledge base document')
+        }
     }
 
-    const documentIds = documents.map((doc: any) => doc.id).filter(Boolean)
+    async createOrUpdateKnowledgeBaseText(name: string, text: string, userId?: number, agentId?: string): Promise<any> {
+        const targetAgentId = await this.resolveAgentId(agentId, userId)
+        const kbDocumentId = userId ? await this.venueService.getKbDocumentIdFromUserId(userId) : null
 
-    const contentPromises = documentIds.map(async (docId: string) => {
-      try {
-        return await this.elevenLabsRepo.getAgentKnowledgeBaseContent(targetAgentId, docId)
-      } 
-      catch {
-        return ''
-      }
-    })
+        if (kbDocumentId) {
+            try {
+                return await this.elevenLabsRepo.updateKnowledgeBaseDocument(kbDocumentId, name, text)
+            }
+            catch {
+                throw new Error('Failed to update knowledge base document')
+            }
+        }
+        else {
+            return await this.createNewAndAttach(targetAgentId, userId, name, text)
+        }
+    }
 
-    const contents = await Promise.all(contentPromises)
+    private async createNewAndAttach(targetAgentId: string, userId: number | undefined, name: string, text: string): Promise<any> {
+        const newDoc = await this.elevenLabsRepo.createKnowledgeBaseDocument(name, text)
+        const docId = newDoc?.id || newDoc?.document_id
 
-    return contents.filter((text) => typeof text === 'string' && text.trim().length > 0).join('\n\n---\n\n')
-  }
+        if (!docId) {
+            throw new Error('Failed to create knowledge base document')
+        }
 
-  async createKnowledgeBaseFromText(name: string, text: string, userId?: number, agentId?: string): Promise<any> {
-    const targetAgentId = await this.resolveAgentId(agentId, userId)
-    return await this.elevenLabsRepo.createAgentKnowledgeBaseFromText(targetAgentId, name, text)
-  }
+        if (userId) {
+            await this.venueService.updateKbDocumentIdForUser(userId, docId)
+        }
+
+        if (targetAgentId) {
+            try {
+                const agentConfig = await this.elevenLabsRepo.getAgentConfig(targetAgentId)
+                const existingKb = agentConfig.conversation_config?.agent?.prompt?.knowledge_base || agentConfig.knowledge_base || []
+
+                if (!existingKb.some((doc: any) => doc.id === docId)) {
+                    const updatedKb = [...existingKb, { id: docId, type: 'file' }]
+
+                    await this.elevenLabsRepo.updateAgentConfig(targetAgentId, {
+                        conversation_config: {
+                            ...agentConfig.conversation_config,
+                            agent: {
+                                ...agentConfig.conversation_config?.agent,
+                                prompt: {
+                                    ...agentConfig.conversation_config?.agent?.prompt,
+                                    knowledge_base: updatedKb,
+                                },
+                            },
+                        },
+                    })
+                }
+            }
+            catch {
+                // Ignore or log agent-side attachment error if network/config format varies
+            }
+        }
+
+        return newDoc
+    }
 }

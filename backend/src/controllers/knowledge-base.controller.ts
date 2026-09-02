@@ -8,38 +8,36 @@ export class KnowledgeBaseController {
     this.knowledgeBaseService = knowledgeBaseService || new KnowledgeBaseService()
   }
 
-  async createKnowledgeBase(req: Request, res: Response): Promise<void> {
+  createOrUpdateKnowledgeBase = async (req: Request, res: Response): Promise<void> => {
     try {
       const { name, text, agentId } = req.body
-      const userId = (req as any).user?.id || req.body.userId
+      const userId = req.user?.id;
 
       if (!text) {
         res.status(400).json({ error: 'Text content is required' })
         return
       }
 
-      const result = await this.knowledgeBaseService.createKnowledgeBaseFromText(
+      const result = await this.knowledgeBaseService.createOrUpdateKnowledgeBaseText(
         name || 'Knowledge Base Text',
         text,
         userId ? Number(userId) : undefined,
         agentId
       )
 
-      res.status(201).json(result)
+      res.status(200).json(result)
     } 
     catch (error: any) {
       res.status(500).json({ error: error.message || 'Internal server error' })
     }
   }
 
-  async getKnowledgeBaseContent(req: Request, res: Response): Promise<void> {
+  getKnowledgeBaseContent = async (req: Request, res: Response): Promise<void> => {
     try {
-      const { agentId, userId: queryUserId } = req.query
-      const userId = (req as any).user?.id || queryUserId
+      const userId = req.user?.id
 
       const text = await this.knowledgeBaseService.getCompiledKnowledgeBaseText(
-        userId ? Number(userId) : undefined,
-        agentId as string
+        userId ? Number(userId) : undefined
       )
 
       res.status(200).json({ text })
