@@ -44,19 +44,19 @@ export default function Conversations() {
               <th className="text-left px-5 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wide">Date</th>
               <th className="text-left px-5 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wide">Caller</th>
               <th className="text-left px-5 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wide">Duration</th>
-              <th className="text-left px-5 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wide">Outcome</th>
+              <th className="text-left px-5 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wide"> </th>
             </tr>
           </thead>
           <tbody>
             {loading && (
               <tr>
-                <td colSpan={4} className="px-5 py-8 text-center text-slate-400">Loading conversations...</td>
+                <td colSpan={3} className="px-5 py-8 text-center text-slate-400">Loading conversations...</td>
               </tr>
             )}
 
             {!loading && conversations.length === 0 && (
               <tr>
-                <td colSpan={4} className="px-5 py-8 text-center text-slate-400">No conversations found for this venue.</td>
+                <td colSpan={3} className="px-5 py-8 text-center text-slate-400">No conversations found for this venue.</td>
               </tr>
             )}
 
@@ -69,19 +69,13 @@ export default function Conversations() {
                     {isTodayIso(c.startTime) && (
                       <span title="New conversation today" className="ml-3 inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-amber-100 text-amber-700">New</span>
                     )}
+                    {c.hasUnacknowledgedActions && (
+                      <span title="Action items pending" className="ml-2 inline-block w-2 h-2 rounded-full bg-red-500" />
+                    )}
                   </div>
                 </td>
                 <td className="px-5 py-4 text-slate-500">{c.durationDisplay || '-'}</td>
-                <td className="px-5 py-4">
-                  {(() => {
-                    const key = String(c.callSuccessful ?? 'unknown').toLowerCase()
-                    return (
-                      <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${statusColor[key] || 'bg-slate-100 text-slate-500'}`}>
-                        {formatOutcome(c.callSuccessful)}
-                      </span>
-                    )
-                  })()}
-                </td>
+                <td className="px-5 py-4 text-right"></td>
               </tr>
             ))}
           </tbody>

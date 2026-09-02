@@ -1,6 +1,7 @@
 import { Request, Response } from 'express'
 import { ElevenLabsRepository } from '../repositories/http/eleven-labs.repository'
 import { VenueService } from '../services/venue.service'
+import ActionItemsService from '../services/action-items.service'
 
 function formatDuration(seconds?: number) {
   if (!seconds && seconds !== 0) return null
@@ -61,10 +62,12 @@ function normalizeConversation(conv: any) {
 export class ConversationsController {
   private elevenLabsRepo: ElevenLabsRepository
   private venueService: VenueService
+  private actionItemsService: typeof ActionItemsService
 
   constructor(elevenLabsRepo?: ElevenLabsRepository, venueService?: VenueService) {
     this.elevenLabsRepo = elevenLabsRepo || new ElevenLabsRepository()
     this.venueService = venueService || new VenueService()
+    this.actionItemsService = ActionItemsService
   }
 
   public list = async (req: Request, res: Response): Promise<void> => {
@@ -98,7 +101,21 @@ export class ConversationsController {
 
       const normalized = (repoResp.conversations || []).map(normalizeConversation)
 
-      res.status(200).json({ success: true, data: { conversations: normalized, hasMore: !!repoResp.has_more, nextCursor: repoResp.next_cursor } })
+      // enrich with action-item presence info (pending = not completed)
+        const enriched = await Promise.all(
+          normalized.map(async (c) => {
+            try {
+              const flags = await this.actionItemsService.getConversationFlags(String(c.id))
+              const hasPending = flags ? !flags.completed : false
+              const out: any = { ...(c as any), hasUnacknowledgedActions: hasPending }
+              return out
+            } catch {
+              return { ...(c as any), hasUnacknowledgedActions: false }
+            }
+          })
+        )
+
+      res.status(200).json({ success: true, data: { conversations: enriched, hasMore: !!repoResp.has_more, nextCursor: repoResp.next_cursor } })
     } catch (error: any) {
       res.status(500).json({ success: false, error: error.message || 'Internal server error' })
     }
@@ -115,7 +132,121 @@ export class ConversationsController {
 
       const data = await this.elevenLabsRepo.getConversationById(String(conversationId))
       const normalized = normalizeConversation(data)
-      res.status(200).json({ success: true, data: normalized })
+      // include action items state
+      const normalizedAny: any = normalized
+      try {
+        const dcr = data.analysis?.data_collection_results ?? data.data_collection_results ?? normalizedAny.dataCollectionResults
+        const items = await this.actionItemsService.getActionItems(String(normalizedAny.id), dcr)
+        normalizedAny.actionItems = items
+        normalizedAny.hasUnacknowledgedActions = items.some((it: any) => it.actionable && !it.completed)
+        try {
+          const rawDcr = data.analysis?.data_collection_results ?? data.data_collection_results ?? normalizedAny.dataCollectionResults
+          const next = items.find((it: any) => it.actionable && !it.completed) || null
+          if (Array.isArray(rawDcr)) {
+            const arr = (rawDcr as any[]).map((it: any) => {
+              const id = String(it.data_collection_id ?? it.id ?? JSON.stringify(it))
+              if (next && id === next.id) return { ...it, nextActionableStep: true }
+              return it
+            })
+            normalizedAny.dataCollectionResults = arr
+          } else if (next && rawDcr && typeof rawDcr === 'object') {
+            const key = next.id
+            normalizedAny.dataCollectionResults = { ...(normalizedAny.dataCollectionResults || {}), [key]: { value: rawDcr[key]?.value ?? rawDcr[key], nextActionableStep: true } }
+          } else {
+            normalizedAny.dataCollectionResults = normalizedAny.dataCollectionResults || {}
+            if (next) normalizedAny.dataCollectionResults['Next Actionable Step'] = next.value ?? next.label
+          }
+        } catch {
+          // ignore
+        }
+      } catch {
+        normalizedAny.actionItems = []
+        normalizedAny.hasUnacknowledgedActions = false
+      }
+
+      res.status(200).json({ success: true, data: normalizedAny })
+    } catch (error: any) {
+      res.status(500).json({ success: false, error: error.message || 'Internal server error' })
+    }
+  }
+
+  public actionsList = async (req: Request, res: Response): Promise<void> => {
+    try {
+      const conversationIdRaw = req.params.id
+      const conversationId = Array.isArray(conversationIdRaw) ? conversationIdRaw[0] : conversationIdRaw
+      if (!conversationId) {
+        res.status(400).json({ success: false, error: 'conversation id required' })
+        return
+      }
+
+      const data = await this.elevenLabsRepo.getConversationById(String(conversationId))
+      const dcr = data.analysis?.data_collection_results ?? data.data_collection_results ?? data.dataCollectionResults
+      const items = await this.actionItemsService.getActionItems(String(conversationId), dcr)
+      // return single item (or empty array) to keep API shape minimal; frontend expects at most one
+      res.status(200).json({ success: true, data: items })
+    } catch (error: any) {
+      res.status(500).json({ success: false, error: error.message || 'Internal server error' })
+    }
+  }
+  public updateAction = async (req: Request, res: Response): Promise<void> => {
+    try {
+      const conversationIdRaw = req.params.id
+      const conversationId = Array.isArray(conversationIdRaw) ? conversationIdRaw[0] : conversationIdRaw
+      if (!conversationId) {
+        res.status(400).json({ success: false, error: 'conversation id required' })
+        return
+      }
+
+      const body = req.body || {}
+      if (typeof body.completed === 'boolean') {
+        const updated = body.completed
+          ? await this.actionItemsService.markDone(String(conversationId))
+          : await this.actionItemsService.markUndone(String(conversationId))
+        res.status(200).json({ success: true, data: updated })
+        return
+      }
+
+      res.status(400).json({ success: false, error: 'Unsupported update. Send { completed: true|false }' })
+    } catch (error: any) {
+      res.status(500).json({ success: false, error: error.message || 'Internal server error' })
+    }
+  }
+
+  // Conversation-level flags
+  public getFlags = async (req: Request, res: Response): Promise<void> => {
+    try {
+      const conversationIdRaw = req.params.id
+      const conversationId = Array.isArray(conversationIdRaw) ? conversationIdRaw[0] : conversationIdRaw
+      if (!conversationId) {
+        res.status(400).json({ success: false, error: 'conversation id required' })
+        return
+      }
+      const flags = await this.actionItemsService.getConversationFlags(String(conversationId))
+      res.status(200).json({ success: true, data: flags })
+    } catch (error: any) {
+      res.status(500).json({ success: false, error: error.message || 'Internal server error' })
+    }
+  }
+
+  public setComplete = async (req: Request, res: Response): Promise<void> => {
+    try {
+      const conversationIdRaw = req.params.id
+      const conversationId = Array.isArray(conversationIdRaw) ? conversationIdRaw[0] : conversationIdRaw
+      if (!conversationId) {
+        res.status(400).json({ success: false, error: 'conversation id required' })
+        return
+      }
+
+      const body = req.body || {}
+      if (typeof body.completed !== 'boolean') {
+        res.status(400).json({ success: false, error: 'Missing completed boolean' })
+        return
+      }
+
+      const updated = body.completed
+        ? await this.actionItemsService.markDone(String(conversationId))
+        : await this.actionItemsService.markUndone(String(conversationId))
+      res.status(200).json({ success: true, data: updated })
     } catch (error: any) {
       res.status(500).json({ success: false, error: error.message || 'Internal server error' })
     }

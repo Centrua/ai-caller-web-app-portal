@@ -12,11 +12,23 @@ function formatDate(iso?: string) {
   }
 }
 
-function formatOutcome(val: any) {
-  if (val === null || val === undefined) return 'Unknown'
-  const s = String(val)
-  if (!s) return 'Unknown'
-  return s.charAt(0).toUpperCase() + s.slice(1)
+function displayableValue(raw: any): string | null {
+  if (raw === null || raw === undefined) return null
+  if (typeof raw === 'boolean') return raw ? 'Yes' : 'No'
+  if (typeof raw === 'object') {
+    // prefer explicit .value when it's primitive
+    if ('value' in raw) {
+      const v = (raw as any).value
+      if (v === null || v === undefined || v === '') return null
+      if (typeof v === 'boolean') return v ? 'Yes' : 'No'
+      if (typeof v === 'string') return v.charAt(0).toUpperCase() + v.slice(1)
+      return String(v)
+    }
+    return null
+  }
+  if (raw === '') return null
+  if (typeof raw === 'string') return raw.charAt(0).toUpperCase() + raw.slice(1)
+  return String(raw)
 }
 
 export default function ConversationDetails() {
@@ -27,6 +39,8 @@ export default function ConversationDetails() {
   const [conv, setConv] = useState<any | null>(null)
   const [audioUrl, setAudioUrl] = useState<string | null>(null)
   const [audioLoading, setAudioLoading] = useState(false)
+  const [action, setAction] = useState<any | null>(null)
+  const [actionsLoading, setActionsLoading] = useState(false)
 
   useEffect(() => {
     const load = async () => {
@@ -122,6 +136,37 @@ export default function ConversationDetails() {
     }
   }, [id, conv?.hasAudio])
 
+  // load action items
+  useEffect(() => {
+    let mounted = true
+    const loadActions = async () => {
+      if (!id) return
+      setActionsLoading(true)
+      try {
+        const token = localStorage.getItem('token')
+        if (!token) throw new Error('No token')
+        const base = API_BASE_URL || ''
+        const raw = `${base}/api/conversations/${id}/actions`
+        const url = raw.replace('://', '::tmp::').replace(/\/\/+/g, '/').replace('::tmp::', '://')
+        const res = await fetch(url, { headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' } })
+        if (!res.ok) throw new Error('Failed to fetch actions')
+        const json = await res.json()
+        if (!json.success) throw new Error(json.error || 'Failed to fetch actions')
+        if (mounted) setAction((json.data && json.data.length > 0) ? json.data[0] : null)
+      } catch (err) {
+        console.error('Failed to load actions', err)
+        if (mounted) setAction(null)
+      } finally {
+        if (mounted) setActionsLoading(false)
+      }
+    }
+
+    loadActions()
+    return () => {
+      mounted = false
+    }
+  }, [id])
+
   if (loading) return <div className="p-8">Loading...</div>
   if (error) return <div className="p-8 text-red-600">{error}</div>
   if (!conv) return <div className="p-8">Conversation not found.</div>
@@ -141,6 +186,43 @@ export default function ConversationDetails() {
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           <div className="lg:col-span-2">
+            {action && (
+              <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden mb-4">
+                <div className="p-4 flex items-start justify-between gap-3">
+                  <div>
+                    <div className="text-xs text-slate-500 mb-1">Action Item</div>
+                    <div className="text-sm font-medium text-slate-800">{action.label}</div>
+                    <div className="text-slate-700 text-sm">{String(action.value ?? '')}</div>
+                  </div>
+                  <button
+                    className={`px-2 py-1 text-sm rounded ${action.completed ? 'bg-slate-200 text-slate-800 hover:bg-slate-300' : 'bg-amber-100 text-amber-800 hover:bg-amber-200'}`}
+                    onClick={async (e) => {
+                      e.stopPropagation()
+                      const nextCompleted = !action.completed
+                      try {
+                        const token = localStorage.getItem('token')
+                        const base = API_BASE_URL || ''
+                        const res = await fetch(`${base}/api/conversations/${id}/complete`, {
+                          method: 'PATCH',
+                          headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+                          body: JSON.stringify({ completed: nextCompleted }),
+                        })
+                        const j = await res.json()
+                        if (j.success) {
+                          setAction((prev) => prev ? { ...prev, completed: nextCompleted } : prev)
+                          setConv((prev) => prev ? { ...prev, hasUnacknowledgedActions: !nextCompleted } : prev)
+                        }
+                      } catch (err) {
+                        console.error(err)
+                      }
+                    }}
+                  >
+                    {action.completed ? 'Mark Undone' : 'Mark Done'}
+                  </button>
+                </div>
+              </div>
+            )}
+
             <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden mb-4">
               <div className="p-6">
                 <h2 className="text-lg font-medium mb-2">Summary</h2>
@@ -175,10 +257,40 @@ export default function ConversationDetails() {
 
           <aside className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden p-6">
             <h3 className="text-md font-medium mb-3">Call Details</h3>
-            <p className="text-slate-700"><strong>Caller:</strong> {conv.callSummaryTitle || conv.agentName || 'Unknown'}</p>
+            {/* Prefer 'Lead Name' from data collection results, else Unknown */}
+            {(() => {
+              try {
+                const rawDcr = conv.analysis?.data_collection_results ?? conv.dataCollectionResults ?? conv.data_collection_results
+                // check map form first
+                if (rawDcr && typeof rawDcr === 'object' && !Array.isArray(rawDcr)) {
+                  const keys = Object.keys(rawDcr)
+                  const foundKey = keys.find((k) => ['lead name', 'lead_name', 'leadName'].includes(String(k).toLowerCase()))
+                  if (foundKey) {
+                    const dv = (rawDcr as any)[foundKey]?.value ?? (rawDcr as any)[foundKey]
+                    const disp = displayableValue(dv)
+                    if (disp) return <p className="text-slate-700"><strong>Caller:</strong> {disp}</p>
+                  }
+                }
+
+                // check array form
+                if (Array.isArray(rawDcr)) {
+                  for (const it of rawDcr) {
+                    const id = String(it.data_collection_id ?? it.id ?? '')
+                    if (['lead name', 'lead_name', 'leadName'].includes(id.toLowerCase())) {
+                      const disp = displayableValue(it.value ?? it?.value ?? null)
+                      if (disp) return <p className="text-slate-700"><strong>Caller:</strong> {disp}</p>
+                    }
+                  }
+                }
+              } catch {
+                // ignore
+              }
+              return <p className="text-slate-700"><strong>Caller:</strong> Unknown</p>
+            })()}
             <p className="text-slate-700"><strong>Date/Time:</strong> {formatDate(conv.startTime)}</p>
             <p className="text-slate-700"><strong>Duration:</strong> {conv.durationDisplay || '—'}</p>
-            <p className="text-slate-700"><strong>Outcome:</strong> {formatOutcome(conv.callSuccessful)}</p>
+            
+            
 
               {/* Data collection results: prefer analysis.data_collection_results, then normalized dataCollectionResults */}
               {(() => {
@@ -187,28 +299,51 @@ export default function ConversationDetails() {
                 const dcr = analysisDCR ?? normalizedDCR
                 if (!dcr) return null
 
-                // If it's an array form (data_collection_results_list), render each item's value
+                // If it's an array form (data_collection_results_list), render each item's primitive value
                 if (Array.isArray(dcr)) {
+                  const items = (dcr as any[])
+                    .map((item: any) => {
+                      const id = item.data_collection_id ?? item.id ?? JSON.stringify(item)
+                      const raw = item.value ?? item?.value ?? null
+                      const disp = displayableValue(raw)
+                      if (!disp) return null
+                      return { id, label: id, value: disp }
+                    })
+                    .filter(Boolean)
+
+                  if (items.length === 0) return null
+
                   return (
                     <div className="mt-3">
                       <div className="text-xs text-slate-500 mb-1">Data collection</div>
                       <ul className="list-none space-y-1">
-                        {dcr.map((item: any) => (
-                          <li key={item.data_collection_id} className="text-slate-700"><strong>{item.data_collection_id}:</strong> {String(item.value ?? '')}</li>
+                        {items.map((it: any) => (
+                          <li key={it.id} className="text-slate-700"><strong>{it.label}:</strong> {it.value}</li>
                         ))}
                       </ul>
                     </div>
                   )
                 }
 
-                // If it's an object map, render each key's value (prefer the 'value' field)
+                // If it's an object map, render each key's primitive value (prefer the 'value' field)
                 if (typeof dcr === 'object' && dcr !== null) {
+                  const entries = Object.entries(dcr)
+                    .map(([k, v]: any) => {
+                      const raw = (v as any)?.value ?? v
+                      const disp = displayableValue(raw)
+                      if (!disp) return null
+                      return { k, v: disp }
+                    })
+                    .filter(Boolean)
+
+                  if (entries.length === 0) return null
+
                   return (
                     <div className="mt-3">
                       <div className="text-xs text-slate-500 mb-1">Data collection</div>
                       <ul className="list-none space-y-1">
-                        {Object.entries(dcr).map(([k, v]: any) => (
-                          <li key={k} className="text-slate-700"><strong>{k}:</strong> {String(v?.value ?? v ?? '')}</li>
+                        {entries.map((it: any) => (
+                          <li key={it.k} className="text-slate-700"><strong>{it.k}:</strong> {it.v}</li>
                         ))}
                       </ul>
                     </div>
@@ -216,7 +351,9 @@ export default function ConversationDetails() {
                 }
 
                 // primitive fallback
-                return <p className="text-slate-700 mt-3"><strong>Data Collection:</strong> {String(dcr)}</p>
+                const prim = displayableValue(dcr)
+                if (!prim) return null
+                return <p className="text-slate-700 mt-3"><strong>Data Collection:</strong> {prim}</p>
               })()}
 
           
