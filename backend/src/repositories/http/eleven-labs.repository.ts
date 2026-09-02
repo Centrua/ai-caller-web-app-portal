@@ -11,10 +11,6 @@ export class ElevenLabsRepository {
     }
   }
 
-  /**
-   * Fetch conversations with optional ElevenLabs-compatible filters.
-   * Returns an object containing conversations array, has_more and next_cursor.
-   */
   async getConversations(filters: Record<string, any> = {}): Promise<{ conversations: any[]; has_more: boolean; next_cursor?: string | null }> {
     const url = new URL(`${this.baseUrl}/convai/conversations`)
 
@@ -55,9 +51,6 @@ export class ElevenLabsRepository {
     }
   }
 
-  /**
-   * Fetch a single conversation by id.
-   */
   async getConversationById(conversationId: string): Promise<any> {
     if (!conversationId) throw new Error('conversationId is required')
     const url = `${this.baseUrl}/convai/conversations/${encodeURIComponent(conversationId)}`
@@ -78,10 +71,6 @@ export class ElevenLabsRepository {
     return data
   }
 
-  /**
-   * Fetch a conversation summary (lightweight) by id.
-   * Calls GET /convai/conversations/{id}/summary
-   */
   async getConversationSummary(conversationId: string): Promise<any> {
     if (!conversationId) throw new Error('conversationId is required')
     const url = new URL(`${this.baseUrl}/convai/conversations/${encodeURIComponent(conversationId)}/summary`)
@@ -103,10 +92,6 @@ export class ElevenLabsRepository {
     return data
   }
 
-  /**
-   * Fetch the raw audio bytes for a conversation.
-   * Returns { arrayBuffer, contentType }
-   */
   async getConversationAudio(conversationId: string): Promise<{ arrayBuffer: ArrayBuffer; contentType: string }> {
     if (!conversationId) throw new Error('conversationId is required')
     const url = `${this.baseUrl}/convai/conversations/${encodeURIComponent(conversationId)}/audio`
