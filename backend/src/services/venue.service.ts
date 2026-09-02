@@ -6,4 +6,12 @@ export class VenueService {
   async getAgentIdFromUserId(userId: number): Promise<string | null> {
     return await this.venueRepo.getAgentIdByUserId(userId);
   }
+
+  async getKbDocumentIdFromUserId(userId: number): Promise<string | null> {
+    return await this.venueRepo.getKbDocumentIdByUserId(userId);
+  }
+
+  async updateKbDocumentIdForUser(userId: number, kbDocumentId: string): Promise<void> {
+    await this.venueRepo.updateKbDocumentIdByUserId(userId, kbDocumentId);
+  }
 }

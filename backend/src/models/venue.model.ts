@@ -8,11 +8,12 @@ interface VenueAttributes {
   phone: string | null;
   elevenlabs_agent_id: string | null;
   elevenlabs_phone_number_id: string | null;
+  kb_document_id: string | null;
   associated_user_ids: number[];
   created_at?: Date;
 }
 
-interface VenueCreationAttributes extends Optional<VenueAttributes, 'id' | 'email' | 'phone' | 'elevenlabs_agent_id' | 'elevenlabs_phone_number_id' | 'associated_user_ids' | 'created_at'> {}
+interface VenueCreationAttributes extends Optional<VenueAttributes, 'id' | 'email' | 'phone' | 'elevenlabs_agent_id' | 'elevenlabs_phone_number_id' | 'kb_document_id' | 'associated_user_ids' | 'created_at'> {}
 
 export class Venue extends Model<VenueAttributes, VenueCreationAttributes> implements VenueAttributes {
   public declare id: number;
@@ -21,6 +22,7 @@ export class Venue extends Model<VenueAttributes, VenueCreationAttributes> imple
   public declare phone: string | null;
   public declare elevenlabs_agent_id: string | null;
   public declare elevenlabs_phone_number_id: string | null;
+  public declare kb_document_id: string | null;
   public declare associated_user_ids: number[];
   public declare readonly created_at: Date;
 
@@ -57,6 +59,10 @@ Venue.init(
       allowNull: true,
     },
     elevenlabs_phone_number_id: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
+    kb_document_id: {
       type: DataTypes.STRING,
       allowNull: true,
     },
