@@ -3,6 +3,7 @@ import cors from 'cors';
 import dashboardRouter from './routes/dashboard.route';
 import authRouter from './routes/auth.routes';
 import conversationsRouter from './routes/conversations.route';
+import actionItemsRouter from './routes/action-items.route';
 
 const app = express();
 const PORT = process.env.PORT || 3001;
@@ -20,6 +21,7 @@ app.get('/', (req: Request, res: Response) => {
 app.use('/api/dashboard', dashboardRouter);
 app.use('/api/auth', authRouter);
 app.use('/api/conversations', conversationsRouter);
+app.use('/api/conversations', actionItemsRouter);
 
 app.listen(PORT, () => {
   console.log(`Server running on http://localhost:${PORT}`);

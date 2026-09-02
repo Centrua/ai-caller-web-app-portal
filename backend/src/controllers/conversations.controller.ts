@@ -12,62 +12,41 @@ function formatDuration(seconds?: number) {
 }
 
 function normalizeConversation(conv: any) {
-  // Support both list-item shape and full-detail shape where metadata.* contains timestamps/duration
   const startUnix = conv.start_time_unix_secs ?? conv.metadata?.start_time_unix_secs ?? null
   const durationSecs = conv.call_duration_secs ?? conv.metadata?.call_duration_secs ?? null
-  const messageCount = conv.message_count ?? (Array.isArray(conv.transcript) ? conv.transcript.length : null)
+
+  const transcript = Array.isArray(conv.transcript)
+    ? conv.transcript
+    : Array.isArray(conv.messages)
+      ? conv.messages
+      : undefined
 
   return {
-    id: conv.conversation_id || null,
-    agentId: conv.agent_id || null,
+    id: conv.conversation_id ?? conv.id ?? null,
     agentName: conv.agent_name ?? conv.agentName ?? null,
     startTime: startUnix ? new Date(startUnix * 1000).toISOString() : null,
-    startTimeUnixSecs: startUnix,
-    durationSecs: typeof durationSecs === 'number' ? durationSecs : null,
     durationDisplay: formatDuration(durationSecs),
-    messageCount: typeof messageCount === 'number' ? messageCount : null,
-    status: conv.status ?? null,
-    callSuccessful: conv.call_successful ?? null,
-    branchId: conv.branch_id ?? null,
-    versionId: conv.version_id ?? conv.versionId ?? null,
-    terminationReason: conv.termination_reason ?? null,
-    callSuccessScore: conv.call_success_score ?? null,
+    callSummaryTitle: conv.call_summary_title ?? conv.callSummaryTitle ?? null,
     transcriptSummary: conv.transcript_summary ?? null,
-    callSummaryTitle: conv.call_summary_title ?? null,
-    mainLanguage: conv.main_language ?? null,
-    initiationSource: conv.conversation_initiation_source ?? null,
-    toolNames: conv.tool_names ?? [],
-    direction: conv.direction ?? null,
-    rating: typeof conv.rating === 'number' ? conv.rating : null,
-    sentimentAnalysis: conv.sentiment_analysis ?? {},
-    // Prefer data collection results from analysis if present (full-detail responses nest it there)
-    dataCollectionResults: conv.analysis?.data_collection_results ?? conv.data_collection_results ?? {},
-    evaluationCriteriaResults: conv.evaluation_criteria_results ?? {},
-    // Include raw analysis object so callers can access nested analysis.* fields
-    analysis: conv.analysis ?? undefined,
-    tagIds: conv.tag_ids ?? [],
-    // Detail-specific fields
+    transcript,
+    messages: transcript,
     hasAudio: typeof conv.has_audio === 'boolean' ? conv.has_audio : undefined,
     hasUserAudio: typeof conv.has_user_audio === 'boolean' ? conv.has_user_audio : undefined,
     hasResponseAudio: typeof conv.has_response_audio === 'boolean' ? conv.has_response_audio : undefined,
     hasAuxiliaryAudio: typeof conv.has_auxiliary_audio === 'boolean' ? conv.has_auxiliary_audio : undefined,
-    transcript: Array.isArray(conv.transcript) ? conv.transcript : undefined,
-    metadata: conv.metadata ?? undefined,
-    environment: conv.environment ?? undefined,
-    userId: conv.user_id ?? undefined,
-    conversationProduct: conv.conversation_product ?? undefined,
+    analysis: conv.analysis ?? undefined,
+    dataCollectionResults: conv.analysis?.data_collection_results ?? conv.data_collection_results ?? undefined,
   }
 }
 
 export class ConversationsController {
   private elevenLabsRepo: ElevenLabsRepository
   private venueService: VenueService
-  private actionItemsService: typeof ActionItemsService
+  private actionItemsService = ActionItemsService
 
   constructor(elevenLabsRepo?: ElevenLabsRepository, venueService?: VenueService) {
     this.elevenLabsRepo = elevenLabsRepo || new ElevenLabsRepository()
     this.venueService = venueService || new VenueService()
-    this.actionItemsService = ActionItemsService
   }
 
   public list = async (req: Request, res: Response): Promise<void> => {
@@ -165,88 +144,6 @@ export class ConversationsController {
       }
 
       res.status(200).json({ success: true, data: normalizedAny })
-    } catch (error: any) {
-      res.status(500).json({ success: false, error: error.message || 'Internal server error' })
-    }
-  }
-
-  public actionsList = async (req: Request, res: Response): Promise<void> => {
-    try {
-      const conversationIdRaw = req.params.id
-      const conversationId = Array.isArray(conversationIdRaw) ? conversationIdRaw[0] : conversationIdRaw
-      if (!conversationId) {
-        res.status(400).json({ success: false, error: 'conversation id required' })
-        return
-      }
-
-      const data = await this.elevenLabsRepo.getConversationById(String(conversationId))
-      const dcr = data.analysis?.data_collection_results ?? data.data_collection_results ?? data.dataCollectionResults
-      const items = await this.actionItemsService.getActionItems(String(conversationId), dcr)
-      // return single item (or empty array) to keep API shape minimal; frontend expects at most one
-      res.status(200).json({ success: true, data: items })
-    } catch (error: any) {
-      res.status(500).json({ success: false, error: error.message || 'Internal server error' })
-    }
-  }
-  public updateAction = async (req: Request, res: Response): Promise<void> => {
-    try {
-      const conversationIdRaw = req.params.id
-      const conversationId = Array.isArray(conversationIdRaw) ? conversationIdRaw[0] : conversationIdRaw
-      if (!conversationId) {
-        res.status(400).json({ success: false, error: 'conversation id required' })
-        return
-      }
-
-      const body = req.body || {}
-      if (typeof body.completed === 'boolean') {
-        const updated = body.completed
-          ? await this.actionItemsService.markDone(String(conversationId))
-          : await this.actionItemsService.markUndone(String(conversationId))
-        res.status(200).json({ success: true, data: updated })
-        return
-      }
-
-      res.status(400).json({ success: false, error: 'Unsupported update. Send { completed: true|false }' })
-    } catch (error: any) {
-      res.status(500).json({ success: false, error: error.message || 'Internal server error' })
-    }
-  }
-
-  // Conversation-level flags
-  public getFlags = async (req: Request, res: Response): Promise<void> => {
-    try {
-      const conversationIdRaw = req.params.id
-      const conversationId = Array.isArray(conversationIdRaw) ? conversationIdRaw[0] : conversationIdRaw
-      if (!conversationId) {
-        res.status(400).json({ success: false, error: 'conversation id required' })
-        return
-      }
-      const flags = await this.actionItemsService.getConversationFlags(String(conversationId))
-      res.status(200).json({ success: true, data: flags })
-    } catch (error: any) {
-      res.status(500).json({ success: false, error: error.message || 'Internal server error' })
-    }
-  }
-
-  public setComplete = async (req: Request, res: Response): Promise<void> => {
-    try {
-      const conversationIdRaw = req.params.id
-      const conversationId = Array.isArray(conversationIdRaw) ? conversationIdRaw[0] : conversationIdRaw
-      if (!conversationId) {
-        res.status(400).json({ success: false, error: 'conversation id required' })
-        return
-      }
-
-      const body = req.body || {}
-      if (typeof body.completed !== 'boolean') {
-        res.status(400).json({ success: false, error: 'Missing completed boolean' })
-        return
-      }
-
-      const updated = body.completed
-        ? await this.actionItemsService.markDone(String(conversationId))
-        : await this.actionItemsService.markUndone(String(conversationId))
-      res.status(200).json({ success: true, data: updated })
     } catch (error: any) {
       res.status(500).json({ success: false, error: error.message || 'Internal server error' })
     }
