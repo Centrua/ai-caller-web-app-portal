@@ -1,6 +1,8 @@
-import ActionItem from '../models/action-item.model'
+import { ActionItemRepository } from '../repositories/action-item.repository'
 
 export class ActionItemsService {
+  constructor(private readonly actionItemRepository = new ActionItemRepository()) {}
+
   // Return a simplified action item for the conversation.
   // We only expose whether there's a next actionable item and its completed state.
   public async getActionItems(conversationId: string, dcr: any): Promise<Array<any>> {
@@ -34,23 +36,13 @@ export class ActionItemsService {
 
     if (!candidateId) return []
 
-    const row = await ActionItem.findOne({ where: { conversationId } })
+    const row = await this.actionItemRepository.findByConversationId(conversationId)
     const completed = !!row?.completed
     return [{ id: candidateId, label: candidateId, value: candidateValue, actionable: true, completed }]
   }
 
   public async setCompleted(conversationId: string, completed: boolean) {
-    const [row, created] = await ActionItem.findOrCreate({
-      where: { conversationId },
-      defaults: { conversationId, completed },
-    })
-
-    if (!created) {
-      row.completed = completed
-      await row.save()
-    }
-
-    return { conversationId, completed, updatedAt: row.updatedAt }
+    return this.actionItemRepository.upsertCompletion(conversationId, completed)
   }
 
   public async markDone(conversationId: string) {
@@ -62,7 +54,7 @@ export class ActionItemsService {
   }
 
   public async getConversationFlags(conversationId: string) {
-    const row = await ActionItem.findOne({ where: { conversationId } })
+    const row = await this.actionItemRepository.findByConversationId(conversationId)
     return { completed: !!row?.completed, updatedAt: row?.updatedAt ?? null }
   }
 }
