@@ -4,6 +4,7 @@ import dashboardRouter from './routes/dashboard.route';
 import authRouter from './routes/auth.routes';
 import conversationsRouter from './routes/conversations.route';
 import actionItemsRouter from './routes/action-items.route';
+import knowledgeBaseRouter from './routes/knowledge-base.route';
 
 const app = express();
 const PORT = process.env.PORT || 3001;
@@ -22,6 +23,7 @@ app.use('/api/dashboard', dashboardRouter);
 app.use('/api/auth', authRouter);
 app.use('/api/conversations', conversationsRouter);
 app.use('/api/conversations', actionItemsRouter);
+app.use('/api/knowledge-base', knowledgeBaseRouter);
 
 app.listen(PORT, () => {
   console.log(`Server running on http://localhost:${PORT}`);
