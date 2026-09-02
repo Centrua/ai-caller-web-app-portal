@@ -2,7 +2,7 @@ import { Request, Response } from 'express'
 import { ElevenLabsRepository } from '../repositories/http/eleven-labs.repository'
 import { VenueService } from '../services/venue.service'
 import ActionItemsService from '../services/action-items.service'
-import { requireConversationId } from '../utils/conversation'
+import { conversationBelongsToAgent, requireConversationId } from '../utils/conversation'
 import { sendError, sendSuccess } from '../utils/http'
 
 function formatDuration(seconds?: number) {
@@ -105,7 +105,24 @@ export class ConversationsController {
       const conversationId = requireConversationId(req, res)
       if (!conversationId) return
 
+      const userId = req.user?.id
+      if (!userId) {
+        sendError(res, 401, 'Unauthorized: user context missing')
+        return
+      }
+
+      const agentId = await this.venueService.getAgentIdFromUserId(userId)
+      if (!agentId) {
+        sendError(res, 403, 'Forbidden: agent not found for user')
+        return
+      }
+
       const data = await this.elevenLabsRepo.getConversationById(String(conversationId))
+      if (!conversationBelongsToAgent(data, agentId)) {
+        sendError(res, 403, 'Forbidden: conversation does not belong to this user\'s agent')
+        return
+      }
+
       const normalized = normalizeConversation(data)
       const normalizedAny: any = normalized
 
@@ -130,7 +147,23 @@ export class ConversationsController {
       const conversationId = requireConversationId(req, res)
       if (!conversationId) return
 
+      const userId = req.user?.id
+      if (!userId) {
+        sendError(res, 401, 'Unauthorized: user context missing')
+        return
+      }
+
+      const agentId = await this.venueService.getAgentIdFromUserId(userId)
+      if (!agentId) {
+        sendError(res, 403, 'Forbidden: agent not found for user')
+        return
+      }
+
       const data = await this.elevenLabsRepo.getConversationSummary(String(conversationId))
+      if (!conversationBelongsToAgent(data, agentId)) {
+        sendError(res, 403, 'Forbidden: conversation does not belong to this user\'s agent')
+        return
+      }
 
       // Map summary fields into normalized shape similar to normalizeConversation
       const normalized = {
@@ -157,7 +190,25 @@ export class ConversationsController {
       const conversationId = requireConversationId(req, res)
       if (!conversationId) return
 
+      const userId = req.user?.id
+      if (!userId) {
+        sendError(res, 401, 'Unauthorized: user context missing')
+        return
+      }
+
+      const agentId = await this.venueService.getAgentIdFromUserId(userId)
+      if (!agentId) {
+        sendError(res, 403, 'Forbidden: agent not found for user')
+        return
+      }
+
       const data = await this.elevenLabsRepo.getConversationAudio(String(conversationId))
+      const conversation = await this.elevenLabsRepo.getConversationById(String(conversationId))
+      if (!conversationBelongsToAgent(conversation, agentId)) {
+        sendError(res, 403, 'Forbidden: conversation does not belong to this user\'s agent')
+        return
+      }
+
       const buffer = Buffer.from(data.arrayBuffer)
       res.setHeader('Content-Type', data.contentType)
       res.setHeader('Content-Length', String(buffer.length))

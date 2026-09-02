@@ -8,6 +8,21 @@ export function getConversationId(req: Request): string | null {
   return conversationId ? String(conversationId) : null
 }
 
+export function conversationBelongsToAgent(conversation: any, agentId: string | null | undefined): boolean {
+  if (!agentId) return false
+  if (!conversation || typeof conversation !== 'object') return false
+
+  const conversationAgentId =
+    conversation.agent_id ??
+    conversation.agentId ??
+    conversation.agent?.id ??
+    conversation.metadata?.agent_id ??
+    conversation.metadata?.agentId ??
+    null
+
+  return typeof conversationAgentId === 'string' && conversationAgentId === agentId
+}
+
 export function requireConversationId(req: Request, res: Response): string | null {
   const conversationId = getConversationId(req)
 
