@@ -12,11 +12,11 @@ export default function App() {
   return (
     <BrowserRouter>
       <Routes>
-        {/* Public */}
+        {/* Public. */}
         <Route path="/" element={<Landing />} />
         <Route path="/login" element={<Login />} />
 
-        {/* Shell */}
+        {/* Shell. */}
         <Route element={<MainLayout />}>
           <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/conversations" element={<Conversations />} />
