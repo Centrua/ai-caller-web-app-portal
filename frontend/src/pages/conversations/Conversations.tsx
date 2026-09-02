@@ -2,12 +2,6 @@ import { useEffect, useState, useMemo } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useConversations } from '../../hooks/conversationsHooks'
 
-const statusColor: Record<string, string> = {
-  success: 'bg-emerald-100 text-emerald-700',
-  failure: 'bg-red-100 text-red-600',
-  unknown: 'bg-slate-100 text-slate-500',
-}
-
 function isTodayIso(iso?: string) {
   if (!iso) return false
   const d = new Date(iso)
