@@ -28,46 +28,7 @@ export class ActionItemsController {
     }
   }
 
-  public updateAction = async (req: Request, res: Response): Promise<void> => {
-    try {
-      const conversationIdRaw = req.params.id
-      const conversationId = Array.isArray(conversationIdRaw) ? conversationIdRaw[0] : conversationIdRaw
-      if (!conversationId) {
-        res.status(400).json({ success: false, error: 'conversation id required' })
-        return
-      }
-
-      const body = req.body || {}
-      if (typeof body.completed === 'boolean') {
-        const updated = body.completed
-          ? await this.actionItemsService.markDone(String(conversationId))
-          : await this.actionItemsService.markUndone(String(conversationId))
-        res.status(200).json({ success: true, data: updated })
-        return
-      }
-
-      res.status(400).json({ success: false, error: 'Unsupported update. Send { completed: true|false }' })
-    } catch (error: any) {
-      res.status(500).json({ success: false, error: error.message || 'Internal server error' })
-    }
-  }
-
-  public getFlags = async (req: Request, res: Response): Promise<void> => {
-    try {
-      const conversationIdRaw = req.params.id
-      const conversationId = Array.isArray(conversationIdRaw) ? conversationIdRaw[0] : conversationIdRaw
-      if (!conversationId) {
-        res.status(400).json({ success: false, error: 'conversation id required' })
-        return
-      }
-      const flags = await this.actionItemsService.getConversationFlags(String(conversationId))
-      res.status(200).json({ success: true, data: flags })
-    } catch (error: any) {
-      res.status(500).json({ success: false, error: error.message || 'Internal server error' })
-    }
-  }
-
-  public setComplete = async (req: Request, res: Response): Promise<void> => {
+  public setCompletionStatus = async (req: Request, res: Response): Promise<void> => {
     try {
       const conversationIdRaw = req.params.id
       const conversationId = Array.isArray(conversationIdRaw) ? conversationIdRaw[0] : conversationIdRaw
@@ -90,4 +51,21 @@ export class ActionItemsController {
       res.status(500).json({ success: false, error: error.message || 'Internal server error' })
     }
   }
+
+  public getFlags = async (req: Request, res: Response): Promise<void> => {
+    try {
+      const conversationIdRaw = req.params.id
+      const conversationId = Array.isArray(conversationIdRaw) ? conversationIdRaw[0] : conversationIdRaw
+      if (!conversationId) {
+        res.status(400).json({ success: false, error: 'conversation id required' })
+        return
+      }
+      const flags = await this.actionItemsService.getConversationFlags(String(conversationId))
+      res.status(200).json({ success: true, data: flags })
+    } catch (error: any) {
+      res.status(500).json({ success: false, error: error.message || 'Internal server error' })
+    }
+  }
+
 }
+
