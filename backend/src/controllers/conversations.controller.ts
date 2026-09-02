@@ -2,6 +2,7 @@ import { Request, Response } from 'express'
 import { ElevenLabsRepository } from '../repositories/http/eleven-labs.repository'
 import { VenueService } from '../services/venue.service'
 import ActionItemsService from '../services/action-items.service'
+import { sendError, sendSuccess } from '../utils/http'
 
 function formatDuration(seconds?: number) {
   if (!seconds && seconds !== 0) return null
@@ -65,12 +66,12 @@ export class ConversationsController {
       // If no agent_id provided, resolve from user's venue
       if (!filters.agent_id) {
         if (!userId) {
-          res.status(401).json({ success: false, error: 'Unauthorized: user context missing' })
+          sendError(res, 401, 'Unauthorized: user context missing')
           return
         }
         const agentId = await this.venueService.getAgentIdFromUserId(userId)
         if (!agentId) {
-          res.status(400).json({ success: false, error: 'Agent ID could not be resolved for user' })
+          sendError(res, 400, 'Agent ID could not be resolved for user')
           return
         }
         filters.agent_id = agentId
@@ -94,9 +95,9 @@ export class ConversationsController {
           })
         )
 
-      res.status(200).json({ success: true, data: { conversations: enriched, hasMore: !!repoResp.has_more, nextCursor: repoResp.next_cursor } })
+      sendSuccess(res, 200, { conversations: enriched, hasMore: !!repoResp.has_more, nextCursor: repoResp.next_cursor })
     } catch (error: any) {
-      res.status(500).json({ success: false, error: error.message || 'Internal server error' })
+      sendError(res, 500, error.message || 'Internal server error')
     }
   }
 
@@ -105,7 +106,7 @@ export class ConversationsController {
       const conversationIdRaw = req.params.id
       const conversationId = Array.isArray(conversationIdRaw) ? conversationIdRaw[0] : conversationIdRaw
       if (!conversationId) {
-        res.status(400).json({ success: false, error: 'conversation id required' })
+        sendError(res, 400, 'conversation id required')
         return
       }
 
@@ -143,9 +144,9 @@ export class ConversationsController {
         normalizedAny.hasUnacknowledgedActions = false
       }
 
-      res.status(200).json({ success: true, data: normalizedAny })
+      sendSuccess(res, 200, normalizedAny)
     } catch (error: any) {
-      res.status(500).json({ success: false, error: error.message || 'Internal server error' })
+      sendError(res, 500, error.message || 'Internal server error')
     }
   }
 
@@ -154,7 +155,7 @@ export class ConversationsController {
       const conversationIdRaw = req.params.id
       const conversationId = Array.isArray(conversationIdRaw) ? conversationIdRaw[0] : conversationIdRaw
       if (!conversationId) {
-        res.status(400).json({ success: false, error: 'conversation id required' })
+        sendError(res, 400, 'conversation id required')
         return
       }
 
@@ -177,9 +178,9 @@ export class ConversationsController {
         messagesOmitted: !!data.messages_omitted,
       }
 
-      res.status(200).json({ success: true, data: normalized })
+      sendSuccess(res, 200, normalized)
     } catch (error: any) {
-      res.status(500).json({ success: false, error: error.message || 'Internal server error' })
+      sendError(res, 500, error.message || 'Internal server error')
     }
   }
 
@@ -188,7 +189,7 @@ export class ConversationsController {
       const conversationIdRaw = req.params.id
       const conversationId = Array.isArray(conversationIdRaw) ? conversationIdRaw[0] : conversationIdRaw
       if (!conversationId) {
-        res.status(400).json({ success: false, error: 'conversation id required' })
+        sendError(res, 400, 'conversation id required')
         return
       }
 
@@ -198,7 +199,7 @@ export class ConversationsController {
       res.setHeader('Content-Length', String(buffer.length))
       res.send(buffer)
     } catch (error: any) {
-      res.status(500).json({ success: false, error: error.message || 'Internal server error' })
+      sendError(res, 500, error.message || 'Internal server error')
     }
   }
 }

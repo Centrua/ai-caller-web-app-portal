@@ -1,6 +1,7 @@
 import { Request, Response } from 'express'
 import { ElevenLabsRepository } from '../repositories/http/eleven-labs.repository'
 import ActionItemsService from '../services/action-items.service'
+import { sendError, sendSuccess } from '../utils/http'
 
 export class ActionItemsController {
   private elevenLabsRepo: ElevenLabsRepository
@@ -15,7 +16,7 @@ export class ActionItemsController {
     const conversationId = Array.isArray(conversationIdRaw) ? conversationIdRaw[0] : conversationIdRaw
 
     if (!conversationId) {
-      res.status(400).json({ success: false, error: 'conversation id required' })
+      sendError(res, 400, 'conversation id required')
       return null
     }
 
@@ -30,9 +31,9 @@ export class ActionItemsController {
       const data = await this.elevenLabsRepo.getConversationById(conversationId)
       const dcr = data.analysis?.data_collection_results ?? data.data_collection_results ?? data.dataCollectionResults
       const items = await this.actionItemsService.getActionItems(conversationId, dcr)
-      res.status(200).json({ success: true, data: items })
+      sendSuccess(res, 200, items)
     } catch (error: any) {
-      res.status(500).json({ success: false, error: error.message || 'Internal server error' })
+      sendError(res, 500, error.message || 'Internal server error')
     }
   }
 
@@ -43,16 +44,16 @@ export class ActionItemsController {
 
       const body = req.body || {}
       if (typeof body.completed !== 'boolean') {
-        res.status(400).json({ success: false, error: 'Missing completed boolean' })
+        sendError(res, 400, 'Missing completed boolean')
         return
       }
 
       const updated = body.completed
         ? await this.actionItemsService.markDone(conversationId)
         : await this.actionItemsService.markUndone(conversationId)
-      res.status(200).json({ success: true, data: updated })
+      sendSuccess(res, 200, updated)
     } catch (error: any) {
-      res.status(500).json({ success: false, error: error.message || 'Internal server error' })
+      sendError(res, 500, error.message || 'Internal server error')
     }
   }
 
@@ -62,9 +63,9 @@ export class ActionItemsController {
       if (!conversationId) return
 
       const flags = await this.actionItemsService.getConversationFlags(conversationId)
-      res.status(200).json({ success: true, data: flags })
+      sendSuccess(res, 200, flags)
     } catch (error: any) {
-      res.status(500).json({ success: false, error: error.message || 'Internal server error' })
+      sendError(res, 500, error.message || 'Internal server error')
     }
   }
 
