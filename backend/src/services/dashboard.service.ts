@@ -8,7 +8,6 @@ export interface DashboardMetrics {
   averageCallDurationFormatted: string
   successfulCalls: number
   successRate: string
-  recentConversations: any[]
   callsOverTime: Array<{ date: string; count: number }>
 }
 
@@ -88,10 +87,6 @@ export class DashboardService {
       count,
     }))
 
-    const sortedConversations = [...conversations].sort(
-      (a, b) => (b.start_time_unix_secs || 0) - (a.start_time_unix_secs || 0)
-    )
-
     return {
       callsToday,
       callsThisWeek,
@@ -99,7 +94,6 @@ export class DashboardService {
       averageCallDurationFormatted: `${minutes}m ${seconds}s`,
       successfulCalls: successfulCallsCount,
       successRate: `${successRateValue}%`,
-      recentConversations: sortedConversations.slice(0, 10),
       callsOverTime,
     }
   }
