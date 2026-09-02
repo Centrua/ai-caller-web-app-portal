@@ -22,8 +22,8 @@ export default function KnowledgeBase() {
         try {
             setSuccessMessage(null)
             await saveKnowledgeBaseText('Knowledge Base Document', textValue)
-            setSuccessMessage('Knowledge base saved and synchronized with your AI agent successfully!')
-            setTimeout(() => setSuccessMessage(null), 4000)
+            setSuccessMessage('Knowledge base saved and synchronized successfully!')
+            setTimeout(() => setSuccessMessage(null), 2000)
         } 
         catch {
             // Error handled by hook
@@ -31,7 +31,19 @@ export default function KnowledgeBase() {
     }
 
     return (
-        <div className="p-8">
+        <div className="p-8 relative">
+            {/* Pop-up centered relative to the main scrolling area (offset right to account for the sidebar) */}
+            {successMessage && (
+                <div className="fixed top-6 left-[calc(50%+128px)] -translate-x-1/2 z-50">
+                    <div className="bg-slate-900 text-white px-5 py-2.5 rounded-lg shadow-xl flex items-center gap-2.5 text-sm font-medium">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="text-emerald-400">
+                            <polyline points="20 6 9 17 4 12" />
+                        </svg>
+                        {successMessage}
+                    </div>
+                </div>
+            )}
+
             <div className="flex items-center justify-between mb-8">
                 <div>
                     <h1 className="text-2xl font-semibold text-slate-900 mb-1">Knowledge Base</h1>
@@ -54,12 +66,6 @@ export default function KnowledgeBase() {
             {error && (
                 <div className="mb-6 p-4 bg-red-50 border border-red-200 text-red-700 rounded-lg text-sm">
                     {error}
-                </div>
-            )}
-
-            {successMessage && (
-                <div className="mb-6 p-4 bg-emerald-50 border border-emerald-200 text-emerald-700 rounded-lg text-sm">
-                    {successMessage}
                 </div>
             )}
 
