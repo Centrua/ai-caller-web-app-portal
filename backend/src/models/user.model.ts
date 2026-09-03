@@ -3,22 +3,24 @@ import { sequelize } from '../config/database'; // Adjust to your actual path
 
 interface UserAttributes {
   id: number;
-  name: string;
+  name?: string | null;
   email: string;
-  password: string;
+  password?: string | null;
   role: string;
+  is_approved: boolean;
   createdAt?: Date;
   updatedAt?: Date;
 }
 
-interface UserCreationAttributes extends Optional<UserAttributes, 'id' | 'role' | 'createdAt' | 'updatedAt'> {}
+interface UserCreationAttributes extends Optional<UserAttributes, 'id' | 'role' | 'name' | 'password' | 'is_approved' | 'createdAt' | 'updatedAt'> {}
 
 export class User extends Model<UserAttributes, UserCreationAttributes> implements UserAttributes {
   public declare id: number;
-  public declare name: string;
+  public declare name: string | null;
   public declare email: string;
-  public declare password: string;
+  public declare password: string | null;
   public declare role: string;
+  public declare is_approved: boolean;
   public declare readonly createdAt: Date;
   public declare readonly updatedAt: Date;
 
@@ -37,7 +39,7 @@ User.init(
     },
     name: {
       type: DataTypes.STRING,
-      allowNull: false,
+      allowNull: true,
     },
     email: {
       type: DataTypes.STRING,
@@ -49,12 +51,17 @@ User.init(
     },
     password: {
       type: DataTypes.STRING,
-      allowNull: false,
+      allowNull: true, // Nullable to accommodate Google OAuth users
     },
     role: {
       type: DataTypes.STRING,
       allowNull: false,
       defaultValue: 'user',
+    },
+    is_approved: {
+      type: DataTypes.BOOLEAN,
+      allowNull: false,
+      defaultValue: false,
     },
   },
   {

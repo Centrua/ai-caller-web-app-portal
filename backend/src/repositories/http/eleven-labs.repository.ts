@@ -176,6 +176,26 @@ export class ElevenLabsRepository {
     return rawText
   }
 
+  async createAgent(payload: any): Promise<{ agent_id: string; [key: string]: any }> {
+    const url = new URL(`${this.baseUrl}/convai/agents/create`)
+
+    const response = await fetch(url.toString(), {
+      method: 'POST',
+      headers: {
+        'xi-api-key': this.apiKey,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(payload),
+    })
+
+    if (!response.ok) {
+      const errorBody = await response.text()
+      throw new Error(`ElevenLabs API error (${response.status}): ${errorBody || response.statusText}`)
+    }
+
+    return await response.json()
+  }
+
   async getAgentConfig(agentId: string): Promise<any> {
     if (!agentId) throw new Error('agentId is required')
 

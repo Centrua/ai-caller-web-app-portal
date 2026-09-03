@@ -1,4 +1,4 @@
-import { BrowserRouter, Routes, Route } from 'react-router-dom'
+import { BrowserRouter, Routes, Route, Navigate, Outlet } from 'react-router-dom'
 import MainLayout from './layouts/MainLayout'
 import Landing from './pages/landing/Landing'
 import Login from './pages/login/Login'
@@ -7,6 +7,34 @@ import Conversations from './pages/conversations/Conversations'
 import ConversationDetails from './pages/conversations/ConversationDetails'
 import KnowledgeBase from './pages/knowledge-base/KnowledgeBase'
 import Settings from './pages/settings/Settings'
+import RegisterVenue from './pages/register-venue/RegisterVenue'
+import SignUp from './pages/sign-up/SignUp'
+
+const ProtectedRoute = () => {
+  const token = localStorage.getItem('token')
+  const userStr = localStorage.getItem('user')
+  let isApproved = false
+
+  try {
+    if (userStr) {
+      const user = JSON.parse(userStr)
+      isApproved = user.is_approved === true
+    }
+  } 
+  catch (err) {
+    isApproved = false
+  }
+
+  if (!token) {
+    return <Navigate to="/login" replace />
+  }
+
+  if (!isApproved) {
+    return <Navigate to="/?mode=pending-approval" replace />
+  }
+
+  return <Outlet />
+}
 
 export default function App() {
   return (
@@ -15,14 +43,18 @@ export default function App() {
         {/* Public. */}
         <Route path="/" element={<Landing />} />
         <Route path="/login" element={<Login />} />
+        <Route path="/register-venue" element={<RegisterVenue />} />
+        <Route path="/register" element={<SignUp />} />
 
-        {/* Shell. */}
-        <Route element={<MainLayout />}>
-          <Route path="/dashboard" element={<Dashboard />} />
-          <Route path="/conversations" element={<Conversations />} />
-          <Route path="/conversations/:id" element={<ConversationDetails />} />
-          <Route path="/knowledge-base" element={<KnowledgeBase />} />
-          <Route path="/settings" element={<Settings />} />
+        {/* Protected Shell. */}
+        <Route element={<ProtectedRoute />}>
+          <Route element={<MainLayout />}>
+            <Route path="/dashboard" element={<Dashboard />} />
+            <Route path="/conversations" element={<Conversations />} />
+            <Route path="/conversations/:id" element={<ConversationDetails />} />
+            <Route path="/knowledge-base" element={<KnowledgeBase />} />
+            <Route path="/settings" element={<Settings />} />
+          </Route>
         </Route>
 
       </Routes>
