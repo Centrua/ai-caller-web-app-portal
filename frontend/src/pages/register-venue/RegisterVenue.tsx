@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react'
-import { useNavigate, useSearchParams } from 'react-router-dom'
+import { useNavigate, useSearchParams, Link } from 'react-router-dom'
 import { useGoogleAuth } from '../../hooks/authHooks'
 import { useCreateVenue } from '../../hooks/venueHooks'
 
@@ -83,7 +83,19 @@ export const RegisterVenue: React.FC = () => {
   const isDisabled = submitting || isSuccess
 
   return (
-    <div className="min-h-screen bg-slate-50 flex items-center justify-center p-4 py-12">
+    <div className="min-h-screen bg-slate-50 flex items-center justify-center p-4 py-12 relative">
+      {/* Back button */}
+      <Link
+        to="/"
+        className="absolute top-6 left-6 inline-flex items-center gap-1.5 text-sm font-medium text-slate-500 hover:text-slate-900 transition-colors"
+      >
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <line x1="19" y1="12" x2="5" y2="12"></line>
+          <polyline points="12 19 5 12 12 5"></polyline>
+        </svg>
+        Back to home
+      </Link>
+
       <div className="w-full max-w-lg">
         {/* Header Icon */}
         <div className="flex justify-center mb-6">
@@ -154,12 +166,12 @@ export const RegisterVenue: React.FC = () => {
 
           {/* Gmail OAuth Connection */}
           <div>
-            <label className="block text-xs font-medium text-slate-700 mb-1.5">Venue Email Connection</label>
+            <label className="block text-xs font-medium text-slate-700 mb-1.5">Venue Inquiry Email Connection *</label>
             <button
               type="button"
               disabled={isDisabled}
               onClick={handleConnectGoogle}
-              className={`w-full flex items-center justify-center gap-3 border font-semibold px-4 py-2.5 rounded-lg shadow-sm transition text-sm ${
+              className={`inline-flex items-center justify-center gap-2 border font-medium px-3.5 py-2 rounded-lg shadow-sm transition text-xs ${
                 isDisabled
                   ? 'bg-slate-100 border-slate-200 text-slate-400 cursor-not-allowed'
                   : isGoogleConnected
@@ -167,7 +179,7 @@ export const RegisterVenue: React.FC = () => {
                   : 'bg-white border-slate-200 hover:bg-slate-50 text-slate-700 cursor-pointer'
               }`}
             >
-              <svg className="w-5 h-5" viewBox="0 0 24 24">
+              <svg className="w-4 h-4 shrink-0" viewBox="0 0 24 24">
                 <path
                   fill="#4285F4"
                   d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
@@ -185,9 +197,13 @@ export const RegisterVenue: React.FC = () => {
                   d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"
                 />
               </svg>
-              {isGoogleConnected ? `Connected: ${formData.email} ✓` : 'Connect with Google Workspace / Gmail'}
+              {isGoogleConnected ? `Connected: ${formData.email} ✓` : 'Connect Google Venue Email'}
             </button>
-            <p className="text-slate-400 text-xs mt-1">Authorizes automated email handling for this venue</p>
+            <div className="bg-amber-50 border border-amber-200 rounded-lg p-3 mt-2">
+              <p className="text-amber-800 text-xs font-semibold leading-relaxed">
+                ⚠️ IMPORTANT: You MUST connect the official email inbox used by this venue for customer inquiries and automatic responses. This inbox will receive staff registration and user association approval requests, as well.
+              </p>
+            </div>
           </div>
 
           {/* Submit Button */}

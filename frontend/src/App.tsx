@@ -25,8 +25,12 @@ const ProtectedRoute = () => {
     isApproved = false
   }
 
-  if (!token || !isApproved) {
+  if (!token) {
     return <Navigate to="/login" replace />
+  }
+
+  if (!isApproved) {
+    return <Navigate to="/?mode=pending-approval" replace />
   }
 
   return <Outlet />
