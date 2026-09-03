@@ -12,7 +12,6 @@ export class VenueService {
     name: string;
     email?: string | null;
     phone?: string | null;
-    elevenlabs_agent_payload?: any;
     elevenlabs_phone_number_id?: string | null;
     kb_document_id?: string | null;
     google_refresh_token?: string | null;
@@ -20,9 +19,16 @@ export class VenueService {
   }): Promise<Venue> {
     let agentId: string | null = null;
 
-    if (data.elevenlabs_agent_payload) {
-      const agentResponse = await this.elevenLabsRepo.createAgent(data.elevenlabs_agent_payload);
-      agentId = agentResponse.agent_id || null;
+    const templateAgentId = process.env.ELEVENLABS_TEMPLATE_AGENT_ID;
+    if (!templateAgentId) {
+      throw new Error('ElevenLabs template agent is not configured');
+    }
+
+    const agentResponse = await this.elevenLabsRepo.duplicateAgent(templateAgentId, data.name);
+    agentId = agentResponse.agent_id || null;
+
+    if (!agentId) {
+      throw new Error('ElevenLabs did not return a duplicated agent ID');
     }
 
     const venuePayload = {

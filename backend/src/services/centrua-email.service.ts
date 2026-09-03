@@ -40,7 +40,7 @@ export const sendUserApprovalEmail = async ({
     });
 
     const info = await transporter.sendMail({
-      from: `"Init Samples" <${process.env.COMPANY_GMAIL_USER}>`,
+      from: `"Centrua" <${process.env.COMPANY_GMAIL_USER}>`,
       to,
       subject: `User Approval Request: ${username} (${email})`,
       html,
