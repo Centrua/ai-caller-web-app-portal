@@ -29,7 +29,7 @@ export const generateUserApprovalHtml = ({
           <p style="color: #475569; font-size: 15px; line-height: 1.5; text-align: center; margin-bottom: 32px;">Clicking the button below will instantly approve this user account and associate them with your venue:</p>
 
           <div style="text-align: center; margin: 32px 0;">
-            <a href="${approvalUrl}" style="background-color: #4f46e5; color: #ffffff; padding: 12px 28px; text-decoration: none; border-radius: 8px; font-size: 15px; font-weight: 600; display: inline-block; box-shadow: 0 2px 4px rgba(79, 70, 229, 0.2);">Approve User & Associate Venue</a>
+            <a href="${approvalUrl}" style="background-color: #4f46e5; color: #ffffff; padding: 12px 28px; text-decoration: none; border-radius: 8px; font-size: 15px; font-weight: 600; display: inline-block; box-shadow: 0 2px 4px rgba(79, 70, 229, 0.2);">Approve User</a>
           </div>
 
           <p style="color: #94a3b8; font-size: 13px; text-align: center; margin-top: 40px; border-top: 1px solid #f1f5f9; padding-top: 20px;">If you did not expect this request, you can safely ignore this email.</p>
