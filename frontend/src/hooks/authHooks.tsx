@@ -58,6 +58,10 @@ export const useLogin = () => {
         localStorage.setItem('token', userData.token)
       }
 
+      if (userData?.user) {
+        localStorage.setItem('user', JSON.stringify(userData.user))
+      }
+
       return userData
     }
     catch (err: any) {
@@ -113,6 +117,10 @@ export const useRegister = () => {
 
       if (userData?.token) {
         localStorage.setItem('token', userData.token)
+      }
+
+      if (userData?.user) {
+        localStorage.setItem('user', JSON.stringify(userData.user))
       }
 
       return userData
