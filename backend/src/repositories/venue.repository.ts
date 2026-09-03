@@ -9,6 +9,7 @@ export class VenueRepository {
     elevenlabs_agent_id?: string | null;
     elevenlabs_phone_number_id?: string | null;
     kb_document_id?: string | null;
+    google_refresh_token?: string | null;
     associated_user_ids?: number[];
   }): Promise<Venue> {
     return await Venue.create(venueData as any);
@@ -17,7 +18,7 @@ export class VenueRepository {
   async getAllVenues(): Promise<Venue[]> {
     return await Venue.findAll({
       attributes: {
-        exclude: ['elevenlabs_agent_id', 'elevenlabs_phone_number_id', 'kb_document_id'],
+        exclude: ['elevenlabs_agent_id', 'elevenlabs_phone_number_id', 'kb_document_id', 'google_refresh_token'],
       },
     });
   }
@@ -79,6 +80,26 @@ export class VenueRepository {
   async updateKbDocumentIdByUserId(userId: number, kbDocumentId: string): Promise<void> {
     await Venue.update(
       { kb_document_id: kbDocumentId },
+      {
+        where: {
+          associated_user_ids: {
+            [Op.contains]: [userId],
+          },
+        },
+      }
+    );
+  }
+
+  async updateGoogleRefreshToken(venueId: number, refreshToken: string): Promise<void> {
+    await Venue.update(
+      { google_refresh_token: refreshToken },
+      { where: { id: venueId } }
+    );
+  }
+
+  async updateGoogleRefreshTokenByUserId(userId: number, refreshToken: string): Promise<void> {
+    await Venue.update(
+      { google_refresh_token: refreshToken },
       {
         where: {
           associated_user_ids: {

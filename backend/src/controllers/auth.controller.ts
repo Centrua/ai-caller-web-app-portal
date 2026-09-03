@@ -60,13 +60,18 @@ export class AuthController {
         return
       }
 
-      const result = await authService.handleGoogleCallback(code)
+      const { email, refreshToken } = await authService.handleGoogleCallback(code)
 
       const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:5173'
-      res.redirect(
-        `${frontendUrl}/register-venue?token=${result.token}&email=${encodeURIComponent(result.user.email)}`
-      )
-    } catch (error: any) {
+      const redirectUrl = new URL(`${frontendUrl}/register-venue`)
+      redirectUrl.searchParams.set('email', email)
+      if (refreshToken) {
+        redirectUrl.searchParams.set('google_refresh_token', refreshToken)
+      }
+
+      res.redirect(redirectUrl.toString())
+    } 
+    catch (error: any) {
       console.error('[AuthController Google Callback Error]:', error)
       sendError(res, 500, 'Google authentication failed')
     }

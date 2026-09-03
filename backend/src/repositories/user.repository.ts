@@ -23,20 +23,6 @@ export class UserRepository {
     return await User.create(userData as any);
   }
 
-  async updateRefreshToken(userId: number, refreshToken: string): Promise<void> {
-    await User.update(
-      { google_refresh_token: refreshToken },
-      { where: { id: userId } }
-    );
-  }
-
-  async updateGoogleRefreshToken(userId: number, refreshToken: string): Promise<void> {
-    await User.update(
-      { google_refresh_token: refreshToken },
-      { where: { id: userId } }
-    );
-  }
-
   async updateApprovalStatus(userId: number, isApproved: boolean): Promise<void> {
     await User.update(
       { is_approved: isApproved },

@@ -14,8 +14,8 @@ export class AuthService {
 
   getGoogleAuthUrl(): string {
     return this.oauth2Client.generateAuthUrl({
-      access_type: 'offline', // Required to receive a refresh token
-      prompt: 'consent',     // Forces the consent screen to ensure refresh token emission
+      access_type: 'offline',
+      prompt: 'consent',
       scope: [
         'https://www.googleapis.com/auth/userinfo.email',
         'https://www.googleapis.com/auth/userinfo.profile',
@@ -44,26 +44,10 @@ export class AuthService {
       throw new Error('Google payload missing email.')
     }
 
-    let user = await this.userRepository.findByEmail(payload.email)
-    if (!user) {
-      user = await this.userRepository.create({
-        email: payload.email,
-        password: '', 
-        google_refresh_token: tokens.refresh_token || null,
-        is_approved: false,
-      })
-    } 
-    else if (tokens.refresh_token) {
-      await this.userRepository.updateRefreshToken(user.id, tokens.refresh_token)
+    return {
+      email: payload.email,
+      refreshToken: tokens.refresh_token || null,
     }
-
-    const token = jwt.sign(
-      { userId: user.id, email: user.email },
-      process.env.JWT_SECRET || 'secret',
-      { expiresIn: '7d' }
-    )
-
-    return { token, user }
   }
 
   async register(data: { name?: string; email: string; password: string; role?: string; venueId: number }) {

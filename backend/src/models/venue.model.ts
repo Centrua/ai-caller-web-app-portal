@@ -9,11 +9,12 @@ interface VenueAttributes {
   elevenlabs_agent_id: string | null;
   elevenlabs_phone_number_id: string | null;
   kb_document_id: string | null;
+  google_refresh_token: string | null;
   associated_user_ids: number[];
   created_at?: Date;
 }
 
-interface VenueCreationAttributes extends Optional<VenueAttributes, 'id' | 'email' | 'phone' | 'elevenlabs_agent_id' | 'elevenlabs_phone_number_id' | 'kb_document_id' | 'associated_user_ids' | 'created_at'> {}
+interface VenueCreationAttributes extends Optional<VenueAttributes, 'id' | 'email' | 'phone' | 'elevenlabs_agent_id' | 'elevenlabs_phone_number_id' | 'kb_document_id' | 'google_refresh_token' | 'associated_user_ids' | 'created_at'> {}
 
 export class Venue extends Model<VenueAttributes, VenueCreationAttributes> implements VenueAttributes {
   public declare id: number;
@@ -23,6 +24,7 @@ export class Venue extends Model<VenueAttributes, VenueCreationAttributes> imple
   public declare elevenlabs_agent_id: string | null;
   public declare elevenlabs_phone_number_id: string | null;
   public declare kb_document_id: string | null;
+  public declare google_refresh_token: string | null;
   public declare associated_user_ids: number[];
   public declare readonly created_at: Date;
 
@@ -63,6 +65,10 @@ Venue.init(
       allowNull: true,
     },
     kb_document_id: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
+    google_refresh_token: {
       type: DataTypes.STRING,
       allowNull: true,
     },

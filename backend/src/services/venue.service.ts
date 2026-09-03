@@ -15,6 +15,7 @@ export class VenueService {
     elevenlabs_agent_payload?: any;
     elevenlabs_phone_number_id?: string | null;
     kb_document_id?: string | null;
+    google_refresh_token?: string | null;
     associated_user_ids?: number[];
   }): Promise<Venue> {
     let agentId: string | null = null;
@@ -31,6 +32,7 @@ export class VenueService {
       elevenlabs_agent_id: agentId,
       elevenlabs_phone_number_id: data.elevenlabs_phone_number_id ?? null,
       kb_document_id: data.kb_document_id ?? null,
+      google_refresh_token: data.google_refresh_token ?? null,
       associated_user_ids: data.associated_user_ids ?? [],
     };
 

@@ -9,6 +9,7 @@ interface RegisterVenueForm {
   phone: string
   elevenlabs_phone_number_id: string
   kb_document_id: string
+  google_refresh_token: string
 }
 
 export const RegisterVenue: React.FC = () => {
@@ -23,22 +24,24 @@ export const RegisterVenue: React.FC = () => {
     phone: '',
     elevenlabs_phone_number_id: '',
     kb_document_id: '',
+    google_refresh_token: '',
   })
 
   const [isGoogleConnected, setIsGoogleConnected] = useState(false)
+  const [isSuccess, setIsSuccess] = useState(false)
   const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null)
 
   // Handle post-OAuth redirect query parameters
   useEffect(() => {
-    const token = searchParams.get('token')
     const email = searchParams.get('email')
-
-    if (token) {
-      localStorage.setItem('token', token)
-    }
+    const refreshToken = searchParams.get('google_refresh_token')
 
     if (email) {
-      setFormData((prev) => ({ ...prev, email }))
+      setFormData((prev) => ({
+        ...prev,
+        email,
+        google_refresh_token: refreshToken || prev.google_refresh_token,
+      }))
       setIsGoogleConnected(true)
       setMessage({ type: 'success', text: `Successfully connected Google account: ${email}` })
     }
@@ -64,16 +67,20 @@ export const RegisterVenue: React.FC = () => {
         phone: formData.phone || undefined,
         elevenlabs_phone_number_id: formData.elevenlabs_phone_number_id || null,
         kb_document_id: formData.kb_document_id || null,
+        google_refresh_token: formData.google_refresh_token || null,
       })
 
-      setMessage({ type: 'success', text: 'Venue registered successfully! Redirecting...' })
+      setIsSuccess(true)
+      setMessage({ type: 'success', text: 'Venue registered successfully! Redirecting to sign up...' })
       setTimeout(() => {
-        navigate('/dashboard')
+        navigate('/register?mode=apply-venue')
       }, 1500)
     } catch (err: any) {
       setMessage({ type: 'error', text: err.message || 'Something went wrong while registering the venue.' })
     }
   }
+
+  const isDisabled = submitting || isSuccess
 
   return (
     <div className="min-h-screen bg-slate-50 flex items-center justify-center p-4 py-12">
@@ -123,10 +130,11 @@ export const RegisterVenue: React.FC = () => {
               type="text"
               name="name"
               required
+              disabled={isDisabled}
               placeholder="e.g. Grand Bistro"
               value={formData.name}
               onChange={handleChange}
-              className="w-full border border-slate-200 rounded-lg px-3.5 py-2.5 text-sm text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition"
+              className="w-full border border-slate-200 rounded-lg px-3.5 py-2.5 text-sm text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition disabled:bg-slate-100 disabled:cursor-not-allowed"
             />
           </div>
 
@@ -136,10 +144,11 @@ export const RegisterVenue: React.FC = () => {
             <input
               type="text"
               name="phone"
+              disabled={isDisabled}
               placeholder="+1 (555) 019-2834"
               value={formData.phone}
               onChange={handleChange}
-              className="w-full border border-slate-200 rounded-lg px-3.5 py-2.5 text-sm text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition"
+              className="w-full border border-slate-200 rounded-lg px-3.5 py-2.5 text-sm text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition disabled:bg-slate-100 disabled:cursor-not-allowed"
             />
           </div>
 
@@ -148,11 +157,14 @@ export const RegisterVenue: React.FC = () => {
             <label className="block text-xs font-medium text-slate-700 mb-1.5">Venue Email Connection</label>
             <button
               type="button"
+              disabled={isDisabled}
               onClick={handleConnectGoogle}
-              className={`w-full flex items-center justify-center gap-3 border font-semibold px-4 py-2.5 rounded-lg shadow-sm transition cursor-pointer text-sm ${
-                isGoogleConnected
-                  ? 'bg-emerald-50 border-emerald-300 text-emerald-700'
-                  : 'bg-white border-slate-200 hover:bg-slate-50 text-slate-700'
+              className={`w-full flex items-center justify-center gap-3 border font-semibold px-4 py-2.5 rounded-lg shadow-sm transition text-sm ${
+                isDisabled
+                  ? 'bg-slate-100 border-slate-200 text-slate-400 cursor-not-allowed'
+                  : isGoogleConnected
+                  ? 'bg-emerald-50 border-emerald-300 text-emerald-700 cursor-pointer'
+                  : 'bg-white border-slate-200 hover:bg-slate-50 text-slate-700 cursor-pointer'
               }`}
             >
               <svg className="w-5 h-5" viewBox="0 0 24 24">
@@ -181,10 +193,10 @@ export const RegisterVenue: React.FC = () => {
           {/* Submit Button */}
           <button
             type="submit"
-            disabled={submitting}
+            disabled={isDisabled}
             className="w-full bg-indigo-600 hover:bg-indigo-700 disabled:bg-indigo-400 text-white font-semibold py-2.5 rounded-lg transition-colors text-sm mt-2 flex items-center justify-center cursor-pointer disabled:cursor-not-allowed shadow-sm"
           >
-            {submitting ? 'Registering Venue...' : 'Register Venue'}
+            {submitting ? 'Registering Venue...' : isSuccess ? 'Redirecting...' : 'Register Venue'}
           </button>
         </form>
       </div>

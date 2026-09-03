@@ -1,15 +1,17 @@
 import { useState, useEffect } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, useSearchParams } from 'react-router-dom'
 import { useRegister } from '../../hooks/authHooks'
 import { useVenues } from '../../hooks/venueHooks'
 
 export default function Register() {
+    const [searchParams] = useSearchParams()
     const navigate = useNavigate()
     const [name, setName] = useState('')
     const [email, setEmail] = useState('')
     const [password, setPassword] = useState('')
     const [selectedVenueId, setSelectedVenueId] = useState<number | null>(null)
     const [isRegistered, setIsRegistered] = useState<boolean>(false)
+    const [showPromptModal, setShowPromptModal] = useState<boolean>(false)
 
     const { register, loading, error } = useRegister()
     const { venues, getAllVenues, loading: venuesLoading } = useVenues()
@@ -18,16 +20,23 @@ export default function Register() {
         getAllVenues()
     }, [getAllVenues])
 
+    useEffect(() => {
+        const mode = searchParams.get('mode')
+        if (mode === 'apply-venue') {
+            setShowPromptModal(true)
+        }
+    }, [searchParams])
+
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault()
         if (!selectedVenueId) {
             return
         }
-        const user = await register({ 
-            name, 
-            email, 
-            password, 
-            venueId: selectedVenueId 
+        const user = await register({
+            name,
+            email,
+            password,
+            venueId: selectedVenueId
         })
         if (user) {
             setIsRegistered(true)
@@ -36,19 +45,43 @@ export default function Register() {
 
     return (
         <div className="min-h-screen bg-slate-50 flex items-center justify-center p-4 relative">
+            {showPromptModal && (
+                <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+                    <div className="bg-white border border-slate-200 rounded-2xl shadow-xl max-w-md w-full p-8 text-center flex flex-col items-center">
+                        <div className="w-14 h-14 rounded-2xl bg-indigo-100 text-indigo-600 flex items-center justify-center mb-5">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
+                                <circle cx="9" cy="7" r="4" />
+                                <path d="M22 21v-2a4 4 0 0 0-3-3.87" />
+                                <path d="M16 3.13a4 4 0 0 1 0 7.75" />
+                            </svg>
+                        </div>
+                        <h2 className="text-2xl font-bold text-slate-900 mb-2">Complete Your Registration</h2>
+                        <p className="text-slate-600 text-sm leading-relaxed mb-8">
+                            Please register your user account and apply to your venue.
+                        </p>
+                        <button
+                            onClick={() => setShowPromptModal(false)}
+                            className="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-3 rounded-xl transition-colors text-sm shadow-sm cursor-pointer"
+                        >
+                            Got it
+                        </button>
+                    </div>
+                </div>
+            )}
+
             {isRegistered && (
                 <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
                     <div className="bg-white border border-slate-200 rounded-2xl shadow-xl max-w-md w-full p-8 text-center flex flex-col items-center">
-                        <div className="w-14 h-14 rounded-2xl bg-amber-100 text-amber-600 flex items-center justify-center mb-5">
+                        <div className="w-14 h-14 rounded-2xl bg-indigo-50 text-indigo-600 flex items-center justify-center mb-5">
                             <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                                <circle cx="12" cy="12" r="10" />
-                                <line x1="12" y1="8" x2="12" y2="12" />
-                                <line x1="12" y1="16" x2="12.01" y2="16" />
+                                <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z" />
+                                <polyline points="22,6 12,13 2,6" />
                             </svg>
                         </div>
-                        <h2 className="text-2xl font-bold text-slate-900 mb-2">Registration Successful</h2>
+                        <h2 className="text-2xl font-bold text-slate-900 mb-2">Await Administrator Approval</h2>
                         <p className="text-slate-600 text-sm leading-relaxed mb-8">
-                            Your account has been created and linked to your venue. You must await administrative approval before you can access your dashboard. An approval email has been sent to the administrator.
+                            Your account has been created and linked to the venue. The venue owner must open their email inbox and click the approval link sent to them before you can access your dashboard.
                         </p>
                         <button
                             onClick={() => navigate('/login')}
@@ -73,18 +106,17 @@ export default function Register() {
                         ) : venues.length === 0 ? (
                             <div className="text-center py-8 text-sm text-slate-400">No venues available</div>
                         ) : (
-                            <div className="flex flex-col gap-3 max-h-[320px] overflow-y-auto pr-1">
+                            <div className="flex flex-col gap-3 max-h-[320px] overflow-y-scroll pr-3 [&::-webkit-scrollbar]:w-2 [&::-webkit-scrollbar-track]:bg-slate-100 [&::-webkit-scrollbar-track]:rounded-full [&::-webkit-scrollbar-thumb]:bg-slate-300 [&::-webkit-scrollbar-thumb]:rounded-full">
                                 {venues.map((venue) => {
                                     const isSelected = selectedVenueId === venue.id
                                     return (
                                         <div
                                             key={venue.id}
                                             onClick={() => setSelectedVenueId(venue.id)}
-                                            className={`border rounded-xl p-4 cursor-pointer transition-all ${
-                                                isSelected 
-                                                    ? 'border-indigo-600 bg-indigo-50/40 ring-2 ring-indigo-500/20' 
+                                            className={`border rounded-xl p-4 cursor-pointer transition-all ${isSelected
+                                                    ? 'border-indigo-600 bg-indigo-50/40 ring-2 ring-indigo-500/20'
                                                     : 'border-slate-200 hover:border-slate-300 bg-white'
-                                            }`}
+                                                }`}
                                         >
                                             <div className="font-medium text-sm text-slate-900">{venue.name}</div>
                                             {venue.email && <div className="text-xs text-slate-500 mt-0.5">{venue.email}</div>}
