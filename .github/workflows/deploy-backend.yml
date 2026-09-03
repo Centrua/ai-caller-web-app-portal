@@ -62,6 +62,6 @@ jobs:
           flags: '--allow-unauthenticated --port=8080'
           env_vars: |
             NODE_ENV=production
-            DATABASE_URL=${{ secrets.PROD_DATABASE_URL }}
+            PROD_DATABASE_URL=${{ secrets.PROD_DATABASE_URL }}
             ELEVENLABS_API_KEY=${{ secrets.ELEVENLABS_API_KEY }}
             JWT_SECRET=${{ secrets.JWT_SECRET }}
