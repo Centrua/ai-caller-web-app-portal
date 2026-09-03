@@ -7,6 +7,7 @@ import Conversations from './pages/conversations/Conversations'
 import ConversationDetails from './pages/conversations/ConversationDetails'
 import KnowledgeBase from './pages/knowledge-base/KnowledgeBase'
 import Settings from './pages/settings/Settings'
+import RegisterVenue from './pages/register-venue/RegisterVenue'
 
 export default function App() {
   return (
@@ -15,6 +16,7 @@ export default function App() {
         {/* Public. */}
         <Route path="/" element={<Landing />} />
         <Route path="/login" element={<Login />} />
+        <Route path="/register-venue" element={<RegisterVenue />} />
 
         {/* Shell. */}
         <Route element={<MainLayout />}>

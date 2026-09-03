@@ -10,4 +10,29 @@ export class UserRepository {
   async findById(id: number): Promise<User | null> {
     return await User.findByPk(id);
   }
+
+  async create(userData: {
+    email: string;
+    password?: string;
+    role?: string;
+    google_refresh_token?: string | null;
+    googleRefreshToken?: string | null;
+    [key: string]: any;
+  }): Promise<User> {
+    return await User.create(userData as any);
+  }
+
+  async updateRefreshToken(userId: number, refreshToken: string): Promise<void> {
+    await User.update(
+      { google_refresh_token: refreshToken },
+      { where: { id: userId } }
+    );
+  }
+
+  async updateGoogleRefreshToken(userId: number, refreshToken: string): Promise<void> {
+    await User.update(
+      { google_refresh_token: refreshToken },
+      { where: { id: userId } }
+    );
+  }
 }
