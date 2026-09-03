@@ -1,0 +1,67 @@
+name: Deploy Backend to Cloud Run
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'backend/**'
+      - '.github/workflows/deploy-backend.yml'
+  workflow_dispatch:
+
+env:
+  PROJECT_ID: ${{ secrets.GCP_PROJECT_ID }}
+  REGION: us-central1
+  REPOSITORY: ai-caller-backend
+  SERVICE: ai-caller-backend
+
+jobs:
+  deploy:
+    name: Build & Deploy Backend
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Authenticate to Google Cloud
+        uses: google-github-actions/auth@v2
+        with:
+          credentials_json: ${{ secrets.GCP_SA_KEY }}
+
+      - name: Set up Cloud SDK
+        uses: google-github-actions/setup-gcloud@v2
+
+      - name: Authorize Docker for GCP Artifact Registry
+        run: gcloud auth configure-docker us-central1-docker.pkg.dev --quiet
+
+      - name: Run Database Migrations
+        working-directory: ./backend
+        env:
+          PROD_DATABASE_URL: ${{ secrets.PROD_DATABASE_URL }}
+          NODE_ENV: production
+        run: |
+          npm ci
+          npx sequelize-cli db:migrate --env production
+
+      - name: Build and Push Docker Image
+        run: |
+          IMAGE_URI="us-central1-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.REPOSITORY }}/${{ env.SERVICE }}:${{ github.sha }}"
+          LATEST_URI="us-central1-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.REPOSITORY }}/${{ env.SERVICE }}:latest"
+          
+          docker build -f ./backend/Dockerfile.prod -t $IMAGE_URI -t $LATEST_URI ./backend
+          docker push $IMAGE_URI
+          docker push $LATEST_URI
+
+      - name: Deploy to Cloud Run
+        uses: google-github-actions/deploy-cloudrun@v2
+        with:
+          service: ${{ env.SERVICE }}
+          region: ${{ env.REGION }}
+          image: us-central1-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.REPOSITORY }}/${{ env.SERVICE }}:${{ github.sha }}
+          flags: '--allow-unauthenticated --port=8080'
+          env_vars: |
+            NODE_ENV=production
+            DATABASE_URL=${{ secrets.PROD_DATABASE_URL }}
+            ELEVENLABS_API_KEY=${{ secrets.ELEVENLABS_API_KEY }}
+            JWT_SECRET=${{ secrets.JWT_SECRET }}

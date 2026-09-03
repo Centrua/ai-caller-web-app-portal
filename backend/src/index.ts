@@ -28,10 +28,8 @@ app.use('/api/conversations', actionItemsRouter);
 app.use('/api/knowledge-base', knowledgeBaseRouter);
 app.use('/api/venue', venueRouter);
 
-if (process.env.NODE_ENV !== 'production') {
-  app.listen(PORT, () => {
-    console.log(`Server running on http://localhost:${PORT}`);
-  });
-}
+app.listen(PORT, () => {
+  console.log(`Server running on http://localhost:${PORT}`);
+});
 
 export default app;
