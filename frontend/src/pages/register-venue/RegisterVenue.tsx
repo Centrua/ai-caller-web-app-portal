@@ -12,6 +12,8 @@ interface RegisterVenueForm {
   google_refresh_token: string
 }
 
+const PHONE_PATTERN = /^\+?[0-9\s().-]{7,20}$/
+
 export const RegisterVenue: React.FC = () => {
   const [searchParams] = useSearchParams()
   const navigate = useNavigate()
@@ -19,12 +21,13 @@ export const RegisterVenue: React.FC = () => {
   const { createVenue, loading: submitting } = useCreateVenue()
 
   const [formData, setFormData] = useState<RegisterVenueForm>({
-    name: '',
-    email: '',
-    phone: '',
-    elevenlabs_phone_number_id: '',
-    kb_document_id: '',
-    google_refresh_token: '',
+      name: '',
+      email: '',
+      phone: '',
+      elevenlabs_phone_number_id: '',
+      kb_document_id: '',
+      google_refresh_token: '',
+    
   })
 
   const [isGoogleConnected, setIsGoogleConnected] = useState(false)
@@ -59,6 +62,16 @@ export const RegisterVenue: React.FC = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setMessage(null)
+
+    if (!formData.google_refresh_token) {
+      setMessage({ type: 'error', text: 'Please connect the venue inquiry email with Google before registering the venue.' })
+      return
+    }
+
+    if (formData.phone && !PHONE_PATTERN.test(formData.phone)) {
+      setMessage({ type: 'error', text: 'Please enter a valid venue phone number.' })
+      return
+    }
 
     try {
       await createVenue({
@@ -135,35 +148,6 @@ export const RegisterVenue: React.FC = () => {
             </div>
           )}
 
-          {/* Venue Name */}
-          <div>
-            <label className="block text-xs font-medium text-slate-700 mb-1.5">Venue Name *</label>
-            <input
-              type="text"
-              name="name"
-              required
-              disabled={isDisabled}
-              placeholder="e.g. Grand Bistro"
-              value={formData.name}
-              onChange={handleChange}
-              className="w-full border border-slate-200 rounded-lg px-3.5 py-2.5 text-sm text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition disabled:bg-slate-100 disabled:cursor-not-allowed"
-            />
-          </div>
-
-          {/* Phone */}
-          <div>
-            <label className="block text-xs font-medium text-slate-700 mb-1.5">Venue Phone Number</label>
-            <input
-              type="text"
-              name="phone"
-              disabled={isDisabled}
-              placeholder="+1 (555) 019-2834"
-              value={formData.phone}
-              onChange={handleChange}
-              className="w-full border border-slate-200 rounded-lg px-3.5 py-2.5 text-sm text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition disabled:bg-slate-100 disabled:cursor-not-allowed"
-            />
-          </div>
-
           {/* Gmail OAuth Connection */}
           <div>
             <label className="block text-xs font-medium text-slate-700 mb-1.5">Venue Inquiry Email Connection *</label>
@@ -204,6 +188,37 @@ export const RegisterVenue: React.FC = () => {
                 ⚠️ IMPORTANT: You MUST connect the official email inbox used by this venue for customer inquiries and automatic responses. This inbox will receive staff registration and user association approval requests, as well.
               </p>
             </div>
+          </div>
+
+          {/* Venue Name */}
+          <div>
+            <label className="block text-xs font-medium text-slate-700 mb-1.5">Venue Name *</label>
+            <input
+              type="text"
+              name="name"
+              required
+              disabled={isDisabled}
+              placeholder="e.g. Grand Bistro"
+              value={formData.name}
+              onChange={handleChange}
+              className="w-full border border-slate-200 rounded-lg px-3.5 py-2.5 text-sm text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition disabled:bg-slate-100 disabled:cursor-not-allowed"
+            />
+          </div>
+
+          {/* Phone */}
+          <div>
+            <label className="block text-xs font-medium text-slate-700 mb-1.5">Venue Phone Number</label>
+            <input
+              type="tel"
+              name="phone"
+              disabled={isDisabled}
+              pattern="\+?[0-9\s().-]{7,20}"
+              title="Enter a valid phone number using digits, spaces, parentheses, dots, or hyphens."
+              placeholder="+1 (555) 019-2834"
+              value={formData.phone}
+              onChange={handleChange}
+              className="w-full border border-slate-200 rounded-lg px-3.5 py-2.5 text-sm text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition disabled:bg-slate-100 disabled:cursor-not-allowed"
+            />
           </div>
 
           {/* Submit Button */}

@@ -139,7 +139,7 @@ export const useCreateVenue = () => {
       const response = await fetch(`${API_BASE_URL}/api/venue`, {
         method: 'POST',
         headers: {
-          'Authorization': token ? `Bearer ${token}` : '',
+          ...(token ? { 'Authorization': `Bearer ${token}` } : {}),
           'Content-Type': 'application/json',
         },
         body: JSON.stringify(payload),
