@@ -61,7 +61,6 @@ jobs:
           image: us-central1-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.REPOSITORY }}/${{ env.SERVICE }}:${{ github.sha }}
           flags: '--allow-unauthenticated --port=8080'
           env_vars: |
-            NODE_ENV=production
             PROD_DATABASE_URL=${{ secrets.PROD_DATABASE_URL }}
             ELEVENLABS_API_KEY=${{ secrets.ELEVENLABS_API_KEY }}
             JWT_SECRET=${{ secrets.JWT_SECRET }}
