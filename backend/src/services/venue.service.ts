@@ -1,10 +1,12 @@
 import { VenueRepository } from '../repositories/venue.repository';
 import { ElevenLabsRepository } from '../repositories/http/eleven-labs.repository';
+import { AuthService } from './auth.service';
 import { Venue } from '../models/venue.model';
 
 export class VenueService {
   private venueRepo = new VenueRepository();
   private elevenLabsRepo = new ElevenLabsRepository();
+  private authService = new AuthService();
 
   async createVenue(data: {
     name: string;
@@ -35,8 +37,13 @@ export class VenueService {
     return await this.venueRepo.createVenue(venuePayload);
   }
 
+  async getAllVenues(): Promise<Venue[]> {
+    return await this.venueRepo.getAllVenues();
+  }
+
   async addAssociatedUser(venueId: number, userId: number): Promise<void> {
     await this.venueRepo.addAssociatedUser(venueId, userId);
+    await this.authService.updateApprovalStatus(userId, true);
   }
 
   async getAgentIdFromUserId(userId: number): Promise<string | null> {

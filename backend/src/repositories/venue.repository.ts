@@ -14,6 +14,14 @@ export class VenueRepository {
     return await Venue.create(venueData as any);
   }
 
+  async getAllVenues(): Promise<Venue[]> {
+    return await Venue.findAll({
+      attributes: {
+        exclude: ['elevenlabs_agent_id', 'elevenlabs_phone_number_id', 'kb_document_id'],
+      },
+    });
+  }
+
   async addAssociatedUser(venueId: number, userId: number): Promise<void> {
     const venue = await Venue.findByPk(venueId);
     if (!venue) {
@@ -22,8 +30,9 @@ export class VenueRepository {
 
     const currentUsers = venue.associated_user_ids || [];
     if (!currentUsers.includes(userId)) {
-      currentUsers.push(userId);
-      venue.associated_user_ids = currentUsers;
+      const updatedUsers = [...currentUsers, userId];
+      venue.associated_user_ids = updatedUsers;
+      venue.changed('associated_user_ids', true);
       await venue.save();
     }
   }

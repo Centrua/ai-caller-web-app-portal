@@ -2,6 +2,7 @@ import { OAuth2Client } from 'google-auth-library'
 import bcrypt from 'bcryptjs'
 import jwt from 'jsonwebtoken'
 import { UserRepository } from '../repositories/user.repository'
+import { sendUserApprovalEmail } from './centrua-email.service'
 
 export class AuthService {
   private userRepository = new UserRepository()
@@ -48,11 +49,12 @@ export class AuthService {
       user = await this.userRepository.create({
         email: payload.email,
         password: '', 
-        googleRefreshToken: tokens.refresh_token || null
+        google_refresh_token: tokens.refresh_token || null,
+        is_approved: false,
       })
     } 
     else if (tokens.refresh_token) {
-      await this.userRepository.updateGoogleRefreshToken(user.id, tokens.refresh_token)
+      await this.userRepository.updateRefreshToken(user.id, tokens.refresh_token)
     }
 
     const token = jwt.sign(
@@ -62,6 +64,55 @@ export class AuthService {
     )
 
     return { token, user }
+  }
+
+  async register(data: { name?: string; email: string; password: string; role?: string; venueId: number }) {
+    const existingUser = await this.userRepository.findByEmail(data.email)
+    if (existingUser) {
+      throw new Error('User with this email already exists.')
+    }
+
+    const hashedPassword = await bcrypt.hash(data.password, 10)
+
+    const user = await this.userRepository.create({
+      name: data.name || '',
+      email: data.email,
+      password: hashedPassword,
+      role: data.role || 'user',
+      is_approved: false,
+    })
+
+    await sendUserApprovalEmail({
+      to: process.env.COMPANY_GMAIL_USER || '',
+      username: user.name || 'User',
+      email: user.email,
+      venueId: data.venueId,
+      userId: user.id,
+    })
+
+    const token = jwt.sign(
+      {
+        id: user.id,
+        email: user.email,
+        role: user.role,
+      },
+      process.env.JWT_SECRET || 'supersecret',
+      { expiresIn: '7d' }
+    )
+
+    return {
+      token,
+      user: {
+        id: user.id,
+        email: user.email,
+        role: user.role,
+        is_approved: user.is_approved,
+      },
+    }
+  }
+
+  async updateApprovalStatus(userId: number, isApproved: boolean): Promise<void> {
+    await this.userRepository.updateApprovalStatus(userId, isApproved)
   }
 
   async login(email: string, password: string) {
@@ -93,6 +144,7 @@ export class AuthService {
         id: user.id,
         email: user.email,
         role: user.role,
+        is_approved: user.is_approved,
       },
     }
   }

@@ -8,6 +8,7 @@ import ConversationDetails from './pages/conversations/ConversationDetails'
 import KnowledgeBase from './pages/knowledge-base/KnowledgeBase'
 import Settings from './pages/settings/Settings'
 import RegisterVenue from './pages/register-venue/RegisterVenue'
+import SignUp from './pages/sign-up/SignUp'
 
 export default function App() {
   return (
@@ -17,6 +18,7 @@ export default function App() {
         <Route path="/" element={<Landing />} />
         <Route path="/login" element={<Login />} />
         <Route path="/register-venue" element={<RegisterVenue />} />
+        <Route path="/register" element={<SignUp />} />
 
         {/* Shell. */}
         <Route element={<MainLayout />}>

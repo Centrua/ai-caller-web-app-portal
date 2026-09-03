@@ -8,11 +8,12 @@ interface UserAttributes {
   password?: string | null;
   role: string;
   google_refresh_token?: string | null;
+  is_approved: boolean;
   createdAt?: Date;
   updatedAt?: Date;
 }
 
-interface UserCreationAttributes extends Optional<UserAttributes, 'id' | 'role' | 'name' | 'password' | 'google_refresh_token' | 'createdAt' | 'updatedAt'> {}
+interface UserCreationAttributes extends Optional<UserAttributes, 'id' | 'role' | 'name' | 'password' | 'google_refresh_token' | 'is_approved' | 'createdAt' | 'updatedAt'> {}
 
 export class User extends Model<UserAttributes, UserCreationAttributes> implements UserAttributes {
   public declare id: number;
@@ -21,6 +22,7 @@ export class User extends Model<UserAttributes, UserCreationAttributes> implemen
   public declare password: string | null;
   public declare role: string;
   public declare google_refresh_token: string | null;
+  public declare is_approved: boolean;
   public declare readonly createdAt: Date;
   public declare readonly updatedAt: Date;
 
@@ -61,6 +63,11 @@ User.init(
     google_refresh_token: {
       type: DataTypes.STRING,
       allowNull: true,
+    },
+    is_approved: {
+      type: DataTypes.BOOLEAN,
+      allowNull: false,
+      defaultValue: false,
     },
   },
   {

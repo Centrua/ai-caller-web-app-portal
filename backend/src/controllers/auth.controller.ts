@@ -5,6 +5,27 @@ import { sendSuccess, sendError } from '../utils/http'
 const authService = new AuthService()
 
 export class AuthController {
+  async register(req: Request, res: Response): Promise<void> {
+    try {
+      const { name, email, password, role, venueId } = req.body
+      if (!email || !password || !venueId) {
+        sendError(res, 400, 'Email, password, and venueId are required')
+        return
+      }
+      const result = await authService.register({
+        name,
+        email,
+        password,
+        role,
+        venueId: Number(venueId),
+      })
+      sendSuccess(res, 201, result)
+    } catch (error: any) {
+      console.error('[AuthController Register Error]:', error)
+      sendError(res, 400, error.message || 'Registration failed')
+    }
+  }
+
   async login(req: Request, res: Response): Promise<void> {
     try {
       const { email, password } = req.body
@@ -41,7 +62,6 @@ export class AuthController {
 
       const result = await authService.handleGoogleCallback(code)
 
-      // Redirect back to Register Venue page with auth token & connected Google email
       const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:5173'
       res.redirect(
         `${frontendUrl}/register-venue?token=${result.token}&email=${encodeURIComponent(result.user.email)}`
