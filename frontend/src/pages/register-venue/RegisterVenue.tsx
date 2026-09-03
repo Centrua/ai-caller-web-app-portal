@@ -13,6 +13,7 @@ interface RegisterVenueForm {
 }
 
 const PHONE_PATTERN = /^\+?[0-9\s().-]{7,20}$/
+const STORAGE_KEY = 'register_venue_form_backup'
 
 export const RegisterVenue: React.FC = () => {
   const [searchParams] = useSearchParams()
@@ -20,14 +21,31 @@ export const RegisterVenue: React.FC = () => {
   const { initiateGoogleLogin } = useGoogleAuth()
   const { createVenue, loading: submitting } = useCreateVenue()
 
-  const [formData, setFormData] = useState<RegisterVenueForm>({
+  const [formData, setFormData] = useState<RegisterVenueForm>(() => {
+    const saved = localStorage.getItem(STORAGE_KEY)
+    if (saved) {
+      try {
+        const parsed = JSON.parse(saved)
+        return {
+          name: parsed.name || '',
+          email: '',
+          phone: parsed.phone || '',
+          elevenlabs_phone_number_id: '',
+          kb_document_id: '',
+          google_refresh_token: '',
+        }
+      } catch (e) {
+        console.error('Failed to parse saved venue form data', e)
+      }
+    }
+    return {
       name: '',
       email: '',
       phone: '',
       elevenlabs_phone_number_id: '',
       kb_document_id: '',
       google_refresh_token: '',
-    
+    }
   })
 
   const [isGoogleConnected, setIsGoogleConnected] = useState(false)
@@ -46,16 +64,31 @@ export const RegisterVenue: React.FC = () => {
         google_refresh_token: refreshToken || prev.google_refresh_token,
       }))
       setIsGoogleConnected(true)
-      setMessage({ type: 'success', text: `Successfully connected Google account: ${email}` })
     }
   }, [searchParams])
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target
-    setFormData((prev) => ({ ...prev, [name]: value }))
+    setFormData((prev) => {
+      const updated = { ...prev, [name]: value }
+      if (name === 'name' || name === 'phone') {
+        localStorage.setItem(
+          STORAGE_KEY,
+          JSON.stringify({ name: updated.name, phone: updated.phone })
+        )
+      }
+      return updated
+    })
   }
 
   const handleConnectGoogle = () => {
+    localStorage.setItem(
+      STORAGE_KEY,
+      JSON.stringify({
+        name: formData.name,
+        phone: formData.phone,
+      })
+    )
     initiateGoogleLogin()
   }
 
@@ -82,6 +115,8 @@ export const RegisterVenue: React.FC = () => {
         kb_document_id: formData.kb_document_id || null,
         google_refresh_token: formData.google_refresh_token || null,
       })
+
+      localStorage.removeItem(STORAGE_KEY)
 
       setIsSuccess(true)
       setMessage({ type: 'success', text: 'Venue registered successfully! Redirecting to sign up...' })
@@ -148,6 +183,37 @@ export const RegisterVenue: React.FC = () => {
             </div>
           )}
 
+          {/* Venue Name */}
+          <div>
+            <label className="block text-xs font-medium text-slate-700 mb-1.5">Venue Name *</label>
+            <input
+              type="text"
+              name="name"
+              required
+              disabled={isDisabled}
+              placeholder="e.g. Grand Bistro"
+              value={formData.name}
+              onChange={handleChange}
+              className="w-full border border-slate-200 rounded-lg px-3.5 py-2.5 text-sm text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition disabled:bg-slate-100 disabled:cursor-not-allowed"
+            />
+          </div>
+
+          {/* Phone */}
+          <div>
+            <label className="block text-xs font-medium text-slate-700 mb-1.5">Venue Phone Number</label>
+            <input
+              type="tel"
+              name="phone"
+              disabled={isDisabled}
+              pattern="\+?[0-9\s().-]{7,20}"
+              title="Enter a valid phone number using digits, spaces, parentheses, dots, or hyphens."
+              placeholder="+1 (555) 019-2834"
+              value={formData.phone}
+              onChange={handleChange}
+              className="w-full border border-slate-200 rounded-lg px-3.5 py-2.5 text-sm text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition disabled:bg-slate-100 disabled:cursor-not-allowed"
+            />
+          </div>
+
           {/* Gmail OAuth Connection */}
           <div>
             <label className="block text-xs font-medium text-slate-700 mb-1.5">Venue Inquiry Email Connection *</label>
@@ -188,37 +254,6 @@ export const RegisterVenue: React.FC = () => {
                 ⚠️ IMPORTANT: You MUST connect the official email inbox used by this venue for customer inquiries and automatic responses. This inbox will receive staff registration and user association approval requests, as well.
               </p>
             </div>
-          </div>
-
-          {/* Venue Name */}
-          <div>
-            <label className="block text-xs font-medium text-slate-700 mb-1.5">Venue Name *</label>
-            <input
-              type="text"
-              name="name"
-              required
-              disabled={isDisabled}
-              placeholder="e.g. Grand Bistro"
-              value={formData.name}
-              onChange={handleChange}
-              className="w-full border border-slate-200 rounded-lg px-3.5 py-2.5 text-sm text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition disabled:bg-slate-100 disabled:cursor-not-allowed"
-            />
-          </div>
-
-          {/* Phone */}
-          <div>
-            <label className="block text-xs font-medium text-slate-700 mb-1.5">Venue Phone Number</label>
-            <input
-              type="tel"
-              name="phone"
-              disabled={isDisabled}
-              pattern="\+?[0-9\s().-]{7,20}"
-              title="Enter a valid phone number using digits, spaces, parentheses, dots, or hyphens."
-              placeholder="+1 (555) 019-2834"
-              value={formData.phone}
-              onChange={handleChange}
-              className="w-full border border-slate-200 rounded-lg px-3.5 py-2.5 text-sm text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition disabled:bg-slate-100 disabled:cursor-not-allowed"
-            />
           </div>
 
           {/* Submit Button */}
