@@ -164,7 +164,7 @@ export default function Landing() {
                                 <div className="w-6 h-6 rounded-md bg-indigo-600 shrink-0"></div>
                                 <div className="h-2.5 w-20 bg-white/10 rounded-full"></div>
                             </div>
-                            {['Dashboard', 'Conversations', 'Knowledge Base', 'Settings'].map((item, i) => (
+                            {['Dashboard', 'Conversations', 'Knowledge Base'].map((item, i) => (
                                 <div
                                     key={item}
                                     className={`flex items-center gap-2 px-3 py-2 rounded-lg mb-1 ${i === 0 ? 'bg-indigo-600' : ''}`}
