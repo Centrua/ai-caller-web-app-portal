@@ -6,7 +6,6 @@ import Dashboard from './pages/dashboard/Dashboard'
 import Conversations from './pages/conversations/Conversations'
 import ConversationDetails from './pages/conversations/ConversationDetails'
 import KnowledgeBase from './pages/knowledge-base/KnowledgeBase'
-import Settings from './pages/settings/Settings'
 import RegisterVenue from './pages/register-venue/RegisterVenue'
 import SignUp from './pages/sign-up/SignUp'
 
@@ -53,7 +52,6 @@ export default function App() {
             <Route path="/conversations" element={<Conversations />} />
             <Route path="/conversations/:id" element={<ConversationDetails />} />
             <Route path="/knowledge-base" element={<KnowledgeBase />} />
-            <Route path="/settings" element={<Settings />} />
           </Route>
         </Route>
 

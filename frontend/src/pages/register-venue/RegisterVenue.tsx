@@ -12,19 +12,40 @@ interface RegisterVenueForm {
   google_refresh_token: string
 }
 
+const PHONE_PATTERN = /^\+?[0-9\s().-]{7,20}$/
+const STORAGE_KEY = 'register_venue_form_backup'
+
 export const RegisterVenue: React.FC = () => {
   const [searchParams] = useSearchParams()
   const navigate = useNavigate()
   const { initiateGoogleLogin } = useGoogleAuth()
   const { createVenue, loading: submitting } = useCreateVenue()
 
-  const [formData, setFormData] = useState<RegisterVenueForm>({
-    name: '',
-    email: '',
-    phone: '',
-    elevenlabs_phone_number_id: '',
-    kb_document_id: '',
-    google_refresh_token: '',
+  const [formData, setFormData] = useState<RegisterVenueForm>(() => {
+    const saved = localStorage.getItem(STORAGE_KEY)
+    if (saved) {
+      try {
+        const parsed = JSON.parse(saved)
+        return {
+          name: parsed.name || '',
+          email: '',
+          phone: parsed.phone || '',
+          elevenlabs_phone_number_id: '',
+          kb_document_id: '',
+          google_refresh_token: '',
+        }
+      } catch (e) {
+        console.error('Failed to parse saved venue form data', e)
+      }
+    }
+    return {
+      name: '',
+      email: '',
+      phone: '',
+      elevenlabs_phone_number_id: '',
+      kb_document_id: '',
+      google_refresh_token: '',
+    }
   })
 
   const [isGoogleConnected, setIsGoogleConnected] = useState(false)
@@ -43,22 +64,47 @@ export const RegisterVenue: React.FC = () => {
         google_refresh_token: refreshToken || prev.google_refresh_token,
       }))
       setIsGoogleConnected(true)
-      setMessage({ type: 'success', text: `Successfully connected Google account: ${email}` })
     }
   }, [searchParams])
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target
-    setFormData((prev) => ({ ...prev, [name]: value }))
+    setFormData((prev) => {
+      const updated = { ...prev, [name]: value }
+      if (name === 'name' || name === 'phone') {
+        localStorage.setItem(
+          STORAGE_KEY,
+          JSON.stringify({ name: updated.name, phone: updated.phone })
+        )
+      }
+      return updated
+    })
   }
 
   const handleConnectGoogle = () => {
+    localStorage.setItem(
+      STORAGE_KEY,
+      JSON.stringify({
+        name: formData.name,
+        phone: formData.phone,
+      })
+    )
     initiateGoogleLogin()
   }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setMessage(null)
+
+    if (!formData.google_refresh_token) {
+      setMessage({ type: 'error', text: 'Please connect the venue inquiry email with Google before registering the venue.' })
+      return
+    }
+
+    if (formData.phone && !PHONE_PATTERN.test(formData.phone)) {
+      setMessage({ type: 'error', text: 'Please enter a valid venue phone number.' })
+      return
+    }
 
     try {
       await createVenue({
@@ -69,6 +115,8 @@ export const RegisterVenue: React.FC = () => {
         kb_document_id: formData.kb_document_id || null,
         google_refresh_token: formData.google_refresh_token || null,
       })
+
+      localStorage.removeItem(STORAGE_KEY)
 
       setIsSuccess(true)
       setMessage({ type: 'success', text: 'Venue registered successfully! Redirecting to sign up...' })
@@ -154,9 +202,11 @@ export const RegisterVenue: React.FC = () => {
           <div>
             <label className="block text-xs font-medium text-slate-700 mb-1.5">Venue Phone Number</label>
             <input
-              type="text"
+              type="tel"
               name="phone"
               disabled={isDisabled}
+              pattern="\+?[0-9\s().-]{7,20}"
+              title="Enter a valid phone number using digits, spaces, parentheses, dots, or hyphens."
               placeholder="+1 (555) 019-2834"
               value={formData.phone}
               onChange={handleChange}
