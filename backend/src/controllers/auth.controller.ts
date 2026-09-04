@@ -7,9 +7,9 @@ const authService = new AuthService()
 export class AuthController {
   async register(req: Request, res: Response): Promise<void> {
     try {
-      const { name, email, password, role, venueId } = req.body
-      if (!email || !password || !venueId) {
-        sendError(res, 400, 'Email, password, and venueId are required')
+      const { name, email, password, role, registerToken } = req.body
+      if (!email || !password || !registerToken) {
+        sendError(res, 400, 'Email, password, and registration token are required')
         return
       }
       const result = await authService.register({
@@ -17,7 +17,7 @@ export class AuthController {
         email,
         password,
         role,
-        venueId: Number(venueId),
+        registerToken,
       })
       sendSuccess(res, 201, result)
     } catch (error: any) {

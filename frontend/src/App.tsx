@@ -11,25 +11,9 @@ import SignUp from './pages/sign-up/SignUp'
 
 const ProtectedRoute = () => {
   const token = localStorage.getItem('token')
-  const userStr = localStorage.getItem('user')
-  let isApproved = false
-
-  try {
-    if (userStr) {
-      const user = JSON.parse(userStr)
-      isApproved = user.is_approved === true
-    }
-  } 
-  catch (err) {
-    isApproved = false
-  }
 
   if (!token) {
     return <Navigate to="/login" replace />
-  }
-
-  if (!isApproved) {
-    return <Navigate to="/?mode=pending-approval" replace />
   }
 
   return <Outlet />

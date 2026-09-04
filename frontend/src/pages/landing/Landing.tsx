@@ -1,5 +1,4 @@
-import { useEffect, useState } from 'react'
-import { Link, useSearchParams } from 'react-router-dom'
+import { Link } from 'react-router-dom'
 
 const features = [
     {
@@ -49,54 +48,9 @@ const steps = [
 ]
 
 export default function Landing() {
-    const [searchParams, setSearchParams] = useSearchParams()
-    const [showApprovalModal, setShowApprovalModal] = useState(false)
-
-    useEffect(() => {
-        if (searchParams.get('mode') === 'pending-approval') {
-            setShowApprovalModal(true)
-        }
-    }, [searchParams])
-
-    const handleCloseModal = () => {
-        setShowApprovalModal(false)
-        searchParams.delete('mode')
-        setSearchParams(searchParams)
-    }
 
     return (
         <div className="min-h-screen bg-white text-slate-900 relative">
-
-            {/* Pending Approval Modal */}
-            {showApprovalModal && (
-                <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-                    <div className="bg-white border border-slate-200 rounded-2xl shadow-xl max-w-md w-full p-8 text-center flex flex-col items-center relative animate-in fade-in zoom-in-95 duration-200">
-                        <button
-                            onClick={handleCloseModal}
-                            className="absolute top-4 right-4 text-slate-400 hover:text-slate-600 p-1 rounded-lg transition-colors"
-                        >
-                        </button>
-                        <div className="w-14 h-14 rounded-2xl bg-indigo-50 text-indigo-600 flex items-center justify-center mb-5">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                                <circle cx="12" cy="12" r="10" />
-                                <line x1="12" y1="8" x2="12" y2="12" />
-                                <line x1="12" y1="16" x2="12.01" y2="16" />
-                            </svg>
-                        </div>
-                        <h2 className="text-2xl font-bold text-slate-900 mb-2">Account Approval Required to Access Features</h2>
-                        <p className="text-slate-600 text-sm leading-relaxed mb-8">
-                            Your account has been created and linked to the venue. The venue owner must open their email inbox and click the approval link sent to them before you can access other features on the site.
-                        </p>
-                        <button
-                            onClick={handleCloseModal}
-                            className="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-3 rounded-xl transition-colors text-sm shadow-sm cursor-pointer"
-                        >
-                            Got it
-                        </button>
-                    </div>
-                </div>
-            )}
-
             {/* Nav */}
             <nav className="flex items-center justify-between px-8 py-5 max-w-6xl mx-auto border-b border-slate-100">
                 <div className="flex items-center gap-2.5">

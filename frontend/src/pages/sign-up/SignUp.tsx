@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useNavigate, useSearchParams, Link } from 'react-router-dom'
 import { useRegister } from '../../hooks/authHooks'
-import { useVenues } from '../../hooks/venueHooks'
 
 export default function Register() {
     const [searchParams] = useSearchParams()
@@ -9,34 +8,57 @@ export default function Register() {
     const [name, setName] = useState('')
     const [email, setEmail] = useState('')
     const [password, setPassword] = useState('')
-    const [selectedVenueId, setSelectedVenueId] = useState<number | null>(null)
+    const [confirmPassword, setConfirmPassword] = useState('')
+    const [registerToken, setRegisterToken] = useState('')
+    const [passwordError, setPasswordError] = useState<string | null>(null)
     const [isRegistered, setIsRegistered] = useState<boolean>(false)
     const [showPromptModal, setShowPromptModal] = useState<boolean>(false)
 
-    const { register, loading, error } = useRegister()
-    const { venues, getAllVenues, loading: venuesLoading } = useVenues()
+    // Password strength rules: Length & Special Character
+    const hasLength = password.length >= 8
+    const hasSpecial = /[^A-Za-z0-9]/.test(password)
 
-    useEffect(() => {
-        getAllVenues()
-    }, [getAllVenues])
+    let strengthScore = 0
+    if (hasLength) strengthScore += 1
+    if (hasSpecial) strengthScore += 1
+
+    const { register, loading, error } = useRegister()
 
     useEffect(() => {
         const mode = searchParams.get('mode')
+        const tokenParam = searchParams.get('token') || searchParams.get('registerToken')
+
         if (mode === 'apply-venue') {
             setShowPromptModal(true)
+        }
+        if (tokenParam) {
+            setRegisterToken(tokenParam)
         }
     }, [searchParams])
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault()
-        if (!selectedVenueId) {
+        setPasswordError(null)
+
+        if (strengthScore < 2) {
+            setPasswordError('Password must be at least 8 characters long and include a special character')
             return
         }
+
+        if (password !== confirmPassword) {
+            setPasswordError('Passwords do not match')
+            return
+        }
+
+        if (!registerToken) {
+            return
+        }
+
         const user = await register({
             name,
             email,
             password,
-            venueId: selectedVenueId
+            registerToken
         })
         if (user) {
             setIsRegistered(true)
@@ -69,7 +91,7 @@ export default function Register() {
                         </div>
                         <h2 className="text-2xl font-bold text-slate-900 mb-2">Complete Your Registration</h2>
                         <p className="text-slate-600 text-sm leading-relaxed mb-8">
-                            Please register your user account and apply to your venue.
+                            Please register your user account using the venue registration token provided to you.
                         </p>
                         <button
                             onClick={() => setShowPromptModal(false)}
@@ -90,62 +112,32 @@ export default function Register() {
                                 <polyline points="22,6 12,13 2,6" />
                             </svg>
                         </div>
-                        <h2 className="text-2xl font-bold text-slate-900 mb-2">Await Administrator Approval</h2>
+                        <h2 className="text-2xl font-bold text-slate-900 mb-2">Account Created Successfully</h2>
                         <p className="text-slate-600 text-sm leading-relaxed mb-8">
-                            Your account has been created and linked to the venue. The venue owner must open their email inbox and click the approval link sent to them before you can access your dashboard.
+                            Your account has been created and successfully linked to the venue. You can now log in to access your portal.
                         </p>
                         <button
                             onClick={() => navigate('/login')}
                             className="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-3 rounded-xl transition-colors text-sm shadow-sm cursor-pointer"
                         >
-                            Back to login
+                            Proceed to login
                         </button>
                     </div>
                 </div>
             )}
 
-            <div className="w-full max-w-4xl grid grid-cols-1 md:grid-cols-2 gap-6">
-
-                {/* Left Column: Venue Selection */}
-                <div className="bg-white border border-slate-200 rounded-2xl shadow-sm p-8 flex flex-col justify-between">
-                    <div>
-                        <h2 className="text-xl font-bold text-slate-900 mb-1">Select your venue</h2>
-                        <p className="text-slate-500 text-sm mb-6">Choose the venue you want to be associated with</p>
-
-                        {venuesLoading ? (
-                            <div className="text-center py-8 text-sm text-slate-400">Loading venues...</div>
-                        ) : venues.length === 0 ? (
-                            <div className="text-center py-8 text-sm text-slate-400">No venues available</div>
-                        ) : (
-                            <div className="flex flex-col gap-3 max-h-[320px] overflow-y-scroll pr-3 [&::-webkit-scrollbar]:w-2 [&::-webkit-scrollbar-track]:bg-slate-100 [&::-webkit-scrollbar-track]:rounded-full [&::-webkit-scrollbar-thumb]:bg-slate-300 [&::-webkit-scrollbar-thumb]:rounded-full">
-                                {venues.map((venue) => {
-                                    const isSelected = selectedVenueId === venue.id
-                                    return (
-                                        <div
-                                            key={venue.id}
-                                            onClick={() => setSelectedVenueId(venue.id)}
-                                            className={`border rounded-xl p-4 cursor-pointer transition-all ${isSelected
-                                                    ? 'border-indigo-600 bg-indigo-50/40 ring-2 ring-indigo-500/20'
-                                                    : 'border-slate-200 hover:border-slate-300 bg-white'
-                                                }`}
-                                        >
-                                            <div className="font-medium text-sm text-slate-900">{venue.name}</div>
-                                            {venue.email && <div className="text-xs text-slate-500 mt-0.5">{venue.email}</div>}
-                                        </div>
-                                    )
-                                })}
-                            </div>
-                        )}
-                    </div>
-                    {selectedVenueId && (
-                        <div className="text-xs text-indigo-600 font-medium mt-4">
-                            ✓ Venue selected
-                        </div>
-                    )}
-                </div>
-
-                {/* Right Column: Register Form */}
+            <div className="w-full max-w-md grid grid-cols-1 gap-6">
                 <div className="bg-white border border-slate-200 rounded-2xl shadow-sm p-8 flex flex-col justify-center">
+                    {/* Top helper link */}
+                    <div className="flex justify-end items-center mb-6">
+                        <Link
+                            to="/login"
+                            className="text-xs font-medium text-slate-500 hover:text-indigo-600 transition-colors border border-slate-200 px-4 py-2 rounded-xl hover:border-slate-300"
+                        >
+                            Already registered? <span className="text-indigo-600 font-semibold">Log in</span>
+                        </Link>
+                    </div>
+                    
                     <div className="flex justify-center mb-6">
                         <div className="w-12 h-12 rounded-xl bg-indigo-600 flex items-center justify-center">
                             <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -163,9 +155,9 @@ export default function Register() {
                     </div>
 
                     <form onSubmit={handleSubmit} className="flex flex-col gap-4">
-                        {error && (
+                        {(error || passwordError) && (
                             <div className="bg-red-50 border border-red-200 text-red-600 text-xs rounded-lg p-3">
-                                {error}
+                                {passwordError || error}
                             </div>
                         )}
                         <div>
@@ -203,17 +195,65 @@ export default function Register() {
                                 onChange={(e) => setPassword(e.target.value)}
                                 className="w-full border border-slate-200 rounded-lg px-3.5 py-2.5 text-sm text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition"
                             />
+                            {/* Password Strength Progress Bar */}
+                            {password.length > 0 && (
+                                <div className="mt-2.5">
+                                    <div className="flex justify-between items-center text-xs mb-1">
+                                        <span className="text-slate-500 font-medium">Strength:</span>
+                                        <span className={`font-semibold ${strengthScore === 2 ? 'text-emerald-600' : strengthScore === 1 ? 'text-amber-600' : 'text-rose-500'}`}>
+                                            {strengthScore === 2 ? 'Strong' : strengthScore === 1 ? 'Fair' : 'Weak'}
+                                        </span>
+                                    </div>
+                                    <div className="w-full bg-slate-200 h-1.5 rounded-full overflow-hidden">
+                                        <div
+                                            className={`h-full transition-all duration-300 ${strengthScore === 2 ? 'w-full bg-emerald-500' : strengthScore === 1 ? 'w-1/2 bg-amber-500' : 'w-1/4 bg-rose-500'
+                                                }`}
+                                        />
+                                    </div>
+                                    <p className="text-[11px] text-slate-400 mt-1">
+                                        Must be 8+ characters and include a special character.
+                                    </p>
+                                </div>
+                            )}
+                        </div>
+                        <div>
+                            <label className="block text-xs font-medium text-slate-600 mb-1.5">Confirm Password</label>
+                            <input
+                                type="password"
+                                id="confirmPassword"
+                                required
+                                placeholder="••••••••"
+                                value={confirmPassword}
+                                onChange={(e) => setConfirmPassword(e.target.value)}
+                                className="w-full border border-slate-200 rounded-lg px-3.5 py-2.5 text-sm text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition"
+                            />
+                            {confirmPassword.length > 0 && (
+                                <p className={`text-xs mt-1.5 ${password === confirmPassword ? 'text-emerald-600 font-medium' : 'text-rose-500'}`}>
+                                    {password === confirmPassword ? '✓ Passwords match' : '• Passwords do not match'}
+                                </p>
+                            )}
+                        </div>
+                        <div>
+                            <label className="block text-xs font-medium text-slate-600 mb-1.5">Registration Token</label>
+                            <input
+                                type="text"
+                                id="registerToken"
+                                required
+                                placeholder="Enter venue registration token"
+                                value={registerToken}
+                                onChange={(e) => setRegisterToken(e.target.value)}
+                                className="w-full border border-slate-200 rounded-lg px-3.5 py-2.5 text-sm text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition font-mono"
+                            />
                         </div>
                         <button
                             type="submit"
-                            disabled={loading || !selectedVenueId}
+                            disabled={loading || !registerToken || strengthScore < 2 || password !== confirmPassword}
                             className="w-full bg-indigo-600 hover:bg-indigo-700 disabled:bg-indigo-300 text-white font-semibold py-2.5 rounded-lg transition-colors text-sm mt-2 flex items-center justify-center cursor-pointer disabled:cursor-not-allowed"
                         >
                             {loading ? 'Creating account...' : 'Sign up'}
                         </button>
                     </form>
                 </div>
-
             </div>
         </div>
     )

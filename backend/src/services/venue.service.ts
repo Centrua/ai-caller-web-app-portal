@@ -1,12 +1,12 @@
 import { VenueRepository } from '../repositories/venue.repository';
 import { ElevenLabsRepository } from '../repositories/http/eleven-labs.repository';
-import { AuthService } from './auth.service';
+import { RegisterTokenService } from './register-token.service';
 import { Venue } from '../models/venue.model';
 
 export class VenueService {
   private venueRepo = new VenueRepository();
   private elevenLabsRepo = new ElevenLabsRepository();
-  private authService = new AuthService();
+  private registerTokenService = new RegisterTokenService();
 
   async createVenue(data: {
     name: string;
@@ -14,7 +14,7 @@ export class VenueService {
     phone?: string | null;
     kb_document_id?: string | null;
     associated_user_ids?: number[];
-  }): Promise<Venue> {
+  }): Promise<{ venue: Venue; plainToken: string }> {
     let agentId: string | null = null;
 
     const templateAgentId = process.env.ELEVENLABS_TEMPLATE_AGENT_ID;
@@ -38,16 +38,15 @@ export class VenueService {
       associated_user_ids: data.associated_user_ids ?? [],
     };
 
-    return await this.venueRepo.createVenue(venuePayload);
-  }
+    const venue = await this.venueRepo.createVenue(venuePayload);
+    
+    const { plainToken } = await this.registerTokenService.create(venue.id);
 
-  async getAllVenues(): Promise<Venue[]> {
-    return await this.venueRepo.getAllVenues();
+    return { venue, plainToken };
   }
 
   async addAssociatedUser(venueId: number, userId: number): Promise<void> {
     await this.venueRepo.addAssociatedUser(venueId, userId);
-    await this.authService.updateApprovalStatus(userId, true);
   }
 
   async getAgentIdFromUserId(userId: number): Promise<string | null> {

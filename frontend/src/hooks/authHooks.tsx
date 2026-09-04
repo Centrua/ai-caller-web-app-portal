@@ -10,14 +10,13 @@ export interface RegisterCredentials {
   email: string
   password: string
   role?: string
-  venueId: number
+  registerToken: string
 }
 
 export interface AuthUser {
   id: number
   email: string
   role: string
-  is_approved: boolean
   token: string
 }
 
