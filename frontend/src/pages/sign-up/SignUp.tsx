@@ -8,7 +8,7 @@ export default function Register() {
     const [name, setName] = useState('')
     const [email, setEmail] = useState('')
     const [password, setPassword] = useState('')
-    const [selectedVenueId, setSelectedVenueId] = useState<number | null>(null)
+    const [registerToken, setRegisterToken] = useState('')
     const [isRegistered, setIsRegistered] = useState<boolean>(false)
     const [showPromptModal, setShowPromptModal] = useState<boolean>(false)
 
@@ -16,21 +16,26 @@ export default function Register() {
 
     useEffect(() => {
         const mode = searchParams.get('mode')
+        const tokenParam = searchParams.get('token') || searchParams.get('registerToken')
+        
         if (mode === 'apply-venue') {
             setShowPromptModal(true)
+        }
+        if (tokenParam) {
+            setRegisterToken(tokenParam)
         }
     }, [searchParams])
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault()
-        if (!selectedVenueId) {
+        if (!registerToken) {
             return
         }
         const user = await register({
             name,
             email,
             password,
-            venueId: selectedVenueId
+            registerToken
         })
         if (user) {
             setIsRegistered(true)
@@ -63,7 +68,7 @@ export default function Register() {
                         </div>
                         <h2 className="text-2xl font-bold text-slate-900 mb-2">Complete Your Registration</h2>
                         <p className="text-slate-600 text-sm leading-relaxed mb-8">
-                            Please register your user account and apply to your venue.
+                            Please register your user account using the venue registration token provided to you.
                         </p>
                         <button
                             onClick={() => setShowPromptModal(false)}
@@ -84,22 +89,21 @@ export default function Register() {
                                 <polyline points="22,6 12,13 2,6" />
                             </svg>
                         </div>
-                        <h2 className="text-2xl font-bold text-slate-900 mb-2">Await Administrator Approval</h2>
+                        <h2 className="text-2xl font-bold text-slate-900 mb-2">Account Created Successfully</h2>
                         <p className="text-slate-600 text-sm leading-relaxed mb-8">
-                            Your account has been created and linked to the venue. The venue owner must open their email inbox and click the approval link sent to them before you can access your dashboard.
+                            Your account has been created and successfully linked to the venue. You can now log in to access your portal.
                         </p>
                         <button
                             onClick={() => navigate('/login')}
                             className="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-3 rounded-xl transition-colors text-sm shadow-sm cursor-pointer"
                         >
-                            Back to login
+                            Proceed to login
                         </button>
                     </div>
                 </div>
             )}
 
-            <div className="w-full max-w-4xl grid grid-cols-1 md:grid-cols-1 gap-6">
-                {/* Right Column: Register Form */}
+            <div className="w-full max-w-md grid grid-cols-1 gap-6">
                 <div className="bg-white border border-slate-200 rounded-2xl shadow-sm p-8 flex flex-col justify-center">
                     <div className="flex justify-center mb-6">
                         <div className="w-12 h-12 rounded-xl bg-indigo-600 flex items-center justify-center">
@@ -159,16 +163,27 @@ export default function Register() {
                                 className="w-full border border-slate-200 rounded-lg px-3.5 py-2.5 text-sm text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition"
                             />
                         </div>
+                        <div>
+                            <label className="block text-xs font-medium text-slate-600 mb-1.5">Registration Token</label>
+                            <input
+                                type="text"
+                                id="registerToken"
+                                required
+                                placeholder="Enter venue registration token"
+                                value={registerToken}
+                                onChange={(e) => setRegisterToken(e.target.value)}
+                                className="w-full border border-slate-200 rounded-lg px-3.5 py-2.5 text-sm text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition font-mono"
+                            />
+                        </div>
                         <button
                             type="submit"
-                            disabled={loading || !selectedVenueId}
+                            disabled={loading || !registerToken}
                             className="w-full bg-indigo-600 hover:bg-indigo-700 disabled:bg-indigo-300 text-white font-semibold py-2.5 rounded-lg transition-colors text-sm mt-2 flex items-center justify-center cursor-pointer disabled:cursor-not-allowed"
                         >
                             {loading ? 'Creating account...' : 'Sign up'}
                         </button>
                     </form>
                 </div>
-
             </div>
         </div>
     )

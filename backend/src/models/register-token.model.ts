@@ -4,6 +4,7 @@ import { sequelize } from '../config/database'; // Adjust to your actual path
 interface RegisterTokenAttributes {
   id: number;
   venue_id: number;
+  prefix: string;
   token: string;
   createdAt?: Date;
   updatedAt?: Date;
@@ -14,6 +15,7 @@ interface RegisterTokenCreationAttributes extends Optional<RegisterTokenAttribut
 export class RegisterToken extends Model<RegisterTokenAttributes, RegisterTokenCreationAttributes> implements RegisterTokenAttributes {
   public declare id: number;
   public declare venue_id: number;
+  public declare prefix: string;
   public declare token: string;
   public declare readonly createdAt: Date;
   public declare readonly updatedAt: Date;
@@ -36,6 +38,10 @@ RegisterToken.init(
     },
     venue_id: {
       type: DataTypes.INTEGER,
+      allowNull: false,
+    },
+    prefix: {
+      type: DataTypes.STRING(16),
       allowNull: false,
     },
     token: {

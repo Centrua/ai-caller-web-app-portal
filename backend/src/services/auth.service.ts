@@ -1,10 +1,24 @@
 import bcrypt from 'bcryptjs'
 import jwt from 'jsonwebtoken'
 import { UserRepository } from '../repositories/user.repository'
+import { RegisterTokenService } from './register-token.service'
+import { VenueService } from './venue.service'
 
 export class AuthService {
   private userRepository = new UserRepository()
-  async register(data: { name?: string; email: string; password: string; role?: string; venueId: number }) {
+  private venueService = new VenueService()
+  private registerTokenService = new RegisterTokenService()
+
+  async register(data: { name?: string; email: string; password: string; role?: string; registerToken: string }) {
+    if (!data.registerToken) {
+      throw new Error('Registration token is required.')
+    }
+
+    const venueId = await this.registerTokenService.verifyToken(data.registerToken)
+    if (!venueId) {
+      throw new Error('Invalid or expired registration token.')
+    }
+
     const existingUser = await this.userRepository.findByEmail(data.email)
     if (existingUser) {
       throw new Error('User with this email already exists.')
@@ -18,6 +32,8 @@ export class AuthService {
       password: hashedPassword,
       role: data.role || 'user',
     })
+
+    await this.venueService.addAssociatedUser(venueId, user.id)
 
     const token = jwt.sign(
       {

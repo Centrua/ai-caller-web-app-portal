@@ -20,6 +20,10 @@ module.exports = {
         onUpdate: 'CASCADE',
         onDelete: 'CASCADE'
       },
+      prefix: {
+        type: Sequelize.STRING(16),
+        allowNull: false
+      },
       token: {
         type: Sequelize.STRING,
         allowNull: false,
@@ -36,6 +40,8 @@ module.exports = {
         defaultValue: Sequelize.literal('CURRENT_TIMESTAMP')
       }
     });
+
+    await queryInterface.addIndex('register_tokens', ['prefix']);
   },
 
   async down (queryInterface, Sequelize) {

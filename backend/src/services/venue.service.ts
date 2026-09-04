@@ -1,13 +1,12 @@
 import { VenueRepository } from '../repositories/venue.repository';
 import { ElevenLabsRepository } from '../repositories/http/eleven-labs.repository';
-import { AuthService } from './auth.service';
-import { RegisterTokenService } from './register-token.service'; // Adjust path as needed
+import { RegisterTokenService } from './register-token.service';
 import { Venue } from '../models/venue.model';
 
 export class VenueService {
   private venueRepo = new VenueRepository();
   private elevenLabsRepo = new ElevenLabsRepository();
-  private authService = new AuthService();
+  private registerTokenService = new RegisterTokenService();
 
   async createVenue(data: {
     name: string;
@@ -41,7 +40,7 @@ export class VenueService {
 
     const venue = await this.venueRepo.createVenue(venuePayload);
     
-    const { plainToken } = await RegisterTokenService.create(venue.id);
+    const { plainToken } = await this.registerTokenService.create(venue.id);
 
     return { venue, plainToken };
   }
