@@ -1,4 +1,3 @@
-import { OAuth2Client } from 'google-auth-library'
 import bcrypt from 'bcryptjs'
 import jwt from 'jsonwebtoken'
 import { UserRepository } from '../repositories/user.repository'
@@ -6,50 +5,6 @@ import { sendUserApprovalEmail } from './centrua-email.service'
 
 export class AuthService {
   private userRepository = new UserRepository()
-  private oauth2Client = new OAuth2Client(
-    process.env.GOOGLE_CLIENT_ID,
-    process.env.GOOGLE_CLIENT_SECRET,
-    process.env.GOOGLE_REDIRECT_URI
-  )
-
-  getGoogleAuthUrl(): string {
-    return this.oauth2Client.generateAuthUrl({
-      access_type: 'offline',
-      prompt: 'consent',
-      scope: [
-        'https://www.googleapis.com/auth/userinfo.email',
-        'https://www.googleapis.com/auth/userinfo.profile',
-        'https://www.googleapis.com/auth/gmail.send',
-        'https://www.googleapis.com/auth/gmail.readonly',
-        'https://www.googleapis.com/auth/gmail.modify'
-      ],
-    })
-  }
-
-  async handleGoogleCallback(code: string) {
-    const { tokens } = await this.oauth2Client.getToken(code)
-    this.oauth2Client.setCredentials(tokens)
-
-    if (!tokens.id_token) {
-      throw new Error('Failed to retrieve ID token from Google.')
-    }
-
-    const ticket = await this.oauth2Client.verifyIdToken({
-      idToken: tokens.id_token,
-      audience: process.env.GOOGLE_CLIENT_ID,
-    })
-
-    const payload = ticket.getPayload()
-    if (!payload || !payload.email) {
-      throw new Error('Google payload missing email.')
-    }
-
-    return {
-      email: payload.email,
-      refreshToken: tokens.refresh_token || null,
-    }
-  }
-
   async register(data: { name?: string; email: string; password: string; role?: string; venueId: number }) {
     const existingUser = await this.userRepository.findByEmail(data.email)
     if (existingUser) {
@@ -67,7 +22,7 @@ export class AuthService {
     })
 
     await sendUserApprovalEmail({
-      to: process.env.COMPANY_GMAIL_USER || '',
+      to: process.env.INTERNAL_APPROVAL_EMAIL || '',
       username: user.name || 'User',
       email: user.email,
       venueId: data.venueId,

@@ -40,40 +40,4 @@ export class AuthController {
       sendError(res, 401, error.message)
     }
   }
-
-  async initiateGoogleAuth(req: Request, res: Response): Promise<void> {
-    try {
-      const url = authService.getGoogleAuthUrl()
-      res.redirect(url)
-    } catch (error: any) {
-      console.error('[AuthController Google Initiate Error]:', error)
-      sendError(res, 500, error.message)
-    }
-  }
-
-  async handleGoogleCallback(req: Request, res: Response): Promise<void> {
-    try {
-      const { code } = req.query
-
-      if (!code || typeof code !== 'string') {
-        sendError(res, 400, 'Authorization code missing from query parameters')
-        return
-      }
-
-      const { email, refreshToken } = await authService.handleGoogleCallback(code)
-
-      const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:5173'
-      const redirectUrl = new URL(`${frontendUrl}/register-venue`)
-      redirectUrl.searchParams.set('email', email)
-      if (refreshToken) {
-        redirectUrl.searchParams.set('google_refresh_token', refreshToken)
-      }
-
-      res.redirect(redirectUrl.toString())
-    } 
-    catch (error: any) {
-      console.error('[AuthController Google Callback Error]:', error)
-      sendError(res, 500, 'Google authentication failed')
-    }
-  }
 }

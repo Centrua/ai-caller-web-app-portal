@@ -12,9 +12,7 @@ export class VenueService {
     name: string;
     email?: string | null;
     phone?: string | null;
-    elevenlabs_phone_number_id?: string | null;
     kb_document_id?: string | null;
-    google_refresh_token?: string | null;
     associated_user_ids?: number[];
   }): Promise<Venue> {
     let agentId: string | null = null;
@@ -36,9 +34,7 @@ export class VenueService {
       email: data.email ?? null,
       phone: data.phone ?? null,
       elevenlabs_agent_id: agentId,
-      elevenlabs_phone_number_id: data.elevenlabs_phone_number_id ?? null,
       kb_document_id: data.kb_document_id ?? null,
-      google_refresh_token: data.google_refresh_token ?? null,
       associated_user_ids: data.associated_user_ids ?? [],
     };
 
@@ -56,6 +52,10 @@ export class VenueService {
 
   async getAgentIdFromUserId(userId: number): Promise<string | null> {
     return await this.venueRepo.getAgentIdByUserId(userId);
+  }
+
+  async getVenueIdFromUserId(userId: number): Promise<number | null> {
+    return await this.venueRepo.getVenueIdByUserId(userId);
   }
 
   async getNameFromUserId(userId: number): Promise<string | null> {

@@ -7,7 +7,6 @@ export interface Venue {
   name: string
   email?: string | null
   phone?: string | null
-  google_refresh_token?: string | null
   associated_user_ids?: number[]
   createdAt?: string
   updatedAt?: string
@@ -19,7 +18,6 @@ export interface CreateVenuePayload {
   phone?: string | null
   elevenlabs_phone_number_id?: string | null
   kb_document_id?: string | null
-  google_refresh_token?: string | null
 }
 
 export const useVenue = () => {

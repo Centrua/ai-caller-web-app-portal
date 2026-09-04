@@ -13,8 +13,8 @@ export class VenueController {
     try {
       const venueData = req.body
 
-      if (!venueData || !venueData.name || !venueData.google_refresh_token) {
-        sendError(res, 400, 'Bad Request: Venue name and Google OAuth connection are required')
+      if (!venueData || !venueData.name) {
+        sendError(res, 400, 'Bad Request: Venue name is required')
         return
       }
 

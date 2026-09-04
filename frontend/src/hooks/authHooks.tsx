@@ -137,11 +137,3 @@ export const useRegister = () => {
 
   return { register, loading, error, user }
 }
-
-export const useGoogleAuth = () => {
-  const initiateGoogleLogin = useCallback(() => {
-    window.location.href = `${API_BASE_URL}/api/auth/google`
-  }, [])
-
-  return { initiateGoogleLogin }
-}
