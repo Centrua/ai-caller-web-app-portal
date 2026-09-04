@@ -110,7 +110,7 @@ export const RegisterVenue: React.FC = () => {
       {/* Back button */}
       <Link
         to="/"
-        className="absolute top-6 left-6 inline-flex items-center gap-1.5 text-sm font-medium text-slate-500 hover:text-slate-900 transition-colors z-20"
+        className="absolute top-6 left-6 inline-flex items-center gap-1.5 text-sm font-medium text-slate-500 hover:text-slate-900 transition-colors z-30"
       >
         <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
           <line x1="19" y1="12" x2="5" y2="12"></line>
@@ -124,7 +124,7 @@ export const RegisterVenue: React.FC = () => {
         {/* Left Side: Exactly half (col-span-6) with Centrua AI, backdrop image, and right-shifted cut-off venue image */}
         <div className="lg:col-span-6 relative overflow-hidden flex items-center justify-end p-8 lg:p-12 bg-slate-900">
           {/* Centrua AI in Times New Roman at the top left */}
-          <div className="absolute top-8 left-8 z-20 font-serif text-white text-2xl tracking-wide select-none">
+          <div className="absolute top-8 left-8 z-20 font-serif text-white text-lg tracking-wide select-none">
             Centrua AI
           </div>
 
@@ -162,7 +162,7 @@ export const RegisterVenue: React.FC = () => {
           <div className="my-auto max-w-md mx-auto w-full pt-6">
             {/* Header Icon */}
             <div className="flex justify-center mb-5">
-              <div className="w-12 h-12 rounded-2xl bg-indigo-600 flex items-center justify-center shadow-md text-white">
+              <div className="w-12 h-12 rounded-2xl bg-[#20241C] flex items-center justify-center shadow-md text-white">
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
                   width="22"
@@ -211,7 +211,7 @@ export const RegisterVenue: React.FC = () => {
                   placeholder="e.g. Grand Bistro"
                   value={formData.name}
                   onChange={handleChange}
-                  className="w-full border border-slate-200 rounded-2xl px-4 py-3 text-sm text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition disabled:bg-slate-100 disabled:cursor-not-allowed bg-slate-50/50"
+                  className="w-full border border-slate-200 rounded-2xl px-4 py-3 text-sm text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-[#20241C] focus:border-transparent transition disabled:bg-slate-100 disabled:cursor-not-allowed bg-slate-50/50"
                 />
               </div>
 
@@ -225,7 +225,7 @@ export const RegisterVenue: React.FC = () => {
                   placeholder="e.g. hello@venue.com"
                   value={formData.email}
                   onChange={handleChange}
-                  className="w-full border border-slate-200 rounded-2xl px-4 py-3 text-sm text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition disabled:bg-slate-100 disabled:cursor-not-allowed bg-slate-50/50"
+                  className="w-full border border-slate-200 rounded-2xl px-4 py-3 text-sm text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-[#20241C] focus:border-transparent transition disabled:bg-slate-100 disabled:cursor-not-allowed bg-slate-50/50"
                 />
               </div>
 
@@ -233,7 +233,7 @@ export const RegisterVenue: React.FC = () => {
               <button
                 type="submit"
                 disabled={isDisabled}
-                className="w-full bg-indigo-600 hover:bg-indigo-700 disabled:bg-indigo-400 text-white font-semibold py-3.5 rounded-2xl transition-all text-sm mt-3 flex items-center justify-center cursor-pointer disabled:cursor-not-allowed shadow-md shadow-indigo-600/20"
+                className="w-full bg-[#20241C] hover:bg-[#7C572D] disabled:bg-[#20241C]/60 text-white font-semibold py-3.5 rounded-2xl transition-all text-sm mt-3 flex items-center justify-center cursor-pointer disabled:cursor-not-allowed shadow-md shadow-[#20241C]/20"
               >
                 {submitting ? 'Registering Venue...' : isSuccess ? 'Redirecting...' : 'Register Venue'}
               </button>
@@ -268,7 +268,7 @@ export const RegisterVenue: React.FC = () => {
               <button
                 type="button"
                 onClick={handleCopy}
-                className="absolute right-1.5 top-1.5 bottom-1.5 px-4 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-medium rounded-lg transition-colors cursor-pointer shadow-sm"
+                className="absolute right-1.5 top-1.5 bottom-1.5 px-4 bg-[#20241C] hover:bg-[#7C572D] text-white text-xs font-medium rounded-xl transition-colors cursor-pointer shadow-sm"
               >
                 {copied ? 'Copied!' : 'Copy'}
               </button>
