@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useNavigate, useSearchParams, Link } from 'react-router-dom'
 import { useRegister } from '../../hooks/authHooks'
-import { useVenues } from '../../hooks/venueHooks'
 
 export default function Register() {
     const [searchParams] = useSearchParams()
@@ -14,11 +13,6 @@ export default function Register() {
     const [showPromptModal, setShowPromptModal] = useState<boolean>(false)
 
     const { register, loading, error } = useRegister()
-    const { venues, getAllVenues, loading: venuesLoading } = useVenues()
-
-    useEffect(() => {
-        getAllVenues()
-    }, [getAllVenues])
 
     useEffect(() => {
         const mode = searchParams.get('mode')
@@ -104,46 +98,7 @@ export default function Register() {
                 </div>
             )}
 
-            <div className="w-full max-w-4xl grid grid-cols-1 md:grid-cols-2 gap-6">
-
-                {/* Left Column: Venue Selection */}
-                <div className="bg-white border border-slate-200 rounded-2xl shadow-sm p-8 flex flex-col justify-between">
-                    <div>
-                        <h2 className="text-xl font-bold text-slate-900 mb-1">Select your venue</h2>
-                        <p className="text-slate-500 text-sm mb-6">Choose the venue you want to be associated with</p>
-
-                        {venuesLoading ? (
-                            <div className="text-center py-8 text-sm text-slate-400">Loading venues...</div>
-                        ) : venues.length === 0 ? (
-                            <div className="text-center py-8 text-sm text-slate-400">No venues available</div>
-                        ) : (
-                            <div className="flex flex-col gap-3 max-h-[320px] overflow-y-scroll pr-3 [&::-webkit-scrollbar]:w-2 [&::-webkit-scrollbar-track]:bg-slate-100 [&::-webkit-scrollbar-track]:rounded-full [&::-webkit-scrollbar-thumb]:bg-slate-300 [&::-webkit-scrollbar-thumb]:rounded-full">
-                                {venues.map((venue) => {
-                                    const isSelected = selectedVenueId === venue.id
-                                    return (
-                                        <div
-                                            key={venue.id}
-                                            onClick={() => setSelectedVenueId(venue.id)}
-                                            className={`border rounded-xl p-4 cursor-pointer transition-all ${isSelected
-                                                    ? 'border-indigo-600 bg-indigo-50/40 ring-2 ring-indigo-500/20'
-                                                    : 'border-slate-200 hover:border-slate-300 bg-white'
-                                                }`}
-                                        >
-                                            <div className="font-medium text-sm text-slate-900">{venue.name}</div>
-                                            {venue.email && <div className="text-xs text-slate-500 mt-0.5">{venue.email}</div>}
-                                        </div>
-                                    )
-                                })}
-                            </div>
-                        )}
-                    </div>
-                    {selectedVenueId && (
-                        <div className="text-xs text-indigo-600 font-medium mt-4">
-                            ✓ Venue selected
-                        </div>
-                    )}
-                </div>
-
+            <div className="w-full max-w-4xl grid grid-cols-1 md:grid-cols-1 gap-6">
                 {/* Right Column: Register Form */}
                 <div className="bg-white border border-slate-200 rounded-2xl shadow-sm p-8 flex flex-col justify-center">
                     <div className="flex justify-center mb-6">

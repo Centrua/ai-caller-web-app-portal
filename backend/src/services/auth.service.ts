@@ -1,7 +1,6 @@
 import bcrypt from 'bcryptjs'
 import jwt from 'jsonwebtoken'
 import { UserRepository } from '../repositories/user.repository'
-import { sendUserApprovalEmail } from './centrua-email.service'
 
 export class AuthService {
   private userRepository = new UserRepository()
@@ -18,15 +17,6 @@ export class AuthService {
       email: data.email,
       password: hashedPassword,
       role: data.role || 'user',
-      is_approved: false,
-    })
-
-    await sendUserApprovalEmail({
-      to: process.env.INTERNAL_APPROVAL_EMAIL || '',
-      username: user.name || 'User',
-      email: user.email,
-      venueId: data.venueId,
-      userId: user.id,
     })
 
     const token = jwt.sign(
@@ -45,13 +35,8 @@ export class AuthService {
         id: user.id,
         email: user.email,
         role: user.role,
-        is_approved: user.is_approved,
       },
     }
-  }
-
-  async updateApprovalStatus(userId: number, isApproved: boolean): Promise<void> {
-    await this.userRepository.updateApprovalStatus(userId, isApproved)
   }
 
   async login(email: string, password: string) {
@@ -83,7 +68,6 @@ export class AuthService {
         id: user.id,
         email: user.email,
         role: user.role,
-        is_approved: user.is_approved,
       },
     }
   }

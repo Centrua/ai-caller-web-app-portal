@@ -41,13 +41,8 @@ export class VenueService {
     return await this.venueRepo.createVenue(venuePayload);
   }
 
-  async getAllVenues(): Promise<Venue[]> {
-    return await this.venueRepo.getAllVenues();
-  }
-
   async addAssociatedUser(venueId: number, userId: number): Promise<void> {
     await this.venueRepo.addAssociatedUser(venueId, userId);
-    await this.authService.updateApprovalStatus(userId, true);
   }
 
   async getAgentIdFromUserId(userId: number): Promise<string | null> {

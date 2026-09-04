@@ -13,14 +13,6 @@ export class VenueRepository {
     return await Venue.create(venueData as any);
   }
 
-  async getAllVenues(): Promise<Venue[]> {
-    return await Venue.findAll({
-      attributes: {
-        exclude: ['elevenlabs_agent_id', 'kb_document_id'],
-      },
-    });
-  }
-
   async addAssociatedUser(venueId: number, userId: number): Promise<void> {
     const venue = await Venue.findByPk(venueId);
     if (!venue) {
