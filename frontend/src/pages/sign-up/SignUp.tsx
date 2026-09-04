@@ -81,7 +81,7 @@ export default function Register() {
             {showPromptModal && (
                 <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
                     <div className="bg-white border border-slate-200 rounded-2xl shadow-xl max-w-md w-full p-8 text-center flex flex-col items-center">
-                        <div className="w-14 h-14 rounded-2xl bg-indigo-100 text-indigo-600 flex items-center justify-center mb-5">
+                        <div className="w-14 h-14 rounded-2xl bg-[#20241C]/5 text-[#2B3528] flex items-center justify-center mb-5">
                             <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                                 <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
                                 <circle cx="9" cy="7" r="4" />
@@ -95,7 +95,7 @@ export default function Register() {
                         </p>
                         <button
                             onClick={() => setShowPromptModal(false)}
-                            className="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-3 rounded-xl transition-colors text-sm shadow-sm cursor-pointer"
+                            className="w-full bg-[#2B3528] hover:bg-[#444B38] text-white font-semibold py-3 rounded-xl transition-colors text-sm shadow-sm cursor-pointer"
                         >
                             Got it
                         </button>
@@ -106,7 +106,7 @@ export default function Register() {
             {isRegistered && (
                 <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
                     <div className="bg-white border border-slate-200 rounded-2xl shadow-xl max-w-md w-full p-8 text-center flex flex-col items-center">
-                        <div className="w-14 h-14 rounded-2xl bg-indigo-50 text-indigo-600 flex items-center justify-center mb-5">
+                        <div className="w-14 h-14 rounded-2xl bg-[#20241C]/5 text-[#2B3528] flex items-center justify-center mb-5">
                             <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                                 <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z" />
                                 <polyline points="22,6 12,13 2,6" />
@@ -118,7 +118,7 @@ export default function Register() {
                         </p>
                         <button
                             onClick={() => navigate('/login')}
-                            className="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-3 rounded-xl transition-colors text-sm shadow-sm cursor-pointer"
+                            className="w-full bg-[#2B3528] hover:bg-[#444B38] text-white font-semibold py-3 rounded-xl transition-colors text-sm shadow-sm cursor-pointer"
                         >
                             Proceed to login
                         </button>
@@ -132,14 +132,14 @@ export default function Register() {
                     <div className="flex justify-end items-center mb-6">
                         <Link
                             to="/login"
-                            className="text-xs font-medium text-slate-500 hover:text-indigo-600 transition-colors border border-slate-200 px-4 py-2 rounded-xl hover:border-slate-300"
+                            className="text-xs font-medium text-slate-500 hover:text-[#2B3528] transition-colors border border-slate-200 px-4 py-2 rounded-xl hover:border-slate-300"
                         >
-                            Already registered? <span className="text-indigo-600 font-semibold">Log in</span>
+                            Already registered? <span className="text-[#2B3528] font-semibold">Log in</span>
                         </Link>
                     </div>
                     
                     <div className="flex justify-center mb-6">
-                        <div className="w-12 h-12 rounded-xl bg-indigo-600 flex items-center justify-center">
+                        <div className="w-12 h-12 rounded-xl bg-[#2B3528] flex items-center justify-center">
                             <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                                 <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
                                 <circle cx="9" cy="7" r="4" />
@@ -169,7 +169,7 @@ export default function Register() {
                                 placeholder="John Doe"
                                 value={name}
                                 onChange={(e) => setName(e.target.value)}
-                                className="w-full border border-slate-200 rounded-lg px-3.5 py-2.5 text-sm text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition"
+                                className="w-full border border-slate-200 rounded-lg px-3.5 py-2.5 text-sm text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-[#2B3528] focus:border-transparent transition"
                             />
                         </div>
                         <div>
@@ -181,7 +181,7 @@ export default function Register() {
                                 placeholder="you@venue.com"
                                 value={email}
                                 onChange={(e) => setEmail(e.target.value)}
-                                className="w-full border border-slate-200 rounded-lg px-3.5 py-2.5 text-sm text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition"
+                                className="w-full border border-slate-200 rounded-lg px-3.5 py-2.5 text-sm text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-[#2B3528] focus:border-transparent transition"
                             />
                         </div>
                         <div>
@@ -193,7 +193,7 @@ export default function Register() {
                                 placeholder="••••••••"
                                 value={password}
                                 onChange={(e) => setPassword(e.target.value)}
-                                className="w-full border border-slate-200 rounded-lg px-3.5 py-2.5 text-sm text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition"
+                                className="w-full border border-slate-200 rounded-lg px-3.5 py-2.5 text-sm text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-[#2B3528] focus:border-transparent transition"
                             />
                             {/* Password Strength Progress Bar */}
                             {password.length > 0 && (
@@ -225,7 +225,7 @@ export default function Register() {
                                 placeholder="••••••••"
                                 value={confirmPassword}
                                 onChange={(e) => setConfirmPassword(e.target.value)}
-                                className="w-full border border-slate-200 rounded-lg px-3.5 py-2.5 text-sm text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition"
+                                className="w-full border border-slate-200 rounded-lg px-3.5 py-2.5 text-sm text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-[#2B3528] focus:border-transparent transition"
                             />
                             {confirmPassword.length > 0 && (
                                 <p className={`text-xs mt-1.5 ${password === confirmPassword ? 'text-emerald-600 font-medium' : 'text-rose-500'}`}>
@@ -242,13 +242,13 @@ export default function Register() {
                                 placeholder="Enter venue registration token"
                                 value={registerToken}
                                 onChange={(e) => setRegisterToken(e.target.value)}
-                                className="w-full border border-slate-200 rounded-lg px-3.5 py-2.5 text-sm text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition font-mono"
+                                className="w-full border border-slate-200 rounded-lg px-3.5 py-2.5 text-sm text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-[#2B3528] focus:border-transparent transition font-mono"
                             />
                         </div>
                         <button
                             type="submit"
                             disabled={loading || !registerToken || strengthScore < 2 || password !== confirmPassword}
-                            className="w-full bg-indigo-600 hover:bg-indigo-700 disabled:bg-indigo-300 text-white font-semibold py-2.5 rounded-lg transition-colors text-sm mt-2 flex items-center justify-center cursor-pointer disabled:cursor-not-allowed"
+                            className="w-full bg-[#2B3528] hover:bg-[#444B38] disabled:bg-slate-300 text-white font-semibold py-2.5 rounded-lg transition-colors text-sm mt-2 flex items-center justify-center cursor-pointer disabled:cursor-not-allowed"
                         >
                             {loading ? 'Creating account...' : 'Sign up'}
                         </button>
