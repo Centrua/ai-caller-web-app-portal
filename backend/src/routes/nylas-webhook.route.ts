@@ -1,10 +1,8 @@
 import { Router } from 'express'
-import { NylasWebhookController } from '../controllers/nylas-webhook.controller'
+import nylasWebhookController from '../controllers/nylas-webhook.controller'
 
 const router = Router()
-const controller = new NylasWebhookController()
 
-router.get('/', controller.receive)
-router.post('/', controller.receive)
+router.post('/', (req, res) => nylasWebhookController.receive(req, res))
 
 export default router

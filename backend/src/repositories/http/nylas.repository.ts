@@ -5,17 +5,10 @@ export interface NylasEmailAddress {
 
 export interface NylasMessage {
   id: string
-  grant_id: string
-  thread_id: string
   subject?: string
   body?: string
-  snippet?: string
-  folders?: string[]
-  headers?: Record<string, string | undefined>
   from?: NylasEmailAddress[]
   to?: NylasEmailAddress[]
-  date?: number
-  unread?: boolean
 }
 
 export class NylasRepository {
@@ -54,13 +47,6 @@ export class NylasRepository {
     const result = await this.request<{ data: NylasMessage }>(
       `/grants/${encodeURIComponent(grantId)}/messages/send`,
       { method: 'POST', body: JSON.stringify(payload) }
-    )
-    return result.data
-  }
-
-  async getMessage(grantId: string, messageId: string): Promise<NylasMessage> {
-    const result = await this.request<{ data: NylasMessage }>(
-      `/grants/${encodeURIComponent(grantId)}/messages/${encodeURIComponent(messageId)}`
     )
     return result.data
   }

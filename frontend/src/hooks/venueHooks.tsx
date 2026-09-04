@@ -7,7 +7,6 @@ export interface Venue {
   name: string
   email?: string | null
   phone?: string | null
-  nylas_grant_id?: string | null
   associated_user_ids?: number[]
   createdAt?: string
   updatedAt?: string
@@ -19,7 +18,6 @@ export interface CreateVenuePayload {
   phone?: string | null
   elevenlabs_phone_number_id?: string | null
   kb_document_id?: string | null
-  nylas_grant_id?: string | null
 }
 
 export const useVenue = () => {

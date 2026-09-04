@@ -8,7 +8,6 @@ export class VenueRepository {
     phone?: string | null;
     elevenlabs_agent_id?: string | null;
     kb_document_id?: string | null;
-    nylas_grant_id?: string | null;
     associated_user_ids?: number[];
   }): Promise<Venue> {
     return await Venue.create(venueData as any);
@@ -100,10 +99,6 @@ export class VenueRepository {
         },
       }
     );
-  }
-
-  async getVenueByNylasGrantId(grantId: string): Promise<Venue | null> {
-    return Venue.findOne({ where: { nylas_grant_id: grantId } });
   }
 
   async findById(venueId: number): Promise<Venue | null> {

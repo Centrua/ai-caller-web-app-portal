@@ -137,13 +137,3 @@ export const useRegister = () => {
 
   return { register, loading, error, user }
 }
-
-export const useNylasAuth = () => {
-  const initiateNylasLogin = useCallback((provider?: string) => {
-    const url = new URL(`${API_BASE_URL}/api/auth/nylas`)
-    if (provider) url.searchParams.set('provider', provider)
-    window.location.href = url.toString()
-  }, [])
-
-  return { initiateNylasLogin }
-}
