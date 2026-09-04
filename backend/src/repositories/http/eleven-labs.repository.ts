@@ -1,3 +1,5 @@
+import WebSocket from 'ws'
+
 export class ElevenLabsRepository {
   private apiKey: string
   private baseUrl: string = 'https://api.elevenlabs.io/v1'
@@ -240,39 +242,96 @@ export class ElevenLabsRepository {
     return await response.json()
   }
 
-  async sendCustomChannelMessage(
-    triggerConnectionId: string,
-    inboundSecret: string,
-    payload: {
-      data: { type: 'user_message'; text: string; user_identifier?: string }
-      user_message_id: string
-      conversation_id?: string
-      dynamic_variables?: Record<string, string>
-    }
-  ): Promise<{ conversation_id: string; status: string }> {
-    if (!triggerConnectionId) throw new Error('triggerConnectionId is required')
-    if (!inboundSecret) throw new Error('inboundSecret is required')
-    if (!payload.data.text.trim()) throw new Error('message text is required')
-    if (!payload.user_message_id) throw new Error('user_message_id is required')
+  async getSignedUrl(agentId: string): Promise<string> {
+    if (!agentId) throw new Error('agentId is required')
 
-    const url = new URL(
-      `${this.baseUrl}/convai/api-integrations/custom_channel/triggers/${encodeURIComponent(triggerConnectionId)}/async_message`
-    )
+    const url = new URL(`${this.baseUrl}/convai/conversation/get-signed-url`)
+    url.searchParams.set('agent_id', agentId)
+
     const response = await fetch(url.toString(), {
-      method: 'POST',
-      headers: {
-        'xi-api-key': this.apiKey,
-        'X-Webhook-Secret': inboundSecret,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(payload),
+      method: 'GET',
+      headers: { 'xi-api-key': this.apiKey },
     })
 
     if (!response.ok) {
       const errorBody = await response.text()
-      throw new Error(`ElevenLabs Custom Channel error (${response.status}): ${errorBody || response.statusText}`)
+      throw new Error(`ElevenLabs API error (${response.status}): ${errorBody || response.statusText}`)
     }
 
-    return await response.json()
+    const data = await response.json()
+    return data.signed_url
+  }
+
+  // Opens a fresh WebSocket conversation, sends one text message, and returns the agent's full reply.
+  // Each call starts a brand-new ElevenLabs conversation; there is no way to resume a prior one over WebSocket.
+  async runTextConversation(
+    agentId: string,
+    firstMessage: string,
+    options: { timeoutMs?: number } = {}
+  ): Promise<{ conversationId: string; replyText: string }> {
+    if (!agentId) throw new Error('agentId is required')
+    if (!firstMessage.trim()) throw new Error('firstMessage is required')
+
+    const signedUrl = await this.getSignedUrl(agentId)
+    const timeoutMs = options.timeoutMs ?? 30000
+
+    return new Promise((resolve, reject) => {
+      const ws = new WebSocket(signedUrl)
+      let conversationId = ''
+      const replyParts: string[] = []
+      let settled = false
+
+      const timeout = setTimeout(() => {
+        finish(() => reject(new Error('ElevenLabs conversation timed out')))
+      }, timeoutMs)
+
+      const finish = (action: () => void) => {
+        if (settled) return
+        settled = true
+        clearTimeout(timeout)
+        ws.close()
+        action()
+      }
+
+      ws.on('open', () => {
+        ws.send(
+          JSON.stringify({
+            type: 'conversation_initiation_client_data',
+            conversation_config_override: { conversation: { text_only: true } },
+          })
+        )
+      })
+
+      ws.on('message', (raw) => {
+        let event: any
+        try {
+          event = JSON.parse(raw.toString())
+        } catch {
+          return
+        }
+
+        switch (event.type) {
+          case 'conversation_initiation_metadata':
+            conversationId = event.conversation_initiation_metadata_event?.conversation_id || ''
+            ws.send(JSON.stringify({ type: 'user_message', text: firstMessage }))
+            break
+          case 'agent_response':
+            replyParts.push(event.agent_response_event?.agent_response || '')
+            finish(() => resolve({ conversationId, replyText: replyParts.join('\n\n').trim() }))
+            break
+          case 'ping':
+            ws.send(JSON.stringify({ type: 'pong', event_id: event.ping_event?.event_id }))
+            break
+        }
+      })
+
+      ws.on('error', (error) => {
+        finish(() => reject(error))
+      })
+
+      ws.on('close', () => {
+        finish(() => reject(new Error('ElevenLabs WebSocket closed before agent responded')))
+      })
+    })
   }
 }

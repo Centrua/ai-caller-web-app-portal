@@ -3,6 +3,9 @@ import { NylasRepository, type NylasMessage } from '../repositories/http/nylas.r
 import { ElevenLabsRepository } from '../repositories/http/eleven-labs.repository'
 import { VenueRepository } from '../repositories/venue.repository'
 import { EmailFilterService } from './email-filter.service'
+import type { EmailTranscriptEntry } from '../models/email-conversation-route.model'
+
+const MAX_TRANSCRIPT_ENTRIES = 20
 
 export class EmailRelayService {
   private readonly routes = new EmailConversationRouteRepository()
@@ -30,36 +33,45 @@ export class EmailRelayService {
 
     if (route.last_email_message_id === resolvedMessage.id) return
 
-    const triggerConnectionId = process.env.ELEVENLABS_CUSTOM_CHANNEL_TRIGGER_ID
-    const inboundSecret = process.env.ELEVENLABS_CUSTOM_CHANNEL_INBOUND_SECRET
-    if (!triggerConnectionId || !inboundSecret) throw new Error('ElevenLabs Custom Channel is not configured')
+    const venue = await this.venues.findById(venueId)
+    if (!venue?.elevenlabs_agent_id) throw new Error('Venue has no ElevenLabs agent configured')
 
-    const result = await this.elevenLabs.sendCustomChannelMessage(triggerConnectionId, inboundSecret, {
-      data: {
-        type: 'user_message',
-        text: (resolvedMessage.body || resolvedMessage.snippet || '').trim(),
-        user_identifier: from.email,
-      },
-      user_message_id: `nylas_${resolvedMessage.id}`,
-      ...(route.elevenlabs_conversation_id ? { conversation_id: route.elevenlabs_conversation_id } : {}),
+    const messageText = (resolvedMessage.body || resolvedMessage.snippet || '').trim()
+    const firstMessage = this.buildFirstMessage(route.transcript, messageText)
+
+    const { conversationId, replyText } = await this.elevenLabs.runTextConversation(venue.elevenlabs_agent_id, firstMessage)
+
+    const newEntries: EmailTranscriptEntry[] = [
+      { role: 'user', content: messageText, created_at: new Date().toISOString() },
+      { role: 'agent', content: replyText, created_at: new Date().toISOString() },
+    ]
+    await this.routes.recordTurn(route.id, conversationId, resolvedMessage.id, newEntries)
+
+    if (!venue.nylas_grant_id) throw new Error('Venue has no Nylas grant configured')
+    await this.nylas.sendMessage(venue.nylas_grant_id, {
+      to: [{ email: from.email }],
+      subject: route.subject ? `Re: ${route.subject.replace(/^Re:\s*/i, '')}` : 'Reply from your venue assistant',
+      body: replyText,
+      reply_to_message_id: resolvedMessage.id,
     })
-
-    await this.routes.setConversationId(route.id, result.conversation_id, resolvedMessage.id)
   }
 
-  async sendAgentReply(conversationId: string, responseText: string): Promise<void> {
-    const route = await this.routes.findByConversationId(conversationId)
-    if (!route?.reply_to_email) throw new Error('No email route found for ElevenLabs conversation')
+  // Every WebSocket connection starts a brand-new ElevenLabs conversation, so prior thread
+  // history has to be replayed as context in the first message rather than resumed server-side.
+  private buildFirstMessage(transcript: EmailTranscriptEntry[], latestMessage: string): string {
+    if (transcript.length === 0) return latestMessage
 
-    const venue = await this.venues.findById(route.venue_id)
-    if (!venue) throw new Error('No venue found for email route')
-    if (!venue.nylas_grant_id) throw new Error('Venue has no Nylas grant configured')
+    const history = transcript
+      .slice(-MAX_TRANSCRIPT_ENTRIES)
+      .map((entry) => `${entry.role === 'user' ? 'User' : 'Assistant'}: ${entry.content}`)
+      .join('\n\n')
 
-    await this.nylas.sendMessage(venue.nylas_grant_id, {
-      to: [{ email: route.reply_to_email }],
-      subject: route.subject ? `Re: ${route.subject.replace(/^Re:\s*/i, '')}` : 'Reply from your venue assistant',
-      body: responseText,
-      ...(route.last_email_message_id ? { reply_to_message_id: route.last_email_message_id } : {}),
-    })
+    return [
+      'This is an ongoing email conversation. Here is the prior history:',
+      history,
+      '',
+      'New message from the user:',
+      latestMessage,
+    ].join('\n')
   }
 }
