@@ -7,7 +7,7 @@ const authController = new AuthController()
 router.post('/login', (req, res) => authController.login(req, res))
 router.post('/register', (req, res) => authController.register(req, res))
 
-router.get('/google', (req, res) => authController.initiateGoogleAuth(req, res))
-router.get('/google/callback', (req, res) => authController.handleGoogleCallback(req, res))
+router.get('/nylas', (req, res) => authController.initiateNylasAuth(req, res))
+router.get('/nylas/callback', (req, res) => authController.handleNylasCallback(req, res))
 
 export default router

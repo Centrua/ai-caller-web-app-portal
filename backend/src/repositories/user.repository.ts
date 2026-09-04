@@ -15,8 +15,6 @@ export class UserRepository {
     email: string;
     password?: string;
     role?: string;
-    google_refresh_token?: string | null;
-    googleRefreshToken?: string | null;
     is_approved?: boolean;
     [key: string]: any;
   }): Promise<User> {

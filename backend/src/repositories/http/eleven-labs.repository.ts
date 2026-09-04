@@ -239,4 +239,40 @@ export class ElevenLabsRepository {
 
     return await response.json()
   }
+
+  async sendCustomChannelMessage(
+    triggerConnectionId: string,
+    inboundSecret: string,
+    payload: {
+      data: { type: 'user_message'; text: string; user_identifier?: string }
+      user_message_id: string
+      conversation_id?: string
+      dynamic_variables?: Record<string, string>
+    }
+  ): Promise<{ conversation_id: string; status: string }> {
+    if (!triggerConnectionId) throw new Error('triggerConnectionId is required')
+    if (!inboundSecret) throw new Error('inboundSecret is required')
+    if (!payload.data.text.trim()) throw new Error('message text is required')
+    if (!payload.user_message_id) throw new Error('user_message_id is required')
+
+    const url = new URL(
+      `${this.baseUrl}/convai/api-integrations/custom_channel/triggers/${encodeURIComponent(triggerConnectionId)}/async_message`
+    )
+    const response = await fetch(url.toString(), {
+      method: 'POST',
+      headers: {
+        'xi-api-key': this.apiKey,
+        'X-Webhook-Secret': inboundSecret,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(payload),
+    })
+
+    if (!response.ok) {
+      const errorBody = await response.text()
+      throw new Error(`ElevenLabs Custom Channel error (${response.status}): ${errorBody || response.statusText}`)
+    }
+
+    return await response.json()
+  }
 }

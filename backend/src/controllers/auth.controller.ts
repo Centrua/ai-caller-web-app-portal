@@ -1,8 +1,10 @@
 import { Request, Response } from 'express'
 import { AuthService } from '../services/auth.service'
 import { sendSuccess, sendError } from '../utils/http'
+import { NylasAuthService } from '../services/nylas-auth.service'
 
 const authService = new AuthService()
+const nylasAuthService = new NylasAuthService()
 
 export class AuthController {
   async register(req: Request, res: Response): Promise<void> {
@@ -41,39 +43,31 @@ export class AuthController {
     }
   }
 
-  async initiateGoogleAuth(req: Request, res: Response): Promise<void> {
+  async initiateNylasAuth(req: Request, res: Response): Promise<void> {
     try {
-      const url = authService.getGoogleAuthUrl()
-      res.redirect(url)
+      const provider = typeof req.query.provider === 'string' ? req.query.provider : undefined
+      res.redirect(nylasAuthService.getAuthorizationUrl(provider))
     } catch (error: any) {
-      console.error('[AuthController Google Initiate Error]:', error)
-      sendError(res, 500, error.message)
+      sendError(res, 500, error.message || 'Nylas authentication is unavailable')
     }
   }
 
-  async handleGoogleCallback(req: Request, res: Response): Promise<void> {
+  async handleNylasCallback(req: Request, res: Response): Promise<void> {
     try {
-      const { code } = req.query
-
-      if (!code || typeof code !== 'string') {
-        sendError(res, 400, 'Authorization code missing from query parameters')
+      const { code, state } = req.query
+      if (typeof code !== 'string' || typeof state !== 'string') {
+        sendError(res, 400, 'Nylas authorization code and state are required')
         return
       }
 
-      const { email, refreshToken } = await authService.handleGoogleCallback(code)
-
-      const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:5173'
-      const redirectUrl = new URL(`${frontendUrl}/register-venue`)
-      redirectUrl.searchParams.set('email', email)
-      if (refreshToken) {
-        redirectUrl.searchParams.set('google_refresh_token', refreshToken)
-      }
-
+      const result = await nylasAuthService.exchangeCode(code, state)
+      const redirectUrl = new URL(`${process.env.FRONTEND_URL || 'http://localhost:5173'}/register-venue`)
+      redirectUrl.searchParams.set('nylas_grant_id', result.grantId)
+      if (result.email) redirectUrl.searchParams.set('email', result.email)
       res.redirect(redirectUrl.toString())
-    } 
-    catch (error: any) {
-      console.error('[AuthController Google Callback Error]:', error)
-      sendError(res, 500, 'Google authentication failed')
+    } catch (error: any) {
+      console.error('[AuthController Nylas Callback Error]:', error.message)
+      sendError(res, 400, 'Nylas authentication failed')
     }
   }
 }

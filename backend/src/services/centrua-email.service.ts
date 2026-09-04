@@ -1,17 +1,7 @@
-import nodemailer from "nodemailer";
 import { generateUserApprovalHtml } from "../utils/email-templates/user-approval-request.util";
+import { NylasRepository } from '../repositories/http/nylas.repository'
 
-if (!process.env.COMPANY_GMAIL_USER || !process.env.COMPANY_GMAIL_PASS) {
-  console.warn("COMPANY_GMAIL environment variables are missing.");
-}
-
-const transporter = nodemailer.createTransport({
-  service: "gmail",
-  auth: {
-    user: process.env.COMPANY_GMAIL_USER,
-    pass: process.env.COMPANY_GMAIL_PASS,
-  },
-});
+const nylasRepository = new NylasRepository()
 
 interface SendUserApprovalEmailOptions {
   to: string;
@@ -39,18 +29,20 @@ export const sendUserApprovalEmail = async ({
       approvalUrl,
     });
 
-    const info = await transporter.sendMail({
-      from: `"Centrua" <${process.env.COMPANY_GMAIL_USER}>`,
-      to,
+    const grantId = process.env.NYLAS_COMPANY_GRANT_ID
+    if (!grantId) throw new Error('NYLAS_COMPANY_GRANT_ID is not configured')
+
+    const info = await nylasRepository.sendMessage(grantId, {
+      to: [{ email: to }],
       subject: `User Approval Request: ${username} (${email})`,
-      html,
+      body: html,
     });
 
-    console.log("User approval email sent successfully: %s", info.messageId);
+    console.log("User approval email sent successfully: %s", info.id);
     return true;
   }
   catch (error) {
-    console.error("Failed to send user approval email via Gmail:", error);
+    console.error("Failed to send user approval email via Nylas:", error);
     throw new Error("Email delivery failed");
   }
 };
