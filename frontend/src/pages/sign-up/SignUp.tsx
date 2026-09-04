@@ -8,16 +8,26 @@ export default function Register() {
     const [name, setName] = useState('')
     const [email, setEmail] = useState('')
     const [password, setPassword] = useState('')
+    const [confirmPassword, setConfirmPassword] = useState('')
     const [registerToken, setRegisterToken] = useState('')
+    const [passwordError, setPasswordError] = useState<string | null>(null)
     const [isRegistered, setIsRegistered] = useState<boolean>(false)
     const [showPromptModal, setShowPromptModal] = useState<boolean>(false)
+
+    // Password strength rules: Length & Special Character
+    const hasLength = password.length >= 8
+    const hasSpecial = /[^A-Za-z0-9]/.test(password)
+
+    let strengthScore = 0
+    if (hasLength) strengthScore += 1
+    if (hasSpecial) strengthScore += 1
 
     const { register, loading, error } = useRegister()
 
     useEffect(() => {
         const mode = searchParams.get('mode')
         const tokenParam = searchParams.get('token') || searchParams.get('registerToken')
-        
+
         if (mode === 'apply-venue') {
             setShowPromptModal(true)
         }
@@ -28,9 +38,22 @@ export default function Register() {
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault()
+        setPasswordError(null)
+
+        if (strengthScore < 2) {
+            setPasswordError('Password must be at least 8 characters long and include a special character')
+            return
+        }
+
+        if (password !== confirmPassword) {
+            setPasswordError('Passwords do not match')
+            return
+        }
+
         if (!registerToken) {
             return
         }
+
         const user = await register({
             name,
             email,
@@ -105,6 +128,16 @@ export default function Register() {
 
             <div className="w-full max-w-md grid grid-cols-1 gap-6">
                 <div className="bg-white border border-slate-200 rounded-2xl shadow-sm p-8 flex flex-col justify-center">
+                    {/* Top helper link */}
+                    <div className="flex justify-end items-center mb-6">
+                        <Link
+                            to="/login"
+                            className="text-xs font-medium text-slate-500 hover:text-indigo-600 transition-colors border border-slate-200 px-4 py-2 rounded-xl hover:border-slate-300"
+                        >
+                            Already registered? <span className="text-indigo-600 font-semibold">Log in</span>
+                        </Link>
+                    </div>
+                    
                     <div className="flex justify-center mb-6">
                         <div className="w-12 h-12 rounded-xl bg-indigo-600 flex items-center justify-center">
                             <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -122,9 +155,9 @@ export default function Register() {
                     </div>
 
                     <form onSubmit={handleSubmit} className="flex flex-col gap-4">
-                        {error && (
+                        {(error || passwordError) && (
                             <div className="bg-red-50 border border-red-200 text-red-600 text-xs rounded-lg p-3">
-                                {error}
+                                {passwordError || error}
                             </div>
                         )}
                         <div>
@@ -162,6 +195,43 @@ export default function Register() {
                                 onChange={(e) => setPassword(e.target.value)}
                                 className="w-full border border-slate-200 rounded-lg px-3.5 py-2.5 text-sm text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition"
                             />
+                            {/* Password Strength Progress Bar */}
+                            {password.length > 0 && (
+                                <div className="mt-2.5">
+                                    <div className="flex justify-between items-center text-xs mb-1">
+                                        <span className="text-slate-500 font-medium">Strength:</span>
+                                        <span className={`font-semibold ${strengthScore === 2 ? 'text-emerald-600' : strengthScore === 1 ? 'text-amber-600' : 'text-rose-500'}`}>
+                                            {strengthScore === 2 ? 'Strong' : strengthScore === 1 ? 'Fair' : 'Weak'}
+                                        </span>
+                                    </div>
+                                    <div className="w-full bg-slate-200 h-1.5 rounded-full overflow-hidden">
+                                        <div
+                                            className={`h-full transition-all duration-300 ${strengthScore === 2 ? 'w-full bg-emerald-500' : strengthScore === 1 ? 'w-1/2 bg-amber-500' : 'w-1/4 bg-rose-500'
+                                                }`}
+                                        />
+                                    </div>
+                                    <p className="text-[11px] text-slate-400 mt-1">
+                                        Must be 8+ characters and include a special character.
+                                    </p>
+                                </div>
+                            )}
+                        </div>
+                        <div>
+                            <label className="block text-xs font-medium text-slate-600 mb-1.5">Confirm Password</label>
+                            <input
+                                type="password"
+                                id="confirmPassword"
+                                required
+                                placeholder="••••••••"
+                                value={confirmPassword}
+                                onChange={(e) => setConfirmPassword(e.target.value)}
+                                className="w-full border border-slate-200 rounded-lg px-3.5 py-2.5 text-sm text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition"
+                            />
+                            {confirmPassword.length > 0 && (
+                                <p className={`text-xs mt-1.5 ${password === confirmPassword ? 'text-emerald-600 font-medium' : 'text-rose-500'}`}>
+                                    {password === confirmPassword ? '✓ Passwords match' : '• Passwords do not match'}
+                                </p>
+                            )}
                         </div>
                         <div>
                             <label className="block text-xs font-medium text-slate-600 mb-1.5">Registration Token</label>
@@ -177,7 +247,7 @@ export default function Register() {
                         </div>
                         <button
                             type="submit"
-                            disabled={loading || !registerToken}
+                            disabled={loading || !registerToken || strengthScore < 2 || password !== confirmPassword}
                             className="w-full bg-indigo-600 hover:bg-indigo-700 disabled:bg-indigo-300 text-white font-semibold py-2.5 rounded-lg transition-colors text-sm mt-2 flex items-center justify-center cursor-pointer disabled:cursor-not-allowed"
                         >
                             {loading ? 'Creating account...' : 'Sign up'}
