@@ -39,6 +39,9 @@ export const RegisterVenue: React.FC = () => {
   })
 
   const [isSuccess, setIsSuccess] = useState(false)
+  const [plainToken, setPlainToken] = useState<string | null>(null)
+  const [showTokenModal, setShowTokenModal] = useState(false)
+  const [copied, setCopied] = useState(false)
   const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null)
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -60,7 +63,7 @@ export const RegisterVenue: React.FC = () => {
     setMessage(null)
 
     try {
-      await createVenue({
+      const response: any = await createVenue({
         name: formData.name,
         email: formData.email || undefined,
         elevenlabs_phone_number_id: formData.elevenlabs_phone_number_id || null,
@@ -69,17 +72,38 @@ export const RegisterVenue: React.FC = () => {
 
       localStorage.removeItem(STORAGE_KEY)
 
-      setIsSuccess(true)
-      setMessage({ type: 'success', text: 'Venue registered successfully! Redirecting to sign up...' })
-      setTimeout(() => {
-        navigate('/register?mode=apply-venue')
-      }, 1500)
+      const token = response?.plainToken || response?.data?.plainToken
+
+      if (token) {
+        setPlainToken(token)
+        setShowTokenModal(true)
+      } 
+      else {
+        setIsSuccess(true)
+        setMessage({ type: 'success', text: 'Venue registered successfully! Redirecting...' })
+        setTimeout(() => {
+          navigate('/register?mode=apply-venue')
+        }, 1500)
+      }
     } catch (err: any) {
       setMessage({ type: 'error', text: err.message || 'Something went wrong while registering the venue.' })
     }
   }
 
-  const isDisabled = submitting || isSuccess
+  const handleCopy = () => {
+    if (plainToken) {
+      navigator.clipboard.writeText(plainToken)
+      setCopied(true)
+      setTimeout(() => setCopied(false), 2000)
+    }
+  }
+
+  const handleModalClose = () => {
+    setShowTokenModal(false)
+    navigate('/register?mode=apply-venue')
+  }
+
+  const isDisabled = submitting || isSuccess || showTokenModal
 
   return (
     <div className="min-h-screen bg-slate-50 flex items-center justify-center p-4 py-12 relative">
@@ -173,6 +197,45 @@ export const RegisterVenue: React.FC = () => {
           </button>
         </form>
       </div>
+
+      {/* Token Modal */}
+      {showTokenModal && (
+        <div className="fixed inset-0 bg-slate-900/50 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+          <div className="bg-white rounded-2xl shadow-xl max-w-md w-full p-6 border border-slate-200">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-lg font-bold text-slate-900">Venue Registration Token</h3>
+            </div>
+            
+            <div className="bg-amber-50 border border-amber-200 text-amber-800 text-xs rounded-lg p-3 mb-4 leading-relaxed">
+              <span className="font-semibold">Important Notice:</span> This token will only be shown <strong className="underline">once</strong>. Please copy it now and use it for user registration access on the website.
+            </div>
+
+            <div className="relative mb-5">
+              <input
+                type="text"
+                readOnly
+                value={plainToken || ''}
+                className="w-full bg-slate-100 border border-slate-200 rounded-lg px-3.5 py-2.5 text-xs font-mono text-slate-800 select-all pr-20"
+              />
+              <button
+                type="button"
+                onClick={handleCopy}
+                className="absolute right-1 top-1 bottom-1 px-3 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-medium rounded-md transition-colors cursor-pointer"
+              >
+                {copied ? 'Copied!' : 'Copy'}
+              </button>
+            </div>
+
+            <button
+              type="button"
+              onClick={handleModalClose}
+              className="w-full bg-slate-900 hover:bg-slate-800 text-white font-semibold py-2.5 rounded-lg transition-colors text-sm cursor-pointer shadow-sm"
+            >
+              I have copied the token & continue
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

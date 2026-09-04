@@ -6,7 +6,6 @@ const router = Router()
 const venueController = new VenueController()
 
 router.post('/', venueController.createVenue)
-router.get('/', venueController.getAllVenues)
 router.get('/name', authenticateToken, venueController.getVenueName)
 
 export default router
