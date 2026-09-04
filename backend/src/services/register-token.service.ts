@@ -1,12 +1,15 @@
 import crypto from 'crypto';
 import { RegisterTokenRepository } from '../repositories/register-token.repository';
 import { RegisterToken } from '../models/register-token.model';
-import { encrypt, decrypt } from '../utils/token-encryption.util';
+import { encrypt, decrypt, toBase64Url } from '../utils/token-encryption.util';
+
+const PREFIX_BYTES = 4;
+const SECRET_BYTES = 16;
 
 export class RegisterTokenService {
   public async create(venueId: number): Promise<{ tokenRecord: RegisterToken; plainToken: string }> {
-    const prefix = crypto.randomBytes(4).toString('hex');
-    const secret = crypto.randomBytes(32).toString('hex');
+    const prefix = toBase64Url(crypto.randomBytes(PREFIX_BYTES));
+    const secret = toBase64Url(crypto.randomBytes(SECRET_BYTES));
     const plainToken = `${prefix}.${secret}`;
     const encryptedSecret = encrypt(secret);
 
@@ -20,8 +23,8 @@ export class RegisterTokenService {
   }
 
   public async edit(id: number): Promise<{ tokenRecord: RegisterToken; plainToken: string } | null> {
-    const prefix = crypto.randomBytes(4).toString('hex');
-    const secret = crypto.randomBytes(32).toString('hex');
+    const prefix = toBase64Url(crypto.randomBytes(PREFIX_BYTES));
+    const secret = toBase64Url(crypto.randomBytes(SECRET_BYTES));
     const plainToken = `${prefix}.${secret}`;
     const encryptedSecret = encrypt(secret);
 

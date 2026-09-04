@@ -1,7 +1,8 @@
 import crypto from 'crypto';
 
-const ALGORITHM = 'aes-256-gcm';
-const IV_LENGTH = 12; 
+const ALGORITHM = 'aes-128-gcm';
+const IV_BYTES = 12;
+const TAG_BYTES = 16;
 const SECRET_KEY_HEX = process.env.TOKEN_ENCRYPTION_SECRET;
 
 if (!SECRET_KEY_HEX) {
@@ -10,38 +11,43 @@ if (!SECRET_KEY_HEX) {
 
 const SECRET_KEY = Buffer.from(SECRET_KEY_HEX, 'hex');
 
-if (SECRET_KEY.length !== 32) {
-  throw new Error('TOKEN_ENCRYPTION_SECRET must be a 64-character hex string (32 bytes) for aes-256-gcm.');
+if (SECRET_KEY.length < 16) {
+  throw new Error('TOKEN_ENCRYPTION_SECRET must be at least 16 bytes for aes-128-gcm.');
+}
+
+function fromBase64Url(str: string): Buffer {
+  let base64 = str.replace(/-/g, '+').replace(/_/g, '/');
+  while (base64.length % 4) {
+    base64 += '=';
+  }
+  return Buffer.from(base64, 'base64');
+}
+
+export function toBase64Url(buf: Buffer): string {
+  return buf.toString('base64').replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
 }
 
 export function encrypt(text: string): string {
-  const iv = crypto.randomBytes(IV_LENGTH);
-  const cipher = crypto.createCipheriv(ALGORITHM, SECRET_KEY, iv) as crypto.CipherGCM;
+  const iv = crypto.randomBytes(IV_BYTES);
+  const cipher = crypto.createCipheriv(ALGORITHM, SECRET_KEY.subarray(0, 16), iv);
   
-  let encrypted = cipher.update(text, 'utf8', 'hex');
-  encrypted += cipher.final('hex');
+  const encrypted = Buffer.concat([cipher.update(text, 'utf8'), cipher.final()]);
+  const authTag = cipher.getAuthTag();
   
-  const authTag = cipher.getAuthTag().toString('hex');
-  
-  return `${iv.toString('hex')}:${authTag}:${encrypted}`;
+  const combined = Buffer.concat([iv, authTag, encrypted]);
+  return toBase64Url(combined);
 }
 
 export function decrypt(text: string): string {
-  const parts = text.split(':');
-  if (parts.length !== 3) {
-    throw new Error('Invalid encrypted text format.');
-  }
-
-  const [ivHex, authTagHex, encryptedHex] = parts;
-  const iv = Buffer.from(ivHex, 'hex');
-  const authTag = Buffer.from(authTagHex, 'hex');
-  const encryptedText = Buffer.from(encryptedHex, 'hex');
+  const buffer = fromBase64Url(text);
   
-  const decipher = crypto.createDecipheriv(ALGORITHM, SECRET_KEY, iv) as crypto.DecipherGCM;
+  const iv = buffer.subarray(0, IV_BYTES);
+  const authTag = buffer.subarray(IV_BYTES, IV_BYTES + TAG_BYTES);
+  const encryptedText = buffer.subarray(IV_BYTES + TAG_BYTES);
+
+  const decipher = crypto.createDecipheriv(ALGORITHM, SECRET_KEY.subarray(0, 16), iv);
   decipher.setAuthTag(authTag);
   
-  let decrypted = decipher.update(encryptedText, 'hex', 'utf8');
-  decrypted += decipher.final('utf8');
-  
-  return decrypted;
+  const decrypted = Buffer.concat([decipher.update(encryptedText), decipher.final()]);
+  return decrypted.toString('utf8');
 }
