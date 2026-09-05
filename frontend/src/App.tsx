@@ -8,6 +8,8 @@ import ConversationDetails from './pages/conversations/ConversationDetails'
 import KnowledgeBase from './pages/knowledge-base/KnowledgeBase'
 import RegisterVenue from './pages/register-venue/RegisterVenue'
 import SignUp from './pages/sign-up/SignUp'
+import Privacy from './pages/privacy/Privacy'
+import Terms from './pages/terms/Terms'
 
 const ProtectedRoute = () => {
   const token = localStorage.getItem('token')
@@ -28,6 +30,8 @@ export default function App() {
         <Route path="/login" element={<Login />} />
         <Route path="/register-venue" element={<RegisterVenue />} />
         <Route path="/register" element={<SignUp />} />
+        <Route path="/privacy" element={<Privacy />} />
+        <Route path="/terms" element={<Terms />} />
 
         {/* Protected Shell. */}
         <Route element={<ProtectedRoute />}>

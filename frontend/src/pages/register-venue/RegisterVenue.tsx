@@ -265,7 +265,7 @@ export const RegisterVenue: React.FC = () => {
                           // allow re-connecting by clearing grant id and leaving email
                           setNylasGrantId(null)
                         }}
-                        className="text-xs px-3 py-1 rounded-xl border border-slate-200 bg-white"
+                        className="text-xs px-3 py-1 rounded-xl border border-slate-200 bg-white cursor-pointer"
                       >
                         Reconnect
                       </button>
@@ -278,7 +278,7 @@ export const RegisterVenue: React.FC = () => {
                     type="button"
                     onClick={() => { window.location.href = `${import.meta.env.VITE_API_BASE_URL || 'http://localhost:3001'}/api/nylas/auth?provider=google` }}
                     disabled={isDisabled}
-                    className="flex-1 inline-flex items-center justify-center gap-2 border border-slate-200 rounded-2xl px-4 py-2 text-sm text-slate-700 bg-white hover:shadow-sm"
+                    className="flex-1 inline-flex items-center justify-center gap-2 border border-slate-200 rounded-2xl px-4 py-2 text-sm text-slate-700 bg-white hover:shadow-sm cursor-pointer disabled:cursor-not-allowed"
                   >
                     <img src="/google-icon.svg" alt="Google" className="w-4 h-4" />
                     Connect with Google
@@ -288,7 +288,7 @@ export const RegisterVenue: React.FC = () => {
                     type="button"
                     onClick={() => { window.location.href = `${import.meta.env.VITE_API_BASE_URL || 'http://localhost:3001'}/api/nylas/auth?provider=outlook` }}
                     disabled={isDisabled}
-                    className="flex-1 inline-flex items-center justify-center gap-2 border border-slate-200 rounded-2xl px-4 py-2 text-sm text-slate-700 bg-white hover:shadow-sm"
+                    className="flex-1 inline-flex items-center justify-center gap-2 border border-slate-200 rounded-2xl px-4 py-2 text-sm text-slate-700 bg-white hover:shadow-sm cursor-pointer disabled:cursor-not-allowed"
                   >
                     <img src="/outlook-icon.svg" alt="Outlook" className="w-4 h-4" />
                     Connect with Outlook

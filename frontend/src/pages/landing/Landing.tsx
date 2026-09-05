@@ -216,7 +216,13 @@ export default function Landing() {
                     </div>
                     <span className="font-semibold text-sm text-slate-800">Centrua</span>
                 </div>
-                <p className="text-slate-400 text-xs">© 2026 Centrua. All rights reserved.</p>
+                <div className="flex items-center gap-4">
+                    <div className="text-slate-400 text-xs">© 2026 Centrua. All rights reserved.</div>
+                    <div className="flex items-center gap-3">
+                        <Link to="/privacy" className="text-slate-500 text-xs hover:underline">Privacy Policy</Link>
+                        <Link to="/terms" className="text-slate-500 text-xs hover:underline">Terms &amp; Conditions</Link>
+                    </div>
+                </div>
             </footer>
 
         </div>
