@@ -79,7 +79,7 @@ export const RegisterVenue: React.FC = () => {
       if (token) {
         setPlainToken(token)
         setShowTokenModal(true)
-      } 
+      }
       else {
         setIsSuccess(true)
         setMessage({ type: 'success', text: 'Venue registered successfully! Redirecting...' })
@@ -130,9 +130,9 @@ export const RegisterVenue: React.FC = () => {
   }
 
   const isDisabled = submitting || isSuccess || showTokenModal
-    const readyToSubmit = (formData.name || '').trim() !== '' && (formData.email || '').trim() !== '' && !!nylasGrantId
-    // final disabled state: also disable when not readyToSubmit
-    const finalDisabled = isDisabled || !readyToSubmit
+  const readyToSubmit = (formData.name || '').trim() !== '' && (formData.email || '').trim() !== '' && !!nylasGrantId
+  // final disabled state: also disable when not readyToSubmit
+  const finalDisabled = isDisabled || !readyToSubmit
 
   return (
     <div className="min-h-screen bg-slate-100 flex items-center justify-center p-4 lg:p-8 relative">
@@ -149,7 +149,7 @@ export const RegisterVenue: React.FC = () => {
       </Link>
 
       <div className="w-full max-w-6xl bg-white border border-slate-200/80 rounded-[2.5rem] shadow-xl overflow-hidden grid grid-cols-1 lg:grid-cols-12 min-h-[700px]">
-        
+
         {/* Left Side: Exactly half (col-span-6) with Centrua AI, backdrop image, and right-shifted cut-off venue image */}
         <div className="lg:col-span-6 relative overflow-hidden flex items-center justify-end p-8 lg:p-12 bg-slate-900">
           {/* Centrua AI in Times New Roman at the top left */}
@@ -167,7 +167,7 @@ export const RegisterVenue: React.FC = () => {
             }}
             className="absolute inset-0 w-full h-full object-cover"
           />
-          
+
           <div className="absolute inset-0 bg-black/10 pointer-events-none" />
 
           {/* Framed card shifted right to get nicely cut off by the center dividing line */}
@@ -187,7 +187,7 @@ export const RegisterVenue: React.FC = () => {
 
         {/* Right Side: Exactly half (col-span-6) for form */}
         <div className="lg:col-span-6 p-8 lg:p-12 flex flex-col justify-between bg-white relative z-20">
-          
+
           <div className="my-auto max-w-md mx-auto w-full pt-6">
             {/* Header Icon */}
             <div className="flex justify-center mb-5">
@@ -219,11 +219,10 @@ export const RegisterVenue: React.FC = () => {
             <form onSubmit={handleSubmit} className="flex flex-col gap-4">
               {message && (
                 <div
-                  className={`border text-xs rounded-2xl p-3.5 ${
-                    message.type === 'success'
+                  className={`border text-xs rounded-2xl p-3.5 ${message.type === 'success'
                       ? 'bg-emerald-50 border-emerald-200 text-emerald-700'
                       : 'bg-red-50 border-red-200 text-red-600'
-                  }`}
+                    }`}
                 >
                   {message.text}
                 </div>
@@ -244,24 +243,10 @@ export const RegisterVenue: React.FC = () => {
                 />
               </div>
 
-              {/* Venue email */}
-              <div>
-                <label className="block text-xs font-semibold text-slate-700 mb-1.5 uppercase tracking-wider">Venue Inquiry Email *</label>
-                <input
-                  type="email"
-                  name="email"
-                  disabled={isDisabled}
-                   placeholder="e.g. hello@venue.com"
-                   required
-                  value={formData.email}
-                  onChange={handleChange}
-                  className="w-full border border-slate-200 rounded-2xl px-4 py-3 text-sm text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-[#20241C] focus:border-transparent transition disabled:bg-slate-100 disabled:cursor-not-allowed bg-slate-50/50"
-                />
-              </div>
-
               {/* Nylas OAuth buttons */}
               {/* Nylas connection status or buttons */}
               <div>
+                <label className="block text-xs font-semibold text-slate-700 mb-1.5 uppercase tracking-wider mt-2">Venue Inquiry Email *</label>
                 {nylasGrantId ? (
                   <div className="flex items-center justify-between gap-3 mb-3 border rounded-2xl p-3 bg-emerald-50 border-emerald-200 text-emerald-800">
                     <div className="flex items-center gap-3">
@@ -289,26 +274,26 @@ export const RegisterVenue: React.FC = () => {
                 ) : null}
 
                 <div className="flex gap-3">
-                <button
-                  type="button"
-                  onClick={() => { window.location.href = `${import.meta.env.VITE_API_BASE_URL || 'http://localhost:3001'}/api/nylas/auth?provider=google` }}
-                  disabled={isDisabled}
-                  className="flex-1 inline-flex items-center justify-center gap-2 border border-slate-200 rounded-2xl px-4 py-2 text-sm text-slate-700 bg-white hover:shadow-sm"
-                >
-                  <img src="/google-icon.svg" alt="Google" className="w-4 h-4" />
-                  Connect with Google
-                </button>
+                  <button
+                    type="button"
+                    onClick={() => { window.location.href = `${import.meta.env.VITE_API_BASE_URL || 'http://localhost:3001'}/api/nylas/auth?provider=google` }}
+                    disabled={isDisabled}
+                    className="flex-1 inline-flex items-center justify-center gap-2 border border-slate-200 rounded-2xl px-4 py-2 text-sm text-slate-700 bg-white hover:shadow-sm"
+                  >
+                    <img src="/google-icon.svg" alt="Google" className="w-4 h-4" />
+                    Connect with Google
+                  </button>
 
-                <button
-                  type="button"
-                  onClick={() => { window.location.href = `${import.meta.env.VITE_API_BASE_URL || 'http://localhost:3001'}/api/nylas/auth?provider=outlook` }}
-                  disabled={isDisabled}
-                  className="flex-1 inline-flex items-center justify-center gap-2 border border-slate-200 rounded-2xl px-4 py-2 text-sm text-slate-700 bg-white hover:shadow-sm"
-                >
-                  <img src="/outlook-icon.svg" alt="Outlook" className="w-4 h-4" />
-                  Connect with Outlook
-                </button>
-              </div>
+                  <button
+                    type="button"
+                    onClick={() => { window.location.href = `${import.meta.env.VITE_API_BASE_URL || 'http://localhost:3001'}/api/nylas/auth?provider=outlook` }}
+                    disabled={isDisabled}
+                    className="flex-1 inline-flex items-center justify-center gap-2 border border-slate-200 rounded-2xl px-4 py-2 text-sm text-slate-700 bg-white hover:shadow-sm"
+                  >
+                    <img src="/outlook-icon.svg" alt="Outlook" className="w-4 h-4" />
+                    Connect with Outlook
+                  </button>
+                </div>
               </div>
 
               {/* Submit Button */}
@@ -336,7 +321,7 @@ export const RegisterVenue: React.FC = () => {
             <div className="flex items-center justify-between mb-4">
               <h3 className="text-xl font-bold text-slate-900">Venue Registration Token</h3>
             </div>
-            
+
             <div className="bg-amber-50 border border-amber-200 text-amber-800 text-xs rounded-2xl p-4 mb-5 leading-relaxed">
               <span className="font-semibold">Important Notice:</span> This token will only be shown <strong className="underline">once</strong>. Please copy it now as this is required for user sign up to your venue.
             </div>
