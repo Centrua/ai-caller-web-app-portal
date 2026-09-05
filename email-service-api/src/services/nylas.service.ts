@@ -3,6 +3,11 @@ import crypto from 'crypto'
 import messageRepo from '../repositories/message.repository'
 import conversationRepo from '../repositories/conversation.repository'
 import classifier from './email-classifier.service'
+import geminiReply from './email-reply.service'
+import outgoingRepo from '../repositories/outgoing.repository'
+import { NylasRepository } from '../repositories/http/nylas.repository'
+import { isFromConnectedAccount } from '../utils/nylas.utils'
+const nylasRepo = new NylasRepository()
 
 export function handleNylasChallenge(req: Request, res: Response): boolean {
   const challenge = req.query.challenge
@@ -58,6 +63,20 @@ export async function handleNylasWebhook(req: Request, res: Response): Promise<v
       return
     }
 
+    // Drop messages that appear to originate from the connected account for this grant
+    const fromAddresses = (obj.from && Array.isArray(obj.from))
+      ? obj.from.map((f: any) => (f && f.email ? String(f.email).toLowerCase() : null)).filter(Boolean)
+      : []
+
+    const grantId = obj.grant_id || obj.grantId || null
+
+    console.log('Processing inbound message for grant:', grantId, 'from addresses:', fromAddresses)
+    if (await isFromConnectedAccount(nylasRepo, grantId, fromAddresses)) {
+      console.log('Dropping inbound message from connected account email for grant:', grantId, fromAddresses)
+      res.status(200).json({ received: true, stored: false, reason: 'self_address' })
+      return
+    }
+
     const subject = obj.subject || null
     const snippet = obj.snippet || null
 
@@ -75,7 +94,6 @@ export async function handleNylasWebhook(req: Request, res: Response): Promise<v
     await messageRepo.upsertMessageFromNylas(obj)
 
     const threadId = obj.thread_id || obj.threadId || null
-    const grantId = obj.grant_id || obj.grantId || null
     if (threadId && grantId) {
       const existing = await conversationRepo.findConversationByThreadAndGrant(threadId, grantId)
       if (existing) {
@@ -83,6 +101,35 @@ export async function handleNylasWebhook(req: Request, res: Response): Promise<v
       } else {
         await conversationRepo.createConversationFromMessage({ ...obj, id: obj.id })
       }
+    }
+
+    // Generate a concise reply draft via Gemini for wedding inquiries
+    try {
+      const { draft } = await geminiReply.generateReply({ originalMessage: obj, threadId, grantId })
+      // Auto-send behavior can be configured per-grant via AUTO_SEND_REPLIES_GRANTS (comma-separated grant ids).
+      const globalAuto = String(process.env.AUTO_SEND_REPLIES || 'false').toLowerCase() === 'true'
+      const grantsEnv = String(process.env.AUTO_SEND_REPLIES_GRANTS || '')
+      const grantList = grantsEnv.split(',').map(s => s.trim()).filter(Boolean)
+      const grantAllowed = grantId && grantList.length > 0 ? grantList.includes(String(grantId)) : false
+
+      // If `AUTO_SEND_REPLIES_GRANTS` is provided (non-empty), honor it exclusively;
+      // do NOT fall back to the global `AUTO_SEND_REPLIES` flag when grant list exists.
+      const shouldAutoSend = grantList.length > 0 ? grantAllowed : globalAuto
+
+      if (shouldAutoSend) {
+        try {
+          const recipients = (obj.from && obj.from.map((f: any) => f.email)) || []
+          const payload: any = { subject: (draft as any).subject, body: (draft as any).body, to: recipients.map((r: string) => ({ email: r })) }
+          payload.reply_to_message_id = obj.id
+          const sendResp = await nylasRepo.sendMessage(grantId, payload)
+          await outgoingRepo.updateDraftStatus((draft as any).id, 'sent', { nylas_response: sendResp })
+        } catch (sendErr: any) {
+          console.error('Auto-send failed for draft:', sendErr?.message || sendErr)
+          await outgoingRepo.updateDraftStatus((draft as any).id, 'failed', { send_error: String(sendErr?.message || sendErr) })
+        }
+      }
+    } catch (genErr: any) {
+      console.error('Failed to generate reply draft:', genErr?.message || genErr)
     }
 
     res.status(200).json({ received: true })
