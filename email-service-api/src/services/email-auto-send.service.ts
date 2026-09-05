@@ -1,7 +1,6 @@
 import { NylasRepository } from '../repositories/http/nylas.repository'
 import outgoingRepo from '../repositories/outgoing.repository'
 import venueRepo from '../repositories/venue.repository'
-import { textToHtml } from '../utils/emailFormatting'
 
 export class AutoSendService {
   async decideAutoSend(grantId: string | null): Promise<boolean> {
