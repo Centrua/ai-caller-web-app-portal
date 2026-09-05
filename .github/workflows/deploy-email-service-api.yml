@@ -54,3 +54,8 @@ jobs:
           env_vars: |
             GEMINI_API_KEY=${{ secrets.GEMINI_API_KEY }}
             GEMINI_MODEL=gemini-2.5-flash
+            CLASSIFIER_CONFIDENCE_THRESHOLD=${{ secrets.CLASSIFIER_CONFIDENCE_THRESHOLD }}
+            NYLAS_API_KEY=${{ secrets.NYLAS_API_KEY }}
+            NYLAS_API_URI=${{ secrets.NYLAS_API_URI }}
+            NYLAS_WEBHOOK_SECRET=${{ secrets.NYLAS_WEBHOOK_SECRET }}
+            PROD_DATABASE_URL=${{ secrets.PROD_DATABASE_URL }}
