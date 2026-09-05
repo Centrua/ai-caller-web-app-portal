@@ -15,7 +15,6 @@ export async function upsertMessageFromNylas(obj: any) {
     to: obj.to || null,
   }
 
-  // Use upsert for idempotent writes
   await Message.upsert(payload)
   return findMessageById(id)
 }

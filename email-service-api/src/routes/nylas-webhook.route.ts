@@ -5,7 +5,6 @@ const router = Router()
 
 // Support Nylas webhook challenge verification (GET) and incoming events (POST)
 router.get('/', (req: Request, res: Response) => nylasWebhookController.receive(req, res))
-// Accept any JSON-like content type (including CloudEvents `application/cloudevents+json`).
 router.post('/', express.raw({ type: (req) => {
 	const ct = req.headers['content-type']
 	return typeof ct === 'string' && ct.toLowerCase().includes('json')

@@ -59,10 +59,8 @@ export async function handleNylasWebhook(req: Request, res: Response): Promise<v
         return
       }
 
-      // Persist message
-      const msg = await messageRepo.upsertMessageFromNylas(obj)
+      await messageRepo.upsertMessageFromNylas(obj)
 
-      // Upsert conversation
       const threadId = obj.thread_id || obj.threadId || null
       const grantId = obj.grant_id || obj.grantId || null
       if (threadId && grantId) {
@@ -73,10 +71,6 @@ export async function handleNylasWebhook(req: Request, res: Response): Promise<v
           await conversationRepo.createConversationFromMessage({ ...obj, id: obj.id })
         }
       }
-
-      const subject = obj?.subject ?? null
-      const snippet = obj?.snippet ?? null
-      if (subject || snippet) console.info('Extracted:', { subject, snippet })
 
       res.status(200).json({ received: true })
   } catch (err: any) {
