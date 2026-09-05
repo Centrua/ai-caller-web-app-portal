@@ -13,6 +13,7 @@ export class VenueService {
     email?: string | null;
     phone?: string | null;
     kb_document_id?: string | null;
+    nylas_grant_id?: string | null;
     associated_user_ids?: number[];
   }): Promise<{ venue: Venue; plainToken: string }> {
     let agentId: string | null = null;
@@ -33,6 +34,7 @@ export class VenueService {
       name: data.name,
       email: data.email ?? null,
       phone: data.phone ?? null,
+      nylas_grant_id: data.nylas_grant_id ?? null,
       elevenlabs_agent_id: agentId,
       kb_document_id: data.kb_document_id ?? null,
       associated_user_ids: data.associated_user_ids ?? [],

@@ -43,6 +43,7 @@ export const RegisterVenue: React.FC = () => {
   const [showTokenModal, setShowTokenModal] = useState(false)
   const [copied, setCopied] = useState(false)
   const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null)
+  const [nylasGrantId, setNylasGrantId] = useState<string | null>(null)
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target
@@ -66,6 +67,7 @@ export const RegisterVenue: React.FC = () => {
       const response: any = await createVenue({
         name: formData.name,
         email: formData.email || undefined,
+        nylas_grant_id: nylasGrantId || undefined,
         elevenlabs_phone_number_id: formData.elevenlabs_phone_number_id || null,
         kb_document_id: formData.kb_document_id || null,
       })
@@ -90,6 +92,30 @@ export const RegisterVenue: React.FC = () => {
     }
   }
 
+  // Read Nylas callback params if present
+  React.useEffect(() => {
+    try {
+      const params = new URLSearchParams(window.location.search)
+      const grant = params.get('nylas_grant_id')
+      const email = params.get('nylas_email')
+      if (grant) {
+        setNylasGrantId(grant)
+        // remove param from URL for cleanliness
+        params.delete('nylas_grant_id')
+        const newUrl = `${window.location.pathname}?${params.toString()}`
+        window.history.replaceState({}, '', newUrl)
+      }
+      if (email && !formData.email) {
+        setFormData((prev) => ({ ...prev, email }))
+        params.delete('nylas_email')
+        const newUrl = `${window.location.pathname}?${params.toString()}`
+        window.history.replaceState({}, '', newUrl)
+      }
+    } catch (e) {
+      // ignore
+    }
+  }, [])
+
   const handleCopy = () => {
     if (plainToken) {
       navigator.clipboard.writeText(plainToken)
@@ -104,6 +130,9 @@ export const RegisterVenue: React.FC = () => {
   }
 
   const isDisabled = submitting || isSuccess || showTokenModal
+    const readyToSubmit = (formData.name || '').trim() !== '' && (formData.email || '').trim() !== '' && !!nylasGrantId
+    // final disabled state: also disable when not readyToSubmit
+    const finalDisabled = isDisabled || !readyToSubmit
 
   return (
     <div className="min-h-screen bg-slate-100 flex items-center justify-center p-4 lg:p-8 relative">
@@ -217,22 +246,76 @@ export const RegisterVenue: React.FC = () => {
 
               {/* Venue email */}
               <div>
-                <label className="block text-xs font-semibold text-slate-700 mb-1.5 uppercase tracking-wider">Venue Inquiry Email</label>
+                <label className="block text-xs font-semibold text-slate-700 mb-1.5 uppercase tracking-wider">Venue Inquiry Email *</label>
                 <input
                   type="email"
                   name="email"
                   disabled={isDisabled}
-                  placeholder="e.g. hello@venue.com"
+                   placeholder="e.g. hello@venue.com"
+                   required
                   value={formData.email}
                   onChange={handleChange}
                   className="w-full border border-slate-200 rounded-2xl px-4 py-3 text-sm text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-[#20241C] focus:border-transparent transition disabled:bg-slate-100 disabled:cursor-not-allowed bg-slate-50/50"
                 />
               </div>
 
+              {/* Nylas OAuth buttons */}
+              {/* Nylas connection status or buttons */}
+              <div>
+                {nylasGrantId ? (
+                  <div className="flex items-center justify-between gap-3 mb-3 border rounded-2xl p-3 bg-emerald-50 border-emerald-200 text-emerald-800">
+                    <div className="flex items-center gap-3">
+                      <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-emerald-700">
+                        <path d="M20 6L9 17l-5-5" />
+                      </svg>
+                      <div className="text-xs">
+                        <div className="font-semibold">Connected to Nylas</div>
+                        <div className="text-[11px] text-emerald-700/90">{formData.email || 'Email connected'} • {nylasGrantId.slice(0, 8)}…</div>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <button
+                        type="button"
+                        onClick={() => {
+                          // allow re-connecting by clearing grant id and leaving email
+                          setNylasGrantId(null)
+                        }}
+                        className="text-xs px-3 py-1 rounded-xl border border-slate-200 bg-white"
+                      >
+                        Reconnect
+                      </button>
+                    </div>
+                  </div>
+                ) : null}
+
+                <div className="flex gap-3">
+                <button
+                  type="button"
+                  onClick={() => { window.location.href = `${import.meta.env.VITE_API_BASE_URL || 'http://localhost:3001'}/api/nylas/auth?provider=google` }}
+                  disabled={isDisabled}
+                  className="flex-1 inline-flex items-center justify-center gap-2 border border-slate-200 rounded-2xl px-4 py-2 text-sm text-slate-700 bg-white hover:shadow-sm"
+                >
+                  <img src="/google-icon.svg" alt="Google" className="w-4 h-4" />
+                  Connect with Google
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => { window.location.href = `${import.meta.env.VITE_API_BASE_URL || 'http://localhost:3001'}/api/nylas/auth?provider=outlook` }}
+                  disabled={isDisabled}
+                  className="flex-1 inline-flex items-center justify-center gap-2 border border-slate-200 rounded-2xl px-4 py-2 text-sm text-slate-700 bg-white hover:shadow-sm"
+                >
+                  <img src="/outlook-icon.svg" alt="Outlook" className="w-4 h-4" />
+                  Connect with Outlook
+                </button>
+              </div>
+              </div>
+
               {/* Submit Button */}
               <button
                 type="submit"
-                disabled={isDisabled}
+                disabled={finalDisabled}
+                title={finalDisabled ? (!nylasGrantId ? 'Connect Google or Outlook to register' : 'Please complete required fields') : undefined}
                 className="w-full bg-[#20241C] hover:bg-[#7C572D] disabled:bg-[#20241C]/60 text-white font-semibold py-3.5 rounded-2xl transition-all text-sm mt-3 flex items-center justify-center cursor-pointer disabled:cursor-not-allowed shadow-md shadow-[#20241C]/20"
               >
                 {submitting ? 'Registering Venue...' : isSuccess ? 'Redirecting...' : 'Register Venue'}

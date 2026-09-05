@@ -7,6 +7,7 @@ interface VenueAttributes {
   email: string | null;
   phone: string | null;
   elevenlabs_agent_id: string | null;
+  nylas_grant_id?: string | null;
   kb_document_id: string | null;
   associated_user_ids: number[];
   created_at?: Date;
@@ -20,6 +21,7 @@ export class Venue extends Model<VenueAttributes, VenueCreationAttributes> imple
   public declare email: string | null;
   public declare phone: string | null;
   public declare elevenlabs_agent_id: string | null;
+  public declare nylas_grant_id: string | null;
   public declare kb_document_id: string | null;
   public declare associated_user_ids: number[];
   public declare readonly created_at: Date;
@@ -53,6 +55,10 @@ Venue.init(
       allowNull: true,
     },
     elevenlabs_agent_id: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
+    nylas_grant_id: {
       type: DataTypes.STRING,
       allowNull: true,
     },

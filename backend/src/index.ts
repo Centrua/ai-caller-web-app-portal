@@ -8,6 +8,7 @@ import actionItemsRouter from './routes/action-items.route';
 import knowledgeBaseRouter from './routes/knowledge-base.route';
 import venueRouter from './routes/venue.route';
 import nylasWebhookRouter from './routes/nylas-webhook.route';
+import nylasAuthRouter from './routes/nylas-auth.route';
 
 const app = express();
 const PORT = process.env.PORT || 3001;
@@ -30,6 +31,7 @@ app.use('/api/conversations', actionItemsRouter);
 app.use('/api/knowledge-base', knowledgeBaseRouter);
 app.use('/api/venue', venueRouter);
 app.use('/api/webhooks/nylas', nylasWebhookRouter);
+app.use('/api/nylas', nylasAuthRouter);
 
 app.listen(PORT, () => {
   console.log(`Server running on http://localhost:${PORT}`);
