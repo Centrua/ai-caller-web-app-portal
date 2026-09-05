@@ -3,6 +3,7 @@ import dotenv from 'dotenv';
 import express, { NextFunction, Request, Response } from 'express';
 import nylasWebhookRouter from './routes/nylas-webhook.route';
 import replyRouter from './routes/reply.route';
+import './models'
 
 dotenv.config();
 

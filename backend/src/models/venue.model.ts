@@ -8,6 +8,7 @@ interface VenueAttributes {
   phone: string | null;
   elevenlabs_agent_id: string | null;
   nylas_grant_id?: string | null;
+  auto_send_replies?: boolean;
   kb_document_id: string | null;
   associated_user_ids: number[];
   created_at?: Date;
@@ -22,6 +23,7 @@ export class Venue extends Model<VenueAttributes, VenueCreationAttributes> imple
   public declare phone: string | null;
   public declare elevenlabs_agent_id: string | null;
   public declare nylas_grant_id: string | null;
+  public declare auto_send_replies: boolean | undefined;
   public declare kb_document_id: string | null;
   public declare associated_user_ids: number[];
   public declare readonly created_at: Date;
@@ -30,6 +32,11 @@ export class Venue extends Model<VenueAttributes, VenueCreationAttributes> imple
     models.Venue.hasMany(models.KnowledgeSource, {
       foreignKey: 'venue_id',
       as: 'knowledgeSources',
+    });
+    // One-to-one settings row per venue
+    models.Venue.hasOne(models.VenueSettings, {
+      foreignKey: 'venue_id',
+      as: 'settings',
     });
   }
 }
@@ -61,6 +68,11 @@ Venue.init(
     nylas_grant_id: {
       type: DataTypes.STRING,
       allowNull: true,
+    },
+    auto_send_replies: {
+      type: DataTypes.BOOLEAN,
+      allowNull: false,
+      defaultValue: false,
     },
     kb_document_id: {
       type: DataTypes.STRING,

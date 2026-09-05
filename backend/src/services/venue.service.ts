@@ -2,6 +2,7 @@ import { VenueRepository } from '../repositories/venue.repository';
 import { ElevenLabsRepository } from '../repositories/http/eleven-labs.repository';
 import { RegisterTokenService } from './register-token.service';
 import { Venue } from '../models/venue.model';
+import venueSettingsRepo from '../repositories/venue-settings.repository';
 
 export class VenueService {
   private venueRepo = new VenueRepository();
@@ -41,6 +42,12 @@ export class VenueService {
     };
 
     const venue = await this.venueRepo.createVenue(venuePayload);
+    try {
+      await venueSettingsRepo.createDefaultSettings(venue.id);
+    } catch (err) {
+      // swallow setting creation errors so venue creation can still succeed;
+      // higher-level logging/monitoring should capture this in production
+    }
     
     const { plainToken } = await this.registerTokenService.create(venue.id);
 
