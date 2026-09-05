@@ -52,4 +52,5 @@ jobs:
           image: us-central1-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.REPOSITORY }}/${{ env.SERVICE }}:${{ github.sha }}
           flags: '--allow-unauthenticated --port=8080'
           env_vars: |
-            NODE_ENV=production
+            GEMINI_API_KEY=${{ secrets.GEMINI_API_KEY }}
+            GEMINI_MODEL=gemini-2.5-flash
