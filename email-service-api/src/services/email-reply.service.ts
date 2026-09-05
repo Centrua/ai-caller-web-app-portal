@@ -2,7 +2,6 @@ import { GeminiRepository, GeminiRequestDto } from '../repositories/http/gemini.
 import outgoingRepo from '../repositories/outgoing.repository'
 import messageRepo from '../repositories/message.repository'
 import { NylasRepository } from '../repositories/http/nylas.repository'
-import { textToHtml } from '../utils/emailFormatting'
 
 const gemini = new GeminiRepository()
 const nylasRepo = new NylasRepository()

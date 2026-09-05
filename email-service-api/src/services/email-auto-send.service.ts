@@ -16,7 +16,7 @@ export class AutoSendService {
     return false
   }
 
-  async sendDraft(nylasRepo: NylasRepository, draft: any, obj: any, grantId: string | null): Promise<void> {
+  async sendDraft(nylasRepo: NylasRepository, draft: any, obj: any, grantId: string): Promise<void> {
     try {
       const recipients = (obj.from && obj.from.map((f: any) => f.email)) || []
       // Preserve paragraphs and use CRLF line endings for email transport
@@ -40,6 +40,6 @@ export class AutoSendService {
 const autoSendService = new AutoSendService()
 
 export const decideAutoSend = (grantId: string | null) => autoSendService.decideAutoSend(grantId)
-export const sendDraft = (nylasRepo: NylasRepository, draft: any, obj: any, grantId: string | null) => autoSendService.sendDraft(nylasRepo, draft, obj, grantId)
+export const sendDraft = (nylasRepo: NylasRepository, draft: any, obj: any, grantId: string) => autoSendService.sendDraft(nylasRepo, draft, obj, grantId)
 
 export default autoSendService
