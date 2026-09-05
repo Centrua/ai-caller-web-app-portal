@@ -52,7 +52,7 @@ export default function KnowledgeBase() {
                 <button 
                     onClick={handleSave}
                     disabled={loading}
-                    className="flex items-center gap-2 bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50 text-white text-sm font-medium px-5 py-2.5 rounded-lg transition-colors shadow-sm cursor-pointer"
+                    className="flex items-center gap-2 bg-[#2B3528] hover:bg-[#444B38] disabled:opacity-50 text-white text-sm font-medium px-5 py-2.5 rounded-lg transition-colors shadow-sm cursor-pointer"
                 >
                     <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                         <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z" />
@@ -84,7 +84,7 @@ export default function KnowledgeBase() {
                     value={textValue}
                     onChange={(e) => setTextValue(e.target.value)}
                     placeholder="Paste menu items, reservation windows, operating hours, prices, or general FAQs here..."
-                    className="w-full p-4 bg-slate-50 border border-slate-200 rounded-lg text-slate-800 text-sm leading-relaxed focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white transition-all resize-y"
+                    className="w-full p-4 bg-slate-50 border border-slate-200 rounded-lg text-slate-800 text-sm leading-relaxed focus:outline-none focus:ring-2 focus:ring-[#2B3528] focus:bg-white transition-all resize-y"
                 />
                 
                 <p className="text-xs text-slate-400">

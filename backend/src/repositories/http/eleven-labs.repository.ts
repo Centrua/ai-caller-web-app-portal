@@ -176,6 +176,27 @@ export class ElevenLabsRepository {
     return rawText
   }
 
+  async duplicateAgent(agentId: string, name?: string | null): Promise<{ agent_id: string; [key: string]: any }> {
+    if (!agentId) throw new Error('agentId is required')
+
+    const url = new URL(`${this.baseUrl}/convai/agents/${encodeURIComponent(agentId)}/duplicate`)
+    const response = await fetch(url.toString(), {
+      method: 'POST',
+      headers: {
+        'xi-api-key': this.apiKey,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(name ? { name } : {}),
+    })
+
+    if (!response.ok) {
+      const errorBody = await response.text()
+      throw new Error(`ElevenLabs API error (${response.status}): ${errorBody || response.statusText}`)
+    }
+
+    return await response.json()
+  }
+
   async getAgentConfig(agentId: string): Promise<any> {
     if (!agentId) throw new Error('agentId is required')
 
@@ -218,4 +239,5 @@ export class ElevenLabsRepository {
 
     return await response.json()
   }
+
 }

@@ -9,6 +9,24 @@ export class VenueController {
     this.venueService = venueService || new VenueService()
   }
 
+  public createVenue = async (req: Request, res: Response): Promise<void> => {
+    try {
+      const venueData = req.body
+
+      if (!venueData || !venueData.name) {
+        sendError(res, 400, 'Bad Request: Venue name is required')
+        return
+      }
+
+      const result = await this.venueService.createVenue(venueData)
+
+      sendSuccess(res, 201, result)
+    }
+    catch (error: any) {
+      sendError(res, 500, error.message || 'Internal server error while creating venue')
+    }
+  }
+
   public getVenueName = async (req: Request, res: Response): Promise<void> => {
     try {
       const userId = req.user?.id
@@ -26,7 +44,7 @@ export class VenueController {
       }
 
       sendSuccess(res, 200, { name })
-    } 
+    }
     catch (error: any) {
       sendError(res, 500, error.message || 'Internal server error while retrieving venue name')
     }

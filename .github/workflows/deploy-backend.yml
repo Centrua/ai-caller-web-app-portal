@@ -64,3 +64,12 @@ jobs:
             PROD_DATABASE_URL=${{ secrets.PROD_DATABASE_URL }}
             ELEVENLABS_API_KEY=${{ secrets.ELEVENLABS_API_KEY }}
             JWT_SECRET=${{ secrets.JWT_SECRET }}
+            ELEVENLABS_TEMPLATE_AGENT_ID=${{ secrets.ELEVENLABS_TEMPLATE_AGENT_ID }}
+            NYLAS_API_KEY=${{ secrets.NYLAS_API_KEY }}
+            NYLAS_API_URI=${{ secrets.NYLAS_API_URI }}
+            NYLAS_WEBHOOK_SECRET=${{ secrets.NYLAS_WEBHOOK_SECRET }}
+            NYLAS_CLIENT_ID=${{ secrets.NYLAS_CLIENT_ID }}
+            FRONTEND_URL=${{ secrets.FRONTEND_URL }}
+            BACKEND_URL=${{ secrets.BACKEND_URL }}
+            NODE_ENV=${{ secrets.NODE_ENV }}
+            TOKEN_ENCRYPTION_SECRET=${{ secrets.TOKEN_ENCRYPTION_SECRET }}
