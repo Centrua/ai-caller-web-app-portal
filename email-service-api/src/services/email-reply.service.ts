@@ -2,6 +2,7 @@ import { GeminiRepository, GeminiRequestDto } from '../repositories/http/gemini.
 import outgoingRepo from '../repositories/outgoing.repository'
 import messageRepo from '../repositories/message.repository'
 import { NylasRepository } from '../repositories/http/nylas.repository'
+import { textToHtml } from '../utils/emailFormatting'
 
 const gemini = new GeminiRepository()
 const nylasRepo = new NylasRepository()
@@ -26,6 +27,8 @@ export async function generateReply(opts: GenerateReplyOpts) {
   const userParts = [] as Array<{ text: string }>
   if (snippet) userParts.push({ text: `Message snippet: ${snippet}` })
   userParts.push({ text: 'Compose a concise reply of 3-5 sentences addressing the sender and answering any obvious questions. Do not include attachments. Keep it polite and clear.' })
+  // Request HTML output from the model so we can send properly formatted email bodies
+  userParts.push({ text: 'Respond with HTML only: produce an HTML fragment suitable for an email body (use <p> for paragraphs and <br/> for line breaks). Do not include <html>, <head>, or <body> tags. Avoid external CSS and inline styles; simple semantic HTML only.' })
 
   const payload: GeminiRequestDto = {
     system_instruction: systemInstruction,
@@ -42,19 +45,22 @@ export async function generateReply(opts: GenerateReplyOpts) {
 
   const response = await gemini.generateContent(payload)
   const candidate = response.candidates && response.candidates[0]
-  const text = (candidate?.content?.parts && candidate.content.parts.map(p => p.text).join('\n')) || ''
+  const text = (candidate?.content?.parts && candidate.content.parts.map(p => p.text).join('\n\n')) || ''
+
+  // Treat model output as HTML fragment. We store HTML only; no plain-text fallback required.
+  const html = text
 
   const draft = await outgoingRepo.createDraft({
     original_message_id: originalMessage.id || null,
     thread_id: threadId || null,
     grant_id: grantId || null,
     subject: `Re: ${subject}`,
-    body: text,
+    body: html,
     status: 'draft',
     gemini_response: response as any,
   })
 
-  return { draft, text, response }
+  return { draft, html, response }
 }
 
 export async function approveDraft(draftId: number) {
@@ -84,8 +90,9 @@ export async function approveDraft(draftId: number) {
 
   const subject = (draft as any).subject || ''
   const body = (draft as any).body || ''
-
-  const payload: any = { subject, body, to: recips.map((r: string) => ({ email: r })) }
+  // Ensure CRLF line endings for email transport and preserve paragraphs
+  const bodyForSend = body.replace(/\r?\n/g, '\r\n')
+  const payload: any = { subject, body: bodyForSend, to: recips.map((r: string) => ({ email: r })) }
   if ((draft as any).original_message_id) payload.reply_to_message_id = (draft as any).original_message_id
 
   const sendResp = await nylasRepo.sendMessage((draft as any).grant_id, payload)
