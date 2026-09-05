@@ -1,5 +1,5 @@
 import { Request, Response } from 'express'
-import { handleNylasWebhook } from '../services/nylas-webhook.service'
+import { handleNylasWebhook } from '../services/nylas.service'
 
 export class NylasWebhookController {
   receive = async (req: Request, res: Response): Promise<void> => {
