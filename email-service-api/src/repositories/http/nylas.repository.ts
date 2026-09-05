@@ -50,4 +50,8 @@ export class NylasRepository {
     )
     return result.data
   }
+
+  async getGrantAccount(grantId: string): Promise<any> {
+    return this.request<any>(`/grants/${encodeURIComponent(grantId)}`)
+  }
 }

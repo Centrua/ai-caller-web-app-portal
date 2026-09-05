@@ -4,6 +4,14 @@ export async function findMessageById(id: string) {
   return Message.findByPk(id)
 }
 
+export async function findLatestMessageInThread(threadId: string | null, grantId: string | null) {
+  if (!threadId) return null
+
+  const where: any = { thread_id: threadId, grant_id: grantId }
+
+  return Message.findOne({ where, order: [['created_at', 'DESC']] })
+}
+
 export async function upsertMessageFromNylas(obj: any) {
   const id = obj.id
   const payload: any = {
@@ -19,4 +27,4 @@ export async function upsertMessageFromNylas(obj: any) {
   return findMessageById(id)
 }
 
-export default { findMessageById, upsertMessageFromNylas }
+export default { findMessageById, findLatestMessageInThread, upsertMessageFromNylas }
