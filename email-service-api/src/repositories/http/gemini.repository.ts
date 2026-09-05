@@ -21,7 +21,6 @@ export interface GeminiResponseDto {
     candidatesTokenCount?: number;
     totalTokenCount?: number;
   };
-  [key: string]: any;
 }
 
 export class GeminiRepository {
@@ -59,6 +58,24 @@ export class GeminiRepository {
       throw new Error(`Gemini API HTTP ${response.status}: ${errorText}`);
     }
 
-    return (await response.json()) as GeminiResponseDto;
+    const rawData = await response.json();
+
+    const geminiResponse: GeminiResponseDto = {
+      candidates: (rawData.candidates || []).map((candidate: any) => ({
+        content: {
+          parts: (candidate.content?.parts || []).map((part: any) => ({
+            text: part.text || ''
+          }))
+        },
+        finishReason: candidate.finishReason || 'STOP'
+      })),
+      usageMetadata: rawData.usageMetadata ? {
+        promptTokenCount: rawData.usageMetadata.promptTokenCount || 0,
+        candidatesTokenCount: rawData.usageMetadata.candidatesTokenCount || 0,
+        totalTokenCount: rawData.usageMetadata.totalTokenCount || 0
+      } : undefined
+    };
+
+    return geminiResponse;
   }
 }
