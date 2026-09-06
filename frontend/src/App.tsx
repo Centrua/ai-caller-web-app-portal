@@ -10,6 +10,7 @@ import RegisterVenue from './pages/register-venue/RegisterVenue'
 import SignUp from './pages/sign-up/SignUp'
 import Privacy from './pages/privacy/Privacy'
 import Terms from './pages/terms/Terms'
+import InviteParticipants from './pages/invite-participants/InviteParticipants'
 
 const ProtectedRoute = () => {
   const token = localStorage.getItem('token')
@@ -40,6 +41,7 @@ export default function App() {
             <Route path="/conversations" element={<Conversations />} />
             <Route path="/conversations/:id" element={<ConversationDetails />} />
             <Route path="/knowledge-base" element={<KnowledgeBase />} />
+            <Route path="/invite-participants" element={<InviteParticipants />} />
           </Route>
         </Route>
 

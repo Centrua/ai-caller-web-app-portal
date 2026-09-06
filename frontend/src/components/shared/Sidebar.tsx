@@ -38,6 +38,18 @@ const navItems: NavItem[] = [
       </svg>
     ),
   },
+  {
+    label: 'Invite Participants',
+    path: '/invite-participants',
+    icon: (
+      <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
+        <circle cx="9" cy="7" r="4" />
+        <line x1="19" y1="8" x2="19" y2="14" />
+        <line x1="16" y1="11" x2="22" y2="11" />
+      </svg>
+    ),
+  },
 ]
 
 type SidebarProps = {
@@ -66,7 +78,7 @@ export default function Sidebar({ venueName: propVenueName }: SidebarProps) {
 
   return (
     <aside className="flex flex-col w-60 min-h-screen bg-[#11130F] border-r border-[#1F231B] shrink-0">
-      {/* Venue Name Header with Image Backdrop (No Overlay) */}
+      {/* Venue Name Header with Image Backdrop */}
       <div 
         className="flex items-center justify-center px-5 py-8 border-b border-[#1F231B] bg-cover bg-center relative"
         style={{ backgroundImage: `url('/sidebar-title-3.png')` }}
