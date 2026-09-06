@@ -1,5 +1,6 @@
 import { useEffect, useState, useMemo } from 'react'
 import { useEmailConversations, type Conversation } from '../../../hooks/emailConversationHooks'
+import { formatFromEmail } from '../../../utils/formatFromEmailUtil'
 
 export default function EmailConversationsTab() {
   const { conversations, getConversations, loading, error } = useEmailConversations()
@@ -44,16 +45,15 @@ export default function EmailConversationsTab() {
           Back to Email Threads
         </button>
 
-        <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden p-6 mb-6">
-          <h2 className="text-xl font-semibold text-slate-900 mb-2">
+        <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden px-6 py-2 mb-6">
+          <h2 className="text-xl font-semibold text-slate-900 leading-snug">
             {selectedConversation.subject || 'No Subject'}
           </h2>
-          <p className="text-xs font-mono text-slate-400">Thread ID: {selectedConversation.thread_id}</p>
         </div>
 
         <div className="space-y-4">
           <h3 className="text-sm font-semibold text-slate-700 px-1">Message Transaction ({selectedConversation.messages?.length || 0})</h3>
-          
+
           {(!selectedConversation.messages || selectedConversation.messages.length === 0) && (
             <div className="bg-white rounded-xl border border-slate-200 p-8 text-center text-sm text-slate-400">
               No messages found for this thread.
@@ -65,7 +65,7 @@ export default function EmailConversationsTab() {
               <div className="flex items-center justify-between mb-4 pb-3 border-b border-slate-100 text-xs text-slate-500">
                 <div>
                   <span className="font-semibold text-slate-700 mr-2">From:</span>
-                  {typeof msg.from === 'string' ? msg.from : JSON.stringify(msg.from || 'Unknown')}
+                  {formatFromEmail(msg.from)}
                 </div>
                 <div>
                   {msg.createdAt ? new Date(msg.createdAt).toLocaleString() : ''}
@@ -127,8 +127,8 @@ export default function EmailConversationsTab() {
             )}
 
             {paginatedConversations.map((c) => (
-              <tr 
-                key={c.id} 
+              <tr
+                key={c.id}
                 onClick={() => setSelectedConversation(c)}
                 className="hover:bg-slate-50 transition-colors cursor-pointer"
               >
@@ -156,11 +156,10 @@ export default function EmailConversationsTab() {
                 <button
                   key={num}
                   onClick={() => setCurrentPage(num)}
-                  className={`w-7 h-7 text-xs font-medium rounded-md transition-colors ${
-                    currentPage === num
+                  className={`w-7 h-7 text-xs font-medium rounded-md transition-colors ${currentPage === num
                       ? 'bg-[#2B3528] text-white shadow-sm'
                       : 'text-slate-600 hover:bg-slate-200/60'
-                  }`}
+                    }`}
                 >
                   {num}
                 </button>
