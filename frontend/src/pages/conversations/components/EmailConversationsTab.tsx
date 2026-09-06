@@ -25,10 +25,11 @@ export default function EmailConversationsTab() {
 
   const filteredConversations = useMemo(() => {
     return conversations.filter((c) => {
-      const subject = (c.subject || '').toLowerCase()
+      const firstMsg = c.messages?.[0]
+      const conversationName = (firstMsg?.subject || c.subject || '').toLowerCase()
       const threadId = (c.thread_id || '').toLowerCase()
       const query = searchQuery.toLowerCase()
-      return subject.includes(query) || threadId.includes(query)
+      return conversationName.includes(query) || threadId.includes(query)
     })
   }, [conversations, searchQuery])
 
@@ -54,6 +55,19 @@ export default function EmailConversationsTab() {
 
   if (selectedConversation) {
     const draftOutgoing = selectedConversation.outgoing?.filter(o => o.status === 'draft') || []
+    const sentOutgoing = selectedConversation.outgoing?.filter(o => o.status === 'sent') || []
+
+    const firstMessage = selectedConversation.messages?.[0]
+    const conversationName = firstMessage?.subject || selectedConversation.subject || 'No Subject'
+
+    const allConversationItems = [
+      ...(selectedConversation.messages || []).map(m => ({ ...m, type: 'message' as const })),
+      ...sentOutgoing.map(s => ({ ...s, type: 'sent_outgoing' as const }))
+    ].sort((a, b) => {
+      const dateA = new Date(a.createdAt || 0).getTime()
+      const dateB = new Date(b.createdAt || 0).getTime()
+      return dateA - dateB
+    })
 
     return (
       <div>
@@ -70,7 +84,7 @@ export default function EmailConversationsTab() {
         <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden px-6 py-4 mb-6">
           <div className="flex items-center justify-between">
             <h2 className="text-xl font-semibold text-slate-900 leading-snug">
-              {selectedConversation.subject || 'No Subject'}
+              {conversationName}
             </h2>
             {draftOutgoing.length > 0 && (
               <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-amber-50 text-amber-800 border border-amber-200">
@@ -82,30 +96,58 @@ export default function EmailConversationsTab() {
         </div>
 
         <div className="space-y-4">
-          <h3 className="text-sm font-semibold text-slate-700 px-1">Message Transaction ({selectedConversation.messages?.length || 0})</h3>
+          <h3 className="text-sm font-semibold text-slate-700 px-1">Message Transaction ({allConversationItems.length})</h3>
 
-          {(!selectedConversation.messages || selectedConversation.messages.length === 0) && (
+          {allConversationItems.length === 0 && (
             <div className="bg-white rounded-xl border border-slate-200 p-8 text-center text-sm text-slate-400">
               No messages found for this thread.
             </div>
           )}
 
-          {selectedConversation.messages?.map((msg, idx) => (
-            <div key={msg.id || idx} className="bg-white rounded-xl border border-slate-200 shadow-sm p-6">
-              <div className="flex items-center justify-between mb-4 pb-3 border-b border-slate-100 text-xs text-slate-500">
-                <div>
-                  <span className="font-semibold text-slate-700 mr-2">From:</span>
-                  {formatFromEmail(msg.from)}
+          {allConversationItems.map((item, idx) => {
+            if (item.type === 'message') {
+              const msg = item
+              return (
+                <div key={msg.id || idx} className="bg-white rounded-xl border border-slate-200 shadow-sm p-6">
+                  <div className="flex items-center justify-between mb-4 pb-3 border-b border-slate-100 text-xs text-slate-500">
+                    <div>
+                      <span className="font-semibold text-slate-700 mr-2">From:</span>
+                      {formatFromEmail(msg.from)}
+                    </div>
+                    <div>
+                      {msg.createdAt ? new Date(msg.createdAt).toLocaleString() : ''}
+                    </div>
+                  </div>
+                  <div className="text-sm text-slate-800 whitespace-pre-wrap leading-relaxed">
+                    {msg.snippet || 'No message content available.'}
+                  </div>
                 </div>
-                <div>
-                  {msg.createdAt ? new Date(msg.createdAt).toLocaleString() : ''}
+              )
+            } 
+            else {
+              const sent = item
+              return (
+                <div key={sent.id || idx} className="bg-white rounded-xl border border-slate-200 shadow-sm p-6">
+                  <div className="flex items-center justify-between mb-4 pb-3 border-b border-slate-100 text-xs text-slate-500">
+                    <div>
+                      <span className="font-semibold text-slate-700 mr-2">Sent Reply</span>
+                    </div>
+                    <div>
+                      {sent.updatedAt ? new Date(sent.updatedAt).toLocaleString() : ''}
+                    </div>
+                  </div>
+                  {sent.body ? (
+                    <div
+                      className="text-sm text-slate-800 whitespace-pre-wrap leading-relaxed"
+                      dangerouslySetInnerHTML={{ __html: sent.body }}
+                    />
+                  ) : (
+                    <div className="text-sm text-slate-400 italic">No content available.</div>
+                  )}
                 </div>
-              </div>
-              <div className="text-sm text-slate-800 whitespace-pre-wrap leading-relaxed">
-                {msg.snippet || 'No message content available.'}
-              </div>
-            </div>
-          ))}
+              )
+            }
+          })}
 
           {draftOutgoing.length > 0 && (
             <div className="mb-6 space-y-4 mt-10">
@@ -115,12 +157,17 @@ export default function EmailConversationsTab() {
               </h3>
               {draftOutgoing.map((draft, idx) => (
                 <div key={draft.id || idx} className="bg-amber-50/60 rounded-xl border border-amber-200 shadow-sm p-6">
-                  <div className="flex items-center justify-between mb-3 pb-2 border-b border-amber-200/60 text-xs text-amber-900/70">
-                    <span>{draft.createdAt ? new Date(draft.createdAt).toLocaleString() : ''}</span>
+                  <div className="flex items-center justify-between mb-4 pb-3 border-b border-amber-200/60 text-xs text-amber-900/70">
+                    <div>
+                      <span className="font-semibold text-amber-900/90 mr-2">Suggested Reply</span>
+                    </div>
+                    <div>
+                      {draft.createdAt ? new Date(draft.createdAt).toLocaleString() : ''}
+                    </div>
                   </div>
                   {draft.body ? (
                     <div
-                      className="text-sm text-slate-800 leading-relaxed bg-white/70 p-4 rounded-lg border border-amber-200/50 overflow-x-auto mb-4"
+                      className="text-sm text-slate-800 whitespace-pre-wrap leading-relaxed mb-4"
                       dangerouslySetInnerHTML={{ __html: draft.body }}
                     />
                   ) : (
@@ -195,7 +242,9 @@ export default function EmailConversationsTab() {
             )}
 
             {paginatedConversations.map((c) => {
-              const hasDraft = c.outgoing?.some(o => o.status === 'draft')
+              const hasDrafts = c.outgoing?.some(o => o.status === 'draft')
+              const firstMsg = c.messages?.[0]
+              const conversationName = firstMsg?.subject || c.subject || 'No Subject'
 
               return (
                 <tr
@@ -204,10 +253,10 @@ export default function EmailConversationsTab() {
                   className="hover:bg-slate-50 transition-colors cursor-pointer"
                 >
                   <td className="px-6 py-4 font-medium text-slate-900 flex items-center gap-2.5">
-                    {hasDraft && (
+                    {hasDrafts && (
                       <span className="w-2.5 h-2.5 bg-red-500 rounded-full flex-shrink-0" title="Draft pending"></span>
                     )}
-                    <span>{c.subject || 'No Subject'}</span>
+                    <span>{conversationName}</span>
                   </td>
                   <td className="px-6 py-4 text-slate-500 font-mono text-xs">{c.thread_id}</td>
                   <td className="px-6 py-4 text-slate-500">{c.messages?.length || 0}</td>

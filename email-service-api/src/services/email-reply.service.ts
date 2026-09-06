@@ -95,7 +95,7 @@ export async function approveDraft(draftId: number) {
   if ((draft as any).original_message_id) payload.reply_to_message_id = (draft as any).original_message_id
 
   const sendResp = await nylasRepo.sendMessage((draft as any).grant_id, payload)
-  await outgoingRepo.updateDraftStatus(id, 'sent', { nylas_response: sendResp })
+  await outgoingRepo.updateDraftStatus(id, 'sent', { nylas_response: sendResp }, new Date())
 
   return { sent: true, resp: sendResp }
 }
