@@ -7,13 +7,14 @@ interface VenueAttributes {
   email: string | null;
   phone: string | null;
   elevenlabs_agent_id: string | null;
-  elevenlabs_phone_number_id: string | null;
+  nylas_grant_id?: string | null;
+  auto_send_replies?: boolean;
   kb_document_id: string | null;
   associated_user_ids: number[];
   created_at?: Date;
 }
 
-interface VenueCreationAttributes extends Optional<VenueAttributes, 'id' | 'email' | 'phone' | 'elevenlabs_agent_id' | 'elevenlabs_phone_number_id' | 'kb_document_id' | 'associated_user_ids' | 'created_at'> {}
+interface VenueCreationAttributes extends Optional<VenueAttributes, 'id' | 'email' | 'phone' | 'elevenlabs_agent_id' | 'kb_document_id' | 'associated_user_ids' | 'created_at'> {}
 
 export class Venue extends Model<VenueAttributes, VenueCreationAttributes> implements VenueAttributes {
   public declare id: number;
@@ -21,7 +22,8 @@ export class Venue extends Model<VenueAttributes, VenueCreationAttributes> imple
   public declare email: string | null;
   public declare phone: string | null;
   public declare elevenlabs_agent_id: string | null;
-  public declare elevenlabs_phone_number_id: string | null;
+  public declare nylas_grant_id: string | null;
+  public declare auto_send_replies: boolean | undefined;
   public declare kb_document_id: string | null;
   public declare associated_user_ids: number[];
   public declare readonly created_at: Date;
@@ -30,6 +32,11 @@ export class Venue extends Model<VenueAttributes, VenueCreationAttributes> imple
     models.Venue.hasMany(models.KnowledgeSource, {
       foreignKey: 'venue_id',
       as: 'knowledgeSources',
+    });
+    // One-to-one settings row per venue
+    models.Venue.hasOne(models.VenueSettings, {
+      foreignKey: 'venue_id',
+      as: 'settings',
     });
   }
 }
@@ -58,9 +65,14 @@ Venue.init(
       type: DataTypes.STRING,
       allowNull: true,
     },
-    elevenlabs_phone_number_id: {
+    nylas_grant_id: {
       type: DataTypes.STRING,
       allowNull: true,
+    },
+    auto_send_replies: {
+      type: DataTypes.BOOLEAN,
+      allowNull: false,
+      defaultValue: false,
     },
     kb_document_id: {
       type: DataTypes.STRING,

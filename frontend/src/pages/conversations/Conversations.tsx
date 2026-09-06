@@ -2,12 +2,6 @@ import { useEffect, useState, useMemo } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useConversations } from '../../hooks/conversationsHooks'
 
-const statusColor: Record<string, string> = {
-  success: 'bg-emerald-100 text-emerald-700',
-  failure: 'bg-red-100 text-red-600',
-  unknown: 'bg-slate-100 text-slate-500',
-}
-
 function isTodayIso(iso?: string) {
   if (!iso) return false
   const d = new Date(iso)
@@ -86,7 +80,7 @@ export default function Conversations() {
             placeholder="Search conversations..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full pl-4 pr-4 py-2.5 bg-white border border-slate-200 rounded-xl text-sm text-slate-900 placeholder-slate-400 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 shadow-sm"
+            className="w-full pl-4 pr-4 py-2.5 bg-white border border-slate-200 rounded-xl text-sm text-slate-900 placeholder-slate-400 focus:outline-none focus:border-[#2B3528] focus:ring-1 focus:ring-[#2B3528] shadow-sm"
           />
         </div>
         <div className="flex items-center gap-2">
@@ -94,7 +88,7 @@ export default function Conversations() {
             <select
               value={timeFilter}
               onChange={(e) => setTimeFilter(e.target.value)}
-              className="bg-white border border-slate-200 rounded-xl pl-4 pr-10 py-2.5 text-sm text-slate-700 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 shadow-sm cursor-pointer appearance-none"
+              className="bg-white border border-slate-200 rounded-xl pl-4 pr-10 py-2.5 text-sm text-slate-700 focus:outline-none focus:border-[#2B3528] focus:ring-1 focus:ring-[#2B3528] shadow-sm cursor-pointer appearance-none"
             >
               <option value="all">All Time</option>
               <option value="today">Past 24 Hours</option>
@@ -155,7 +149,7 @@ export default function Conversations() {
                   <div className="flex items-center">
                     <span>{c.callSummaryTitle || c.agentName || 'Unknown'}</span>
                     {isTodayIso(c.startTime) && (
-                      <span title="New conversation today" className="ml-3 inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-amber-100 text-amber-700">New</span>
+                      <span title="New conversation today" className="ml-3 inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-[#20241C]/10 text-[#2B3528]">New</span>
                     )}
                     {c.hasUnacknowledgedActions && (
                       <span title="Action items pending" className="ml-2 inline-block w-2 h-2 rounded-full bg-red-500" />
@@ -186,7 +180,7 @@ export default function Conversations() {
                   onClick={() => setCurrentPage(num)}
                   className={`w-7 h-7 text-xs font-medium rounded-md transition-colors ${
                     currentPage === num
-                      ? 'bg-indigo-600 text-white shadow-sm'
+                      ? 'bg-[#2B3528] text-white shadow-sm'
                       : 'text-slate-600 hover:bg-slate-200/60'
                   }`}
                 >
@@ -199,7 +193,7 @@ export default function Conversations() {
                 <button
                   onClick={() => fetchNext()}
                   disabled={loading}
-                  className="px-3 py-1.5 text-xs font-medium text-indigo-600 bg-white border border-slate-200 rounded-md hover:bg-slate-100 disabled:opacity-40 transition-colors"
+                  className="px-3 py-1.5 text-xs font-medium text-[#2B3528] bg-white border border-slate-200 rounded-md hover:bg-slate-100 disabled:opacity-40 transition-colors"
                 >
                   {loading ? 'Loading...' : 'Load More'}
                 </button>

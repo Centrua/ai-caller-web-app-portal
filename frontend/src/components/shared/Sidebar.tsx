@@ -1,4 +1,6 @@
+import { useEffect, useState } from 'react'
 import { NavLink, useNavigate } from 'react-router-dom'
+import { useVenue } from '../../hooks/venueHooks'
 
 type NavItem = {
   label: string
@@ -37,12 +39,14 @@ const navItems: NavItem[] = [
     ),
   },
   {
-    label: 'Settings',
-    path: '/settings',
+    label: 'Invite Participants',
+    path: '/invite-participants',
     icon: (
       <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-        <circle cx="12" cy="12" r="3" />
-        <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z" />
+        <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
+        <circle cx="9" cy="7" r="4" />
+        <line x1="19" y1="8" x2="19" y2="14" />
+        <line x1="16" y1="11" x2="22" y2="11" />
       </svg>
     ),
   },
@@ -52,23 +56,39 @@ type SidebarProps = {
   venueName?: string
 }
 
-export default function Sidebar({ venueName = 'My Venue' }: SidebarProps) {
+export default function Sidebar({ venueName: propVenueName }: SidebarProps) {
   const navigate = useNavigate()
+  const { venueName: fetchedName, getVenueName, loading } = useVenue()
+  const [displayName, setDisplayName] = useState<string>(propVenueName || 'My Venue')
+
+  useEffect(() => {
+    getVenueName()
+  }, [getVenueName])
+
+  useEffect(() => {
+    if (fetchedName) {
+      setDisplayName(fetchedName)
+    }
+  }, [fetchedName])
 
   const handleLogout = () => {
-    localStorage.removeItem('token') // Clear the auth token
-    navigate('/login') // Redirect to login page
+    localStorage.removeItem('token')
+    navigate('/login')
   }
 
   return (
-    <aside className="flex flex-col w-60 min-h-screen bg-[#0f1117] border-r border-white/5 shrink-0">
-
-      {/* Logo / Venue Name */}
-      <div className="flex items-center gap-3 px-5 py-5 border-b border-white/5">
-        <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-indigo-600 text-white font-bold text-sm shrink-0">
-          {venueName.charAt(0).toUpperCase()}
-        </div>
-        <span className="text-white font-semibold text-sm truncate">{venueName}</span>
+    <aside className="flex flex-col w-60 min-h-screen bg-[#11130F] border-r border-[#1F231B] shrink-0">
+      {/* Venue Name Header with Image Backdrop */}
+      <div 
+        className="flex items-center justify-center px-5 py-8 border-b border-[#1F231B] bg-cover bg-center relative"
+        style={{ backgroundImage: `url('/sidebar-title-3.png')` }}
+      >
+        <span 
+          className="relative z-10 text-white tracking-wide font-normal text-2xl truncate block text-center drop-shadow-md" 
+          style={{ fontFamily: '"Times New Roman", Times, serif' }}
+        >
+          {loading && !fetchedName ? 'Loading...' : displayName}
+        </span>
       </div>
 
       {/* Nav Items */}
@@ -78,9 +98,9 @@ export default function Sidebar({ venueName = 'My Venue' }: SidebarProps) {
             key={item.path}
             to={item.path}
             className={({ isActive }) =>
-              `flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-150 ${
+              `flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-150 ${
                 isActive
-                  ? 'bg-indigo-600 text-white shadow-sm'
+                  ? 'bg-[#7C572D] text-white shadow-md'
                   : 'text-slate-400 hover:bg-white/5 hover:text-slate-200'
               }`
             }
@@ -92,10 +112,10 @@ export default function Sidebar({ venueName = 'My Venue' }: SidebarProps) {
       </nav>
 
       {/* Footer */}
-      <div className="px-3 py-4 border-t border-white/5">
+      <div className="px-3 py-4 border-t border-[#1F231B]">
         <button
           onClick={handleLogout}
-          className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-slate-400 hover:bg-red-500/10 hover:text-red-400 cursor-pointer transition-all duration-150 text-sm font-medium text-left"
+          className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-slate-400 hover:bg-red-500/10 hover:text-red-400 cursor-pointer transition-all duration-150 text-sm font-medium text-left"
         >
           <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
             <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />

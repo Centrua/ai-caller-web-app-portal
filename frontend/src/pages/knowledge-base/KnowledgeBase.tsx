@@ -22,8 +22,8 @@ export default function KnowledgeBase() {
         try {
             setSuccessMessage(null)
             await saveKnowledgeBaseText('Knowledge Base Document', textValue)
-            setSuccessMessage('Knowledge base saved and synchronized with your AI agent successfully!')
-            setTimeout(() => setSuccessMessage(null), 4000)
+            setSuccessMessage('Knowledge base saved and synchronized successfully!')
+            setTimeout(() => setSuccessMessage(null), 2000)
         } 
         catch {
             // Error handled by hook
@@ -31,7 +31,19 @@ export default function KnowledgeBase() {
     }
 
     return (
-        <div className="p-8">
+        <div className="p-8 relative">
+            {/* Pop-up centered relative to the main scrolling area (offset right to account for the sidebar) */}
+            {successMessage && (
+                <div className="fixed top-6 left-[calc(50%+128px)] -translate-x-1/2 z-50">
+                    <div className="bg-slate-900 text-white px-5 py-2.5 rounded-lg shadow-xl flex items-center gap-2.5 text-sm font-medium">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="text-emerald-400">
+                            <polyline points="20 6 9 17 4 12" />
+                        </svg>
+                        {successMessage}
+                    </div>
+                </div>
+            )}
+
             <div className="flex items-center justify-between mb-8">
                 <div>
                     <h1 className="text-2xl font-semibold text-slate-900 mb-1">Knowledge Base</h1>
@@ -40,7 +52,7 @@ export default function KnowledgeBase() {
                 <button 
                     onClick={handleSave}
                     disabled={loading}
-                    className="flex items-center gap-2 bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50 text-white text-sm font-medium px-5 py-2.5 rounded-lg transition-colors shadow-sm cursor-pointer"
+                    className="flex items-center gap-2 bg-[#2B3528] hover:bg-[#444B38] disabled:opacity-50 text-white text-sm font-medium px-5 py-2.5 rounded-lg transition-colors shadow-sm cursor-pointer"
                 >
                     <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                         <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z" />
@@ -54,12 +66,6 @@ export default function KnowledgeBase() {
             {error && (
                 <div className="mb-6 p-4 bg-red-50 border border-red-200 text-red-700 rounded-lg text-sm">
                     {error}
-                </div>
-            )}
-
-            {successMessage && (
-                <div className="mb-6 p-4 bg-emerald-50 border border-emerald-200 text-emerald-700 rounded-lg text-sm">
-                    {successMessage}
                 </div>
             )}
 
@@ -78,7 +84,7 @@ export default function KnowledgeBase() {
                     value={textValue}
                     onChange={(e) => setTextValue(e.target.value)}
                     placeholder="Paste menu items, reservation windows, operating hours, prices, or general FAQs here..."
-                    className="w-full p-4 bg-slate-50 border border-slate-200 rounded-lg text-slate-800 text-sm leading-relaxed focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white transition-all resize-y"
+                    className="w-full p-4 bg-slate-50 border border-slate-200 rounded-lg text-slate-800 text-sm leading-relaxed focus:outline-none focus:ring-2 focus:ring-[#2B3528] focus:bg-white transition-all resize-y"
                 />
                 
                 <p className="text-xs text-slate-400">

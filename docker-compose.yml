@@ -24,11 +24,21 @@ services:
       - /app/node_modules
     env_file:
       - .env
-    environment:
-      - NODE_ENV=development
     depends_on:
       postgres:
         condition: service_healthy
+
+  email-service-api:
+    build:
+      context: ./email-service-api
+      dockerfile: Dockerfile.dev
+    ports:
+      - "3002:3002"
+    volumes:
+      - ./email-service-api:/app
+      - /app/node_modules
+    env_file:
+      - email-service-api/.env
 
   postgres:
     image: postgres:16-alpine

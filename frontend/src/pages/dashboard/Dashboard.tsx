@@ -34,7 +34,7 @@ export default function Dashboard() {
                 {stats.map((stat) => (
                     <div key={stat.label} className="bg-white rounded-xl border border-slate-200 p-5 shadow-sm">
                         <p className="text-xs text-slate-500 font-medium uppercase tracking-wide mb-2">{stat.label}</p>
-                        <p className="text-3xl font-bold text-indigo-600">
+                        <p className="text-3xl font-bold text-[#2B3528]">
                             {loading && !metrics ? (
                                 <span className="inline-block w-16 h-8 bg-slate-100 animate-pulse rounded"></span>
                             ) : (
@@ -51,7 +51,7 @@ export default function Dashboard() {
                     <h2 className="text-sm font-semibold text-slate-700">Calls-Over-Time — Last 7 Days</h2>
                     <div className="text-xs font-medium text-slate-600 bg-slate-100 px-3 py-1 rounded-md min-w-[140px] text-center">
                         {hoveredBar ? (
-                            <span className="text-indigo-600 font-semibold">{hoveredBar.date}: {hoveredBar.count} calls</span>
+                            <span className="text-[#2B3528] font-semibold">{hoveredBar.date}: {hoveredBar.count} calls</span>
                         ) : (
                             <span className="text-slate-400">Hover a bar for details</span>
                         )}
@@ -81,13 +81,13 @@ export default function Dashboard() {
                                             <div 
                                                 className={`w-10 rounded-t transition-all duration-200 ${
                                                     isHovered 
-                                                        ? 'bg-indigo-600 shadow-lg scale-y-[1.03]' 
-                                                        : 'bg-indigo-500 hover:bg-indigo-600'
+                                                        ? 'bg-[#2B3528] shadow-lg scale-y-[1.03]' 
+                                                        : 'bg-[#444B38] hover:bg-[#2B3528]'
                                                 }`} 
                                                 style={{ height: `${heightPercent}%` }}
                                             ></div>
                                         </div>
-                                        <span className={`text-[11px] transition-colors ${isHovered ? 'text-indigo-600 font-bold' : 'text-slate-500'}`}>
+                                        <span className={`text-[11px] transition-colors ${isHovered ? 'text-[#2B3528] font-bold' : 'text-slate-500'}`}>
                                             {item.date}
                                         </span>
                                     </div>
@@ -106,7 +106,7 @@ export default function Dashboard() {
             <div>
                 <a
                     href="/conversations"
-                    className="flex items-center justify-center w-full py-5 px-6 bg-white hover:bg-slate-50 border border-slate-200 text-indigo-600 font-semibold text-lg rounded-xl shadow-sm transition-colors text-center"
+                    className="flex items-center justify-center w-full py-5 px-6 bg-white hover:bg-slate-50 border border-slate-200 text-[#2B3528] font-semibold text-lg rounded-xl shadow-sm transition-colors text-center"
                 >
                     See Conversations
                 </a>
