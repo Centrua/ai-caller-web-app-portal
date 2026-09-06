@@ -27,7 +27,7 @@ export default function KnowledgeBase() {
               : 'border-transparent text-slate-500 hover:text-slate-700'
           }`}
         >
-          Text Document
+          Write a Text Document
         </button>
 
         <button

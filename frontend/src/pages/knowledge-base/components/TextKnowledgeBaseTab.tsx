@@ -52,7 +52,7 @@ export default function TextKnowledgeBaseTab() {
       <div className="bg-white rounded-xl border border-slate-200 p-6 shadow-sm mb-6 space-y-4">
         <div className="flex items-center justify-between">
           <label className="text-sm font-semibold text-slate-700">
-            Knowledge Content (Plain Text or Markdown)
+            Knowledge Content (Plain Text)
           </label>
           <span className="text-xs text-slate-400 font-mono">
             {textValue.length} characters
