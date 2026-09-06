@@ -6,7 +6,8 @@ export default function InviteParticipants() {
   const { tokens, getRegisterTokens, loading, error } = useGetRegisterTokens()
   const { getVenueName } = useVenue()
 
-  const [copiedId, setCopiedId] = useState<number | null>(null)
+  const [copiedLinkId, setCopiedLinkId] = useState<number | null>(null)
+  const [copiedTokenId, setCopiedTokenId] = useState<number | null>(null)
   const [successMessage, setSuccessMessage] = useState<string | null>(null)
 
   useEffect(() => {
@@ -17,20 +18,20 @@ export default function InviteParticipants() {
   const handleCopy = (tokenItem: RegisterTokenItem) => {
     const inviteUrl = `${window.location.origin}/register?token=${encodeURIComponent(tokenItem.plainToken)}`
     navigator.clipboard.writeText(inviteUrl)
-    setCopiedId(tokenItem.id)
+    setCopiedLinkId(tokenItem.id)
     setSuccessMessage('Invite link copied to clipboard!')
     setTimeout(() => {
-      setCopiedId(null)
+      setCopiedLinkId(null)
       setSuccessMessage(null)
     }, 2500)
   }
 
   const handleCopyTokenOnly = (tokenItem: RegisterTokenItem) => {
     navigator.clipboard.writeText(tokenItem.plainToken)
-    setCopiedId(tokenItem.id)
+    setCopiedTokenId(tokenItem.id)
     setSuccessMessage('Registration token copied!')
     setTimeout(() => {
-      setCopiedId(null)
+      setCopiedTokenId(null)
       setSuccessMessage(null)
     }, 2500)
   }
@@ -100,15 +101,24 @@ export default function InviteParticipants() {
                 <div className="flex items-center gap-2.5">
                   <button
                     onClick={() => handleCopyTokenOnly(tokenItem)}
-                    className="px-3.5 py-2 text-xs font-medium text-slate-700 bg-white border border-slate-200 rounded-lg hover:bg-slate-50 transition-colors cursor-pointer"
+                    className="px-3.5 py-2 text-xs font-medium text-slate-700 bg-white border border-slate-200 rounded-lg hover:bg-slate-50 transition-colors cursor-pointer inline-flex items-center gap-1.5"
                   >
-                    Copy Code
+                    {copiedTokenId === tokenItem.id ? (
+                      <>
+                        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="text-emerald-600">
+                          <polyline points="20 6 9 17 4 12" />
+                        </svg>
+                        Copied Code
+                      </>
+                    ) : (
+                      'Copy Code'
+                    )}
                   </button>
                   <button
                     onClick={() => handleCopy(tokenItem)}
                     className="inline-flex items-center gap-1.5 px-4 py-2 text-xs font-medium text-white bg-[#2B3528] hover:bg-[#444B38] rounded-lg shadow-sm transition-colors cursor-pointer"
                   >
-                    {copiedId === tokenItem.id ? (
+                    {copiedLinkId === tokenItem.id ? (
                       <>
                         <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="text-emerald-400">
                           <polyline points="20 6 9 17 4 12" />
