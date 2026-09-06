@@ -3,6 +3,7 @@ import outgoingRepo from '../repositories/outgoing.repository'
 import messageRepo from '../repositories/message.repository'
 import { NylasRepository } from '../repositories/http/nylas.repository'
 import elevenlabsRepo from '../repositories/http/elevenlabs.repository'
+import venueRepo from '../repositories/venue.repository'
 
 const gemini = new GeminiRepository()
 const nylasRepo = new NylasRepository()
@@ -33,6 +34,14 @@ export async function generateReply(opts: GenerateReplyOpts) {
         // Prepend venue/system prompt so it takes precedence
         systemInstruction.parts.unshift({ text: sysPrompt })
       }
+      try {
+        const venueName = await venueRepo.getVenueNameByGrant(grantId)
+        if (venueName) {
+          systemInstruction.parts.unshift({ text: `VENUE_NAME: ${venueName}\nThis is the venue name only use this when using VENUE_NAME` })
+        }
+      } catch (e) {
+        console.warn('Failed to fetch venue name:', e?.message || e)
+      }
       if (procedures && Array.isArray(procedures) && procedures.length > 0) {
         const procParts = procedures.map((p) => ({ text: `Procedure:\n${p}` }))
         systemInstruction.parts.push(...procParts)
@@ -61,6 +70,8 @@ export async function generateReply(opts: GenerateReplyOpts) {
       temperature: 0.2,
     },
   }
+
+  console.log('Gemini request payload:', systemInstruction)
 
   const response = await gemini.generateContent(payload)
   const candidate = response.candidates && response.candidates[0]

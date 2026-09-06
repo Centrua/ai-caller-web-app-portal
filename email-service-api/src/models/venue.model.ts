@@ -3,18 +3,20 @@ import { sequelize } from '../config/database'
 
 interface VenueAttributes {
   id: number
+  name?: string | null
   nylas_grant_id?: string | null
-  agent_id?: string | null
+  elevenlabs_agent_id?: string | null
   created_at?: Date
   updated_at?: Date
 }
 
-interface VenueCreationAttributes extends Optional<VenueAttributes, 'id' | 'nylas_grant_id' | 'agent_id' | 'created_at' | 'updated_at'> {}
+interface VenueCreationAttributes extends Optional<VenueAttributes, 'id' | 'nylas_grant_id' | 'elevenlabs_agent_id' | 'created_at' | 'updated_at'> {}
 
 export class Venue extends Model<VenueAttributes, VenueCreationAttributes> implements VenueAttributes {
   public declare id: number
+  public declare name: string | null
   public declare nylas_grant_id: string | null
-  public declare agent_id: string | null
+  public declare elevenlabs_agent_id: string | null
   public declare readonly created_at: Date
   public declare readonly updated_at: Date
   public static associate(models: any) {
@@ -25,8 +27,9 @@ export class Venue extends Model<VenueAttributes, VenueCreationAttributes> imple
 Venue.init(
   {
     id: { type: DataTypes.INTEGER, autoIncrement: true, primaryKey: true },
+    name: { type: DataTypes.STRING, allowNull: true },
     nylas_grant_id: { type: DataTypes.STRING, allowNull: true },
-    agent_id: { type: DataTypes.STRING, allowNull: true },
+    elevenlabs_agent_id: { type: DataTypes.STRING, allowNull: true },
     created_at: { type: DataTypes.DATE, defaultValue: DataTypes.NOW },
     updated_at: { type: DataTypes.DATE, defaultValue: DataTypes.NOW },
   },
