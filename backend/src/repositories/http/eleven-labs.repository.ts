@@ -337,4 +337,108 @@ export class ElevenLabsRepository {
     const text = await response.text()
     return text ? JSON.parse(text) : { success: true }
   }
+
+  async listAgentProcedures(agentId: string, branchId: string, agentVersionId?: string | null): Promise<{ procedures: any[] }> {
+    if (!agentId) throw new Error('agentId is required')
+    if (!branchId) throw new Error('branchId is required')
+
+    const url = new URL(`${this.baseUrl}/convai/agents/${encodeURIComponent(agentId)}/branches/${encodeURIComponent(branchId)}/procedures`)
+
+    if (agentVersionId) {
+      url.searchParams.append('agent_version_id', String(agentVersionId))
+    }
+
+    const response = await fetch(url.toString(), {
+      method: 'GET',
+      headers: {
+        'xi-api-key': this.apiKey,
+        'Content-Type': 'application/json',
+      },
+    })
+
+    if (!response.ok) {
+      const errorBody = await response.text()
+      throw new Error(`ElevenLabs API error (${response.status}): ${errorBody || response.statusText}`)
+    }
+
+    const data = await response.json()
+    return { procedures: data.procedures || [] }
+  }
+
+  async listAgentBranches(
+    agentId: string,
+    options: { includeArchived?: boolean; limit?: number; includeCommitStatus?: boolean } = {},
+  ): Promise<{ results: any[]; meta?: any }> {
+    if (!agentId) throw new Error('agentId is required')
+
+    const url = new URL(`${this.baseUrl}/convai/agents/${encodeURIComponent(agentId)}/branches`)
+
+    const { includeArchived, limit, includeCommitStatus } = options
+
+    if (includeArchived !== undefined && includeArchived !== null) {
+      url.searchParams.append('include_archived', String(Boolean(includeArchived)))
+    }
+    if (limit !== undefined && limit !== null) {
+      url.searchParams.append('limit', String(limit))
+    }
+    if (includeCommitStatus !== undefined && includeCommitStatus !== null) {
+      url.searchParams.append('include_commit_status', String(Boolean(includeCommitStatus)))
+    }
+
+    const response = await fetch(url.toString(), {
+      method: 'GET',
+      headers: {
+        'xi-api-key': this.apiKey,
+        'Content-Type': 'application/json',
+      },
+    })
+
+    if (!response.ok) {
+      const errorBody = await response.text()
+      throw new Error(`ElevenLabs API error (${response.status}): ${errorBody || response.statusText}`)
+    }
+
+    const data = await response.json()
+    return { results: data.results || [], meta: data.meta || null }
+  }
+
+  async getAgentProcedure(
+    agentId: string,
+    branchId: string,
+    procedureId: string,
+    options: { versionId?: string | null; agentVersionId?: string | null } = {},
+  ): Promise<any> {
+    if (!agentId) throw new Error('agentId is required')
+    if (!branchId) throw new Error('branchId is required')
+    if (!procedureId) throw new Error('procedureId is required')
+
+    const url = new URL(
+      `${this.baseUrl}/convai/agents/${encodeURIComponent(agentId)}/branches/${encodeURIComponent(branchId)}/procedures/${encodeURIComponent(
+        procedureId,
+      )}`,
+    )
+
+    const { versionId, agentVersionId } = options
+    if (versionId !== undefined && versionId !== null) {
+      url.searchParams.append('version_id', String(versionId))
+    }
+    if (agentVersionId !== undefined && agentVersionId !== null) {
+      url.searchParams.append('agent_version_id', String(agentVersionId))
+    }
+
+    const response = await fetch(url.toString(), {
+      method: 'GET',
+      headers: {
+        'xi-api-key': this.apiKey,
+        'Content-Type': 'application/json',
+      },
+    })
+
+    if (!response.ok) {
+      const errorBody = await response.text()
+      throw new Error(`ElevenLabs API error (${response.status}): ${errorBody || response.statusText}`)
+    }
+
+    return await response.json()
+  }
 }

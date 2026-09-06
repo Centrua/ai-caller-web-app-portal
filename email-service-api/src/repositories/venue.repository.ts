@@ -25,6 +25,13 @@ export class VenueRepository {
     if (!s) return null
     return { auto_send_replies: !!s.auto_send_replies, email_ai_routing: !!s.email_ai_routing }
   }
+
+  async getVenueNameByGrant(grantId: string): Promise<string | null> {
+    const v = await Venue.findOne({ where: { nylas_grant_id: grantId }, attributes: ['name'] })
+    if (!v) return null
+    // @ts-ignore
+    return (v as any).name || null
+  }
 }
 
 export default new VenueRepository()
