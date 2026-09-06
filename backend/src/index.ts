@@ -9,6 +9,8 @@ import knowledgeBaseRouter from './routes/knowledge-base.route';
 import venueRouter from './routes/venue.route';
 import nylasAuthRouter from './routes/nylas-auth.route';
 import registerTokenRouter from './routes/register-token.route';
+import agentsRouter from './routes/agent.route';
+import procedureRouter from './routes/procedure.route';
 import emailConversationRouter from './routes/email-conversation.route';
 import './models'
 
@@ -31,8 +33,10 @@ app.use('/api/conversations', conversationsRouter);
 app.use('/api/conversations', actionItemsRouter);
 app.use('/api/knowledge-base', knowledgeBaseRouter);
 app.use('/api/venue', venueRouter);
+app.use('/api/agents', agentsRouter);
 app.use('/api/nylas', nylasAuthRouter);
 app.use('/api/register-token', registerTokenRouter);
+app.use('/api/procedures', procedureRouter);
 app.use('/api/email-conversations', emailConversationRouter);
 
 app.listen(PORT, () => {
