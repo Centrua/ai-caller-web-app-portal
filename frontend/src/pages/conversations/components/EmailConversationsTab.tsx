@@ -33,6 +33,8 @@ export default function EmailConversationsTab() {
   )
 
   if (selectedConversation) {
+    const draftOutgoing = selectedConversation.outgoing?.filter(o => o.status === 'draft') || []
+
     return (
       <div>
         <button
@@ -45,10 +47,18 @@ export default function EmailConversationsTab() {
           Back to Email Threads
         </button>
 
-        <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden px-6 py-2 mb-6">
-          <h2 className="text-xl font-semibold text-slate-900 leading-snug">
-            {selectedConversation.subject || 'No Subject'}
-          </h2>
+        <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden px-6 py-4 mb-6">
+          <div className="flex items-center justify-between">
+            <h2 className="text-xl font-semibold text-slate-900 leading-snug">
+              {selectedConversation.subject || 'No Subject'}
+            </h2>
+            {draftOutgoing.length > 0 && (
+              <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-amber-50 text-amber-800 border border-amber-200">
+                <span className="w-2 h-2 mr-1.5 bg-red-500 rounded-full animate-pulse"></span>
+                Draft Pending Attachment
+              </span>
+            )}
+          </div>
         </div>
 
         <div className="space-y-4">
@@ -76,6 +86,30 @@ export default function EmailConversationsTab() {
               </div>
             </div>
           ))}
+
+          {draftOutgoing.length > 0 && (
+            <div className="mb-6 space-y-4 mt-10">
+              <h3 className="text-sm font-semibold text-amber-900 px-1 flex items-center gap-2">
+                <span>Pending Automation Response Waiting to be Sent</span>
+                <span className="px-2 py-0.5 text-xs bg-amber-100 text-amber-800 rounded-full">{draftOutgoing.length}</span>
+              </h3>
+              {draftOutgoing.map((draft, idx) => (
+                <div key={draft.id || idx} className="bg-amber-50/60 rounded-xl border border-amber-200 shadow-sm p-6">
+                  <div className="flex items-center justify-between mb-3 pb-2 border-b border-amber-200/60 text-xs text-amber-900/70">
+                    <span>{draft.createdAt ? new Date(draft.createdAt).toLocaleString() : ''}</span>
+                  </div>
+                  {draft.body ? (
+                    <div
+                      className="text-sm text-slate-800 leading-relaxed bg-white/70 p-4 rounded-lg border border-amber-200/50 overflow-x-auto"
+                      dangerouslySetInnerHTML={{ __html: draft.body }}
+                    />
+                  ) : (
+                    <div className="text-sm text-slate-400 italic">No draft content available.</div>
+                  )}
+                </div>
+              ))}
+            </div>
+          )}
         </div>
       </div>
     )
@@ -126,19 +160,26 @@ export default function EmailConversationsTab() {
               </tr>
             )}
 
-            {paginatedConversations.map((c) => (
-              <tr
-                key={c.id}
-                onClick={() => setSelectedConversation(c)}
-                className="hover:bg-slate-50 transition-colors cursor-pointer"
-              >
-                <td className="px-6 py-4 font-medium text-slate-900">
-                  {c.subject || 'No Subject'}
-                </td>
-                <td className="px-6 py-4 text-slate-500 font-mono text-xs">{c.thread_id}</td>
-                <td className="px-6 py-4 text-slate-500">{c.messages?.length || 0}</td>
-              </tr>
-            ))}
+            {paginatedConversations.map((c) => {
+              const hasDraft = c.outgoing?.some(o => o.status === 'draft')
+
+              return (
+                <tr
+                  key={c.id}
+                  onClick={() => setSelectedConversation(c)}
+                  className="hover:bg-slate-50 transition-colors cursor-pointer"
+                >
+                  <td className="px-6 py-4 font-medium text-slate-900 flex items-center gap-2.5">
+                    {hasDraft && (
+                      <span className="w-2.5 h-2.5 bg-red-500 rounded-full flex-shrink-0" title="Draft pending"></span>
+                    )}
+                    <span>{c.subject || 'No Subject'}</span>
+                  </td>
+                  <td className="px-6 py-4 text-slate-500 font-mono text-xs">{c.thread_id}</td>
+                  <td className="px-6 py-4 text-slate-500">{c.messages?.length || 0}</td>
+                </tr>
+              )
+            })}
           </tbody>
         </table>
 
@@ -157,8 +198,8 @@ export default function EmailConversationsTab() {
                   key={num}
                   onClick={() => setCurrentPage(num)}
                   className={`w-7 h-7 text-xs font-medium rounded-md transition-colors ${currentPage === num
-                      ? 'bg-[#2B3528] text-white shadow-sm'
-                      : 'text-slate-600 hover:bg-slate-200/60'
+                    ? 'bg-[#2B3528] text-white shadow-sm'
+                    : 'text-slate-600 hover:bg-slate-200/60'
                     }`}
                 >
                   {num}

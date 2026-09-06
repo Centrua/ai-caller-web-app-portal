@@ -13,12 +13,26 @@ export interface Message {
   updatedAt?: string
 }
 
+export interface Outgoing {
+  id: number
+  original_message_id?: string | null
+  thread_id?: string | null
+  grant_id?: string | null
+  subject?: string | null
+  body?: string | null
+  status?: string | null
+  gemini_response?: any
+  createdAt?: string
+  updatedAt?: string
+}
+
 export interface Conversation {
   id: number
   thread_id: string
   grant_id: string
   subject?: string | null
   messages?: Message[]
+  outgoing?: Outgoing[]
   createdAt?: string
   updatedAt?: string
 }
@@ -57,12 +71,15 @@ export const useEmailConversations = () => {
 
       const data = Array.isArray(json) ? json : (json.data || [])
       setConversations(data)
+      console.log(`\n\n\n\n[EmailConversationsTab] Conversations fetched successfully:`, data)
       return data
-    } catch (err: any) {
+    } 
+    catch (err: any) {
       console.error('[GetEmailConversations Error]', err)
       setError(err.message || 'Failed to fetch email conversations')
       return []
-    } finally {
+    } 
+    finally {
       setLoading(false)
     }
   }, [])

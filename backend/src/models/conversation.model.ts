@@ -22,6 +22,12 @@ export class Conversation extends Model<ConversationAttributes, ConversationCrea
       sourceKey: 'thread_id',
       as: 'messages',
     })
+
+    models.Conversation.hasMany(models.Outgoing, {
+      foreignKey: 'thread_id',
+      sourceKey: 'thread_id',
+      as: 'outgoing',
+    })
   }
 }
 

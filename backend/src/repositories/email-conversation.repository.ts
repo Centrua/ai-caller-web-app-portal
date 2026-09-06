@@ -1,14 +1,17 @@
-import Conversation from '../models/conversation.model'
-import Message from '../models/message.model'
+import models from '../models'
 
 export class EmailConversationRepository {
   async getConversationsByGrantId(grantId: string) {
-    return Conversation.findAll({
+    return models.Conversation.findAll({
       where: { grant_id: grantId },
       include: [
         {
-          model: Message,
+          model: models.Message,
           as: 'messages',
+        },
+        {
+          model: models.Outgoing,
+          as: 'outgoing',
         },
       ],
     })
