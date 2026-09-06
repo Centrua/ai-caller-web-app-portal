@@ -22,7 +22,8 @@ export default function FileKnowledgeBaseTab() {
   const loadFiles = async () => {
     try {
       const docs = await getKnowledgeBaseFiles()
-      setFiles(docs)
+      const filteredDocs = docs.filter(doc => doc.name !== "Knowledge Base Document")
+      setFiles(filteredDocs)
     } finally {
       setIsInitialLoading(false)
     }
