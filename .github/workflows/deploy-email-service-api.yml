@@ -35,6 +35,15 @@ jobs:
       - name: Authorize Docker for GCP Artifact Registry
         run: gcloud auth configure-docker us-central1-docker.pkg.dev --quiet
 
+      - name: Run Database Migrations
+        working-directory: ./email-service-api
+        env:
+          PROD_DATABASE_URL: ${{ secrets.PROD_DATABASE_URL }}
+          NODE_ENV: production
+        run: |
+          npm ci
+          npx sequelize-cli db:migrate --env production
+
       - name: Build and Push Docker Image
         run: |
           IMAGE_URI="us-central1-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.REPOSITORY }}/${{ env.SERVICE }}:${{ github.sha }}"
