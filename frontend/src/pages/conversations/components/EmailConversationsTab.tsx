@@ -1,9 +1,10 @@
 import { useEffect, useState, useMemo } from 'react'
-import { useEmailConversations, type Conversation } from '../../../hooks/emailConversationHooks'
+import { useEmailConversations, useApproveDraft, type Conversation } from '../../../hooks/emailConversationHooks'
 import { formatFromEmail } from '../../../utils/formatFromEmailUtil'
 
 export default function EmailConversationsTab() {
   const { conversations, getConversations, loading, error } = useEmailConversations()
+  const { approveDraft, loading: approvingId } = useApproveDraft()
   const [searchQuery, setSearchQuery] = useState('')
   const [currentPage, setCurrentPage] = useState(1)
   const [selectedConversation, setSelectedConversation] = useState<Conversation | null>(null)
@@ -12,6 +13,15 @@ export default function EmailConversationsTab() {
   useEffect(() => {
     getConversations()
   }, [getConversations])
+
+  useEffect(() => {
+    if (selectedConversation) {
+      const updated = conversations.find(c => c.id === selectedConversation.id)
+      if (updated) {
+        setSelectedConversation(updated)
+      }
+    }
+  }, [conversations])
 
   const filteredConversations = useMemo(() => {
     return conversations.filter((c) => {
@@ -31,6 +41,16 @@ export default function EmailConversationsTab() {
     (currentPage - 1) * itemsPerPage,
     currentPage * itemsPerPage
   )
+
+  const handleApprove = async (draftId: number) => {
+    try {
+      await approveDraft(draftId)
+      await getConversations()
+    }
+    catch (err) {
+      // Error handled within hook
+    }
+  }
 
   if (selectedConversation) {
     const draftOutgoing = selectedConversation.outgoing?.filter(o => o.status === 'draft') || []
@@ -100,12 +120,26 @@ export default function EmailConversationsTab() {
                   </div>
                   {draft.body ? (
                     <div
-                      className="text-sm text-slate-800 leading-relaxed bg-white/70 p-4 rounded-lg border border-amber-200/50 overflow-x-auto"
+                      className="text-sm text-slate-800 leading-relaxed bg-white/70 p-4 rounded-lg border border-amber-200/50 overflow-x-auto mb-4"
                       dangerouslySetInnerHTML={{ __html: draft.body }}
                     />
                   ) : (
-                    <div className="text-sm text-slate-400 italic">No draft content available.</div>
+                    <div className="text-sm text-slate-400 italic mb-4">No draft content available.</div>
                   )}
+                  <div className="flex justify-center pt-2">
+                    <button
+                      onClick={() => handleApprove(draft.id)}
+                      disabled={approvingId}
+                      className="flex items-center gap-2 bg-[#2B3528] hover:bg-[#444B38] disabled:opacity-50 text-white text-sm font-medium px-5 py-2.5 rounded-lg transition-colors shadow-sm cursor-pointer"
+                    >
+                      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                        <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z" />
+                        <polyline points="17 21 17 13 7 13 7 21" />
+                        <polyline points="7 3 7 8 15 8" />
+                      </svg>
+                      {approvingId ? 'Sending...' : 'Approve & Send'}
+                    </button>
+                  </div>
                 </div>
               ))}
             </div>

@@ -1,11 +1,13 @@
 import { useState, useCallback } from 'react'
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3001'
+const EMAIL_SERIVCE_API_BASE_URL = import.meta.env.VITE_EMAIL_SERVICE_API_BASE_URL || 'http://localhost:3002'
 
 export interface Message {
   id: string
   thread_id: string
   grant_id: string
+  subject?: string | null
   snippet?: string | null
   from?: any
   to?: any
@@ -71,7 +73,6 @@ export const useEmailConversations = () => {
 
       const data = Array.isArray(json) ? json : (json.data || [])
       setConversations(data)
-      console.log(`\n\n\n\n[EmailConversationsTab] Conversations fetched successfully:`, data)
       return data
     } 
     catch (err: any) {
@@ -87,6 +88,57 @@ export const useEmailConversations = () => {
   return {
     conversations,
     getConversations,
+    loading,
+    error,
+  }
+}
+
+export const useApproveDraft = () => {
+  const [loading, setLoading] = useState<boolean>(false)
+  const [error, setError] = useState<string | null>(null)
+
+  const approveDraft = useCallback(async (draftId: number) => {
+    setLoading(true)
+    setError(null)
+
+    try {
+      if (!EMAIL_SERIVCE_API_BASE_URL) {
+        throw new Error('VITE_EMAIL_SERVICE_API_BASE_URL is not defined')
+      }
+
+      const token = localStorage.getItem('token')
+      if (!token) {
+        throw new Error('No authentication token found. Please log in.')
+      }
+
+      const response = await fetch(`${EMAIL_SERIVCE_API_BASE_URL}/reply/${draftId}/approve`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+      })
+
+      const json = await response.json()
+
+      if (!response.ok) {
+        throw new Error(json.error || json.message || json.details || 'Failed to approve and send draft')
+      }
+
+      return json
+    } 
+    catch (err: any) {
+      console.error('[ApproveDraft Error]', err)
+      setError(err.message || 'Failed to approve and send draft')
+      throw err
+    } 
+    finally {
+      setLoading(false)
+    }
+  }, [])
+
+  return {
+    approveDraft,
     loading,
     error,
   }
