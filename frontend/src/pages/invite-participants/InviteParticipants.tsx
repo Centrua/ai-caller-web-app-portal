@@ -4,7 +4,7 @@ import { useVenue } from '../../hooks/venueHooks'
 
 export default function InviteParticipants() {
   const { tokens, getRegisterTokens, loading, error } = useGetRegisterTokens()
-  const { venueName, getVenueName } = useVenue()
+  const { getVenueName } = useVenue()
 
   const [copiedId, setCopiedId] = useState<number | null>(null)
   const [successMessage, setSuccessMessage] = useState<string | null>(null)
