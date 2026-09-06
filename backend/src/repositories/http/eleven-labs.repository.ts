@@ -1,3 +1,5 @@
+import { getMimeType } from '../../utils/file-mime-type.util'
+
 export class ElevenLabsRepository {
   private apiKey: string
   private baseUrl: string = 'https://api.elevenlabs.io/v1'
@@ -176,7 +178,7 @@ export class ElevenLabsRepository {
     return rawText
   }
 
-  async duplicateAgent(agentId: string, name?: string | null): Promise<{ agent_id: string; [key: string]: any }> {
+  async duplicateAgent(agentId: string, name?: string | null): Promise<{ agent_id: string;[key: string]: any }> {
     if (!agentId) throw new Error('agentId is required')
 
     const url = new URL(`${this.baseUrl}/convai/agents/${encodeURIComponent(agentId)}/duplicate`)
@@ -240,4 +242,99 @@ export class ElevenLabsRepository {
     return await response.json()
   }
 
+  async uploadKnowledgeBaseFile(fileBuffer: Buffer, filename: string): Promise<{ id: string; name: string; type: string;[key: string]: any }> {
+    if (!fileBuffer || fileBuffer.length === 0) throw new Error('fileBuffer is required')
+    if (!filename) throw new Error('filename is required')
+
+    const url = new URL(`${this.baseUrl}/convai/knowledge-base/file`)
+
+    const mimeType = getMimeType(filename)
+    const formData = new FormData()
+    const blob = new Blob([fileBuffer as BlobPart], { type: mimeType })
+
+    formData.append('file', blob, filename)
+    formData.append('name', filename)
+
+    const response = await fetch(url.toString(), {
+      method: 'POST',
+      headers: {
+        'xi-api-key': this.apiKey,
+      },
+      body: formData,
+    })
+
+    if (!response.ok) {
+      const errorBody = await response.text()
+      throw new Error(`ElevenLabs API error (${response.status}): ${errorBody || response.statusText}`)
+    }
+
+    return await response.json()
+  }
+
+  async getKnowledgeBaseFiles(pageSize: number = 100): Promise<{ documents: any[]; has_more?: boolean }> {
+    const url = new URL(`${this.baseUrl}/convai/knowledge-base`)
+    url.searchParams.append('page_size', String(pageSize))
+
+    const response = await fetch(url.toString(), {
+      method: 'GET',
+      headers: {
+        'xi-api-key': this.apiKey,
+        'Content-Type': 'application/json',
+      },
+    })
+
+    if (!response.ok) {
+      const errorBody = await response.text()
+      throw new Error(`ElevenLabs API error (${response.status}): ${errorBody || response.statusText}`)
+    }
+
+    const data = await response.json()
+    return {
+      documents: data.documents || data.knowledge_base_documents || [],
+      has_more: data.has_more || false,
+    }
+  }
+
+  async getKnowledgeBaseFileById(documentationId: string): Promise<any> {
+    if (!documentationId) throw new Error('documentationId is required')
+
+    const url = new URL(`${this.baseUrl}/convai/knowledge-base/${encodeURIComponent(documentationId)}`)
+
+    const response = await fetch(url.toString(), {
+      method: 'GET',
+      headers: {
+        'xi-api-key': this.apiKey,
+        'Content-Type': 'application/json',
+      },
+    })
+
+    if (!response.ok) {
+      const errorBody = await response.text()
+      throw new Error(`ElevenLabs API error (${response.status}): ${errorBody || response.statusText}`)
+    }
+
+    return await response.json()
+  }
+
+  async deleteKnowledgeBaseFileById(documentationId: string): Promise<any> {
+    if (!documentationId) throw new Error('documentationId is required')
+
+    const url = new URL(`${this.baseUrl}/convai/knowledge-base/${encodeURIComponent(documentationId)}`)
+
+    const response = await fetch(url.toString(), {
+      method: 'DELETE',
+      headers: {
+        'xi-api-key': this.apiKey,
+        'Content-Type': 'application/json',
+      },
+    })
+
+    if (!response.ok) {
+      const errorBody = await response.text()
+      throw new Error(`ElevenLabs API error (${response.status}): ${errorBody || response.statusText}`)
+    }
+
+    const text = await response.text()
+    return text ? JSON.parse(text) : { success: true }
+  }
 }
