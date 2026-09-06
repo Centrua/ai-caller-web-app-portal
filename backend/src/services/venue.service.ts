@@ -62,6 +62,10 @@ export class VenueService {
     return await this.venueRepo.getAgentIdByUserId(userId);
   }
 
+  async getGrantIdFromUserId(userId: number): Promise<string | null> {
+    return await this.venueRepo.getGrantIdByUserId(userId);
+  }
+
   async getVenueIdFromUserId(userId: number): Promise<number | null> {
     return await this.venueRepo.getVenueIdByUserId(userId);
   }

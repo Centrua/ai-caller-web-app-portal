@@ -9,6 +9,8 @@ import knowledgeBaseRouter from './routes/knowledge-base.route';
 import venueRouter from './routes/venue.route';
 import nylasAuthRouter from './routes/nylas-auth.route';
 import registerTokenRouter from './routes/register-token.route';
+import emailConversationRouter from './routes/email-conversation.route';
+import './models'
 
 const app = express();
 const PORT = process.env.PORT || 3001;
@@ -31,6 +33,7 @@ app.use('/api/knowledge-base', knowledgeBaseRouter);
 app.use('/api/venue', venueRouter);
 app.use('/api/nylas', nylasAuthRouter);
 app.use('/api/register-token', registerTokenRouter);
+app.use('/api/email-conversations', emailConversationRouter);
 
 app.listen(PORT, () => {
   console.log(`Server running on http://localhost:${PORT}`);
