@@ -25,18 +25,6 @@ export class Venue extends Model<VenueAttributes, VenueCreationAttributes> imple
   public declare kb_document_id: string | null;
   public declare associated_user_ids: number[];
   public declare readonly created_at: Date;
-
-  public static associate(models: any) {
-    models.Venue.hasMany(models.KnowledgeSource, {
-      foreignKey: 'venue_id',
-      as: 'knowledgeSources',
-    });
-    // One-to-one settings row per venue
-    models.Venue.hasOne(models.VenueSettings, {
-      foreignKey: 'venue_id',
-      as: 'settings',
-    });
-  }
 }
 
 Venue.init(

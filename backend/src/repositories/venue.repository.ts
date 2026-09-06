@@ -42,6 +42,19 @@ export class VenueRepository {
     return venue ? venue.elevenlabs_agent_id : null;
   }
 
+  async getGrantIdByUserId(userId: number): Promise<string | null> {
+    const venue = await Venue.findOne({
+      where: {
+        associated_user_ids: {
+          [Op.contains]: [userId],
+        },
+      },
+      attributes: ['nylas_grant_id'],
+    })
+    if (!venue) return null
+    return venue.nylas_grant_id || null
+  }
+
   async getVenueIdByUserId(userId: number): Promise<number | null> {
     const venue = await Venue.findOne({
       where: {

@@ -11,6 +11,8 @@ import nylasAuthRouter from './routes/nylas-auth.route';
 import registerTokenRouter from './routes/register-token.route';
 import agentsRouter from './routes/agent.route';
 import procedureRouter from './routes/procedure.route';
+import emailConversationRouter from './routes/email-conversation.route';
+import './models'
 
 const app = express();
 const PORT = process.env.PORT || 3001;
@@ -35,6 +37,7 @@ app.use('/api/agents', agentsRouter);
 app.use('/api/nylas', nylasAuthRouter);
 app.use('/api/register-token', registerTokenRouter);
 app.use('/api/procedures', procedureRouter);
+app.use('/api/email-conversations', emailConversationRouter);
 
 app.listen(PORT, () => {
   console.log(`Server running on http://localhost:${PORT}`);
