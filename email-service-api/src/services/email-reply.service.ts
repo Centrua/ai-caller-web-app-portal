@@ -2,6 +2,7 @@ import { GeminiRepository, GeminiRequestDto } from '../repositories/http/gemini.
 import outgoingRepo from '../repositories/outgoing.repository'
 import messageRepo from '../repositories/message.repository'
 import { NylasRepository } from '../repositories/http/nylas.repository'
+import elevenlabsRepo from '../repositories/http/elevenlabs.repository'
 
 const gemini = new GeminiRepository()
 const nylasRepo = new NylasRepository()
@@ -17,10 +18,29 @@ export async function generateReply(opts: GenerateReplyOpts) {
 
   const subject = originalMessage.subject || ''
   const snippet = originalMessage.snippet || ''
-  const from = (originalMessage.from && originalMessage.from[0] && originalMessage.from[0].email) || null
 
   const systemInstruction = {
     parts: [{ text: 'You are an assistant that composes concise, professional email replies.' }],
+  }
+
+  // If a grantId is provided, try to include the venue-specific system prompt
+  // and procedures into the system instruction so Gemini has venue context.
+  if (grantId) {
+    try {
+      const sysPrompt = await elevenlabsRepo.getSystemPromptByGrant(grantId)
+      const procedures = await elevenlabsRepo.getProceduresByGrant(grantId)
+      if (sysPrompt) {
+        // Prepend venue/system prompt so it takes precedence
+        systemInstruction.parts.unshift({ text: sysPrompt })
+      }
+      if (procedures && Array.isArray(procedures) && procedures.length > 0) {
+        const procParts = procedures.map((p) => ({ text: `Procedure:\n${p}` }))
+        systemInstruction.parts.push(...procParts)
+      }
+    } catch (e) {
+      // Fail gracefully and continue with default system instruction
+      console.warn('Failed to fetch venue system prompt/procedures:', e?.message || e)
+    }
   }
 
   const userParts = [] as Array<{ text: string }>
