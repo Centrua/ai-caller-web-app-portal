@@ -77,4 +77,62 @@ export class VenueService {
   async updateKbDocumentIdForUser(userId: number, kbDocumentId: string): Promise<void> {
     await this.venueRepo.updateKbDocumentIdByUserId(userId, kbDocumentId);
   }
+
+  // Returns settings for the venue associated with the given userId.
+  async getSettingsForUser(userId: number): Promise<{ auto_send_replies: boolean; email_ai_routing: boolean } | null> {
+    const venueId = await this.getVenueIdFromUserId(userId)
+    if (!venueId) return null
+
+    const venue = await this.venueRepo.findById(venueId)
+    if (!venue) return null
+
+    const settings = await venueSettingsRepo.getSettingsByVenueId(venueId)
+    const autoSend = settings ? !!(settings as any).auto_send_replies : !!venue.auto_send_replies
+    const emailRouting = !!(settings && (settings as any).email_ai_routing)
+
+    return { auto_send_replies: autoSend, email_ai_routing: emailRouting }
+  }
+
+  // Update settings for the venue associated with the given userId.
+  // Accepts partial updates for `auto_send_replies` and `email_ai_routing`.
+  async updateSettingsForUser(userId: number, updates: Partial<{ auto_send_replies: boolean; email_ai_routing: boolean }>): Promise<{ auto_send_replies: boolean; email_ai_routing: boolean } | null> {
+    const venueId = await this.getVenueIdFromUserId(userId)
+    if (!venueId) return null
+
+    const venue = await this.venueRepo.findById(venueId)
+    if (!venue) return null
+
+    // Update auto_send_replies on the settings row (preferred). Create if missing.
+    if (typeof updates.auto_send_replies !== 'undefined') {
+      let settings = await venueSettingsRepo.getSettingsByVenueId(venueId)
+      if (!settings) {
+        await venueSettingsRepo.createDefaultSettings(venueId)
+        settings = await venueSettingsRepo.getSettingsByVenueId(venueId)
+      }
+      if (settings) {
+        await settings.update({ auto_send_replies: !!updates.auto_send_replies })
+      } else {
+        venue.auto_send_replies = !!updates.auto_send_replies
+        await venue.save()
+      }
+    }
+
+    // Update email_ai_routing on the settings row (create if needed)
+    if (typeof updates.email_ai_routing !== 'undefined') {
+      let settings = await venueSettingsRepo.getSettingsByVenueId(venueId)
+      if (!settings) {
+        await venueSettingsRepo.createDefaultSettings(venueId)
+        settings = await venueSettingsRepo.getSettingsByVenueId(venueId)
+      }
+      if (settings) {
+        await settings.update({ email_ai_routing: !!updates.email_ai_routing })
+      }
+    }
+
+    const finalSettings = await venueSettingsRepo.getSettingsByVenueId(venueId)
+    const autoSend = finalSettings ? !!(finalSettings as any).auto_send_replies : !!venue.auto_send_replies
+    const emailRouting = !!(finalSettings && (finalSettings as any).email_ai_routing)
+
+    return { auto_send_replies: autoSend, email_ai_routing: emailRouting }
+  }
 }
