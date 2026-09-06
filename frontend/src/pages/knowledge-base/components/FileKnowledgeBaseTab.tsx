@@ -16,11 +16,16 @@ export default function FileKnowledgeBaseTab() {
   const [successMessage, setSuccessMessage] = useState<string | null>(null)
   const [downloadingId, setDownloadingId] = useState<string | null>(null)
   const [deletingId, setDeletingId] = useState<string | null>(null)
+  const [isInitialLoading, setIsInitialLoading] = useState(true)
   const fileInputRef = useRef<HTMLInputElement>(null)
 
   const loadFiles = async () => {
-    const docs = await getKnowledgeBaseFiles()
-    setFiles(docs)
+    try {
+      const docs = await getKnowledgeBaseFiles()
+      setFiles(docs)
+    } finally {
+      setIsInitialLoading(false)
+    }
   }
 
   useEffect(() => {
@@ -154,7 +159,7 @@ export default function FileKnowledgeBaseTab() {
       </div>
 
       {/* Files List */}
-      <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+      <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden relative min-h-[220px]">
         <div className="p-6 border-b border-slate-100 flex items-center justify-between">
           <div>
             <h2 className="text-base font-semibold text-slate-900">Uploaded Files</h2>
@@ -165,9 +170,13 @@ export default function FileKnowledgeBaseTab() {
           </span>
         </div>
 
-        {loading && files.length === 0 ? (
-          <div className="p-12 text-center text-slate-400 text-sm">
-            Loading files...
+        {isInitialLoading ? (
+          <div className="absolute inset-0 flex flex-col items-center justify-center bg-white/80 backdrop-blur-[1px] z-10">
+            <svg className="animate-spin h-8 w-8 text-[#2B3528]" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+            </svg>
+            <span className="text-xs text-slate-500 font-medium mt-2">Loading files...</span>
           </div>
         ) : files.length === 0 ? (
           <div className="p-12 text-center">
