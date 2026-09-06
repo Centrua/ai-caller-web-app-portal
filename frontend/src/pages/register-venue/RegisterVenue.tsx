@@ -323,7 +323,7 @@ export const RegisterVenue: React.FC = () => {
             </div>
 
             <div className="bg-amber-50 border border-amber-200 text-amber-800 text-xs rounded-2xl p-4 mb-5 leading-relaxed">
-              <span className="font-semibold">Important Notice:</span> This token will only be shown <strong className="underline">once</strong>. Please copy it now as this is required for user sign up to your venue.
+              <span className="font-semibold">Important Notice:</span> Please copy this token now as this is required for the first user sign up to your venue. You will be redirected to user sign up after hitting the continue button.
             </div>
 
             <div className="relative mb-6">

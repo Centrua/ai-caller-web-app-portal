@@ -2,11 +2,14 @@ import crypto from 'crypto';
 import { RegisterTokenRepository } from '../repositories/register-token.repository';
 import { RegisterToken } from '../models/register-token.model';
 import { encrypt, decrypt, toBase64Url } from '../utils/token-encryption.util';
+import { VenueRepository } from '../repositories/venue.repository';
 
 const PREFIX_BYTES = 4;
 const SECRET_BYTES = 16;
 
 export class RegisterTokenService {
+  private venueRepo = new VenueRepository();
+
   public async create(venueId: number): Promise<{ tokenRecord: RegisterToken; plainToken: string }> {
     const prefix = toBase64Url(crypto.randomBytes(PREFIX_BYTES));
     const secret = toBase64Url(crypto.randomBytes(SECRET_BYTES));
@@ -40,13 +43,29 @@ export class RegisterTokenService {
     return { tokenRecord, plainToken };
   }
 
-  public async getByVenueId(venueId: number): Promise<any[]> {
+  public async getTokenForVenueByUserId(userId: number): Promise<Array<{ id: number; plainToken: string }>> {
+    const venueId = await this.venueRepo.getVenueIdByUserId(userId);
+    if (!venueId) {
+      return [];
+    }
+
     const tokens = await RegisterTokenRepository.getByVenueId(venueId);
     
     return tokens.map((tokenRecord) => {
-      const tokenJson = tokenRecord.toJSON() as any;
-      tokenJson.token = `${tokenRecord.prefix}.[PROTECTED]`;
-      return tokenJson;
+      try {
+        const decryptedSecret = decrypt(tokenRecord.token);
+        return {
+          id: tokenRecord.id,
+          plainToken: `${tokenRecord.prefix}.${decryptedSecret}`,
+        };
+      }
+      catch (error) {
+        console.error(`[Decrypt Error] Token ID ${tokenRecord.id}:`, error);
+        return {
+          id: tokenRecord.id,
+          plainToken: `${tokenRecord.prefix}.[DECRYPTION_ERROR]`,
+        };
+      }
     });
   }
 
