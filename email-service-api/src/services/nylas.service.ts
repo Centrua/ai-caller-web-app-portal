@@ -10,6 +10,7 @@ import { NylasRepository } from '../repositories/http/nylas.repository'
 import { isFromConnectedAccount } from '../utils/nylas.utils'
 const nylasRepo = new NylasRepository()
 import webhookService from './webhook.service'
+import venueRepo from '../repositories/venue.repository'
 
 export function handleNylasChallenge(req: Request, res: Response): boolean {
   const challenge = req.query.challenge
@@ -83,6 +84,20 @@ export async function handleNylasWebhook(req: Request, res: Response): Promise<v
       : []
 
     const grantId = obj.grant_id || obj.grantId || null
+
+    // Check venue-level email AI routing setting and early-return if disabled
+    try {
+      if (grantId) {
+        const vs = await venueRepo.getSettingsByGrant(String(grantId))
+        if (vs && vs.email_ai_routing === false) {
+          console.info(`[Nylas] AI routing disabled for grant ${grantId}; skipping processing`)
+          res.status(200).json({ received: true, stored: false, reason: 'ai_routing_disabled' })
+          return
+        }
+      }
+    } catch (e: any) {
+      console.warn('Failed to check venue settings for AI routing:', e?.message || e)
+    }
 
     console.log('Processing inbound message for grant:', grantId, 'from addresses:', fromAddresses)
     if (await isFromConnectedAccount(nylasRepo, grantId, fromAddresses)) {

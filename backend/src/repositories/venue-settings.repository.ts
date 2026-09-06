@@ -5,7 +5,7 @@ export class VenueSettingsRepository {
         return VenueSettings.findOne({ where: { venue_id: venueId } })
     }
     async createDefaultSettings(venueId: number) {
-        return VenueSettings.create({ venue_id: venueId, auto_send_replies: false })
+        return VenueSettings.create({ venue_id: venueId, auto_send_replies: false, email_ai_routing: false })
     }
 
     async updateSettings(venueId: number, updates: Partial<any>) {
