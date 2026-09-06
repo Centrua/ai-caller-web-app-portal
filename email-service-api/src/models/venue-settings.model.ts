@@ -5,6 +5,7 @@ interface VenueSettingsAttributes {
   id: number
   venue_id: number
   auto_send_replies: boolean
+  email_ai_routing?: boolean
   created_at?: Date
   updated_at?: Date
 }
@@ -15,6 +16,7 @@ export class VenueSettings extends Model<VenueSettingsAttributes, VenueSettingsC
   public declare id: number
   public declare venue_id: number
   public declare auto_send_replies: boolean
+  public declare email_ai_routing: boolean | undefined
   public declare readonly created_at: Date
   public declare readonly updated_at: Date
 
@@ -28,6 +30,7 @@ VenueSettings.init(
     id: { type: DataTypes.INTEGER, autoIncrement: true, primaryKey: true },
     venue_id: { type: DataTypes.INTEGER, allowNull: false, unique: true },
     auto_send_replies: { type: DataTypes.BOOLEAN, allowNull: false, defaultValue: false },
+    email_ai_routing: { type: DataTypes.BOOLEAN, allowNull: false, defaultValue: false },
     created_at: { type: DataTypes.DATE, defaultValue: DataTypes.NOW },
     updated_at: { type: DataTypes.DATE, defaultValue: DataTypes.NOW },
   },
