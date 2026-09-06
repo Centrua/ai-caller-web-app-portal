@@ -86,9 +86,14 @@ export class VenueService {
     const venue = await this.venueRepo.findById(venueId)
     if (!venue) return null
 
-    const settings = await venueSettingsRepo.getSettingsByVenueId(venueId)
-    const autoSend = settings ? !!(settings as any).auto_send_replies : !!venue.auto_send_replies
-    const emailRouting = !!(settings && (settings as any).email_ai_routing)
+    let settings = await venueSettingsRepo.getSettingsByVenueId(venueId)
+    if (!settings) {
+      await venueSettingsRepo.createDefaultSettings(venueId)
+      settings = await venueSettingsRepo.getSettingsByVenueId(venueId)
+    }
+
+    const autoSend = !!(settings as any).auto_send_replies
+    const emailRouting = !!(settings as any).email_ai_routing
 
     return { auto_send_replies: autoSend, email_ai_routing: emailRouting }
   }
@@ -102,7 +107,7 @@ export class VenueService {
     const venue = await this.venueRepo.findById(venueId)
     if (!venue) return null
 
-    // Update auto_send_replies on the settings row (preferred). Create if missing.
+    // Update auto_send_replies on the settings row. Create the settings row if missing.
     if (typeof updates.auto_send_replies !== 'undefined') {
       let settings = await venueSettingsRepo.getSettingsByVenueId(venueId)
       if (!settings) {
@@ -111,9 +116,6 @@ export class VenueService {
       }
       if (settings) {
         await settings.update({ auto_send_replies: !!updates.auto_send_replies })
-      } else {
-        venue.auto_send_replies = !!updates.auto_send_replies
-        await venue.save()
       }
     }
 
@@ -130,8 +132,8 @@ export class VenueService {
     }
 
     const finalSettings = await venueSettingsRepo.getSettingsByVenueId(venueId)
-    const autoSend = finalSettings ? !!(finalSettings as any).auto_send_replies : !!venue.auto_send_replies
-    const emailRouting = !!(finalSettings && (finalSettings as any).email_ai_routing)
+    const autoSend = !!(finalSettings as any).auto_send_replies
+    const emailRouting = !!(finalSettings as any).email_ai_routing
 
     return { auto_send_replies: autoSend, email_ai_routing: emailRouting }
   }
