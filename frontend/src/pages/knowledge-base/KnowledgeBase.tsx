@@ -13,7 +13,7 @@ export default function KnowledgeBase() {
       <div className="mb-6">
         <h1 className="text-2xl font-semibold text-slate-900 mb-1">Knowledge Base</h1>
         <p className="text-slate-500 text-sm">
-          Manage the documentation and text information your AI agent uses to answer incoming calls.
+          Manage the documentation and text information your AI agent uses to answer <strong>incoming calls</strong> and <strong>emails</strong>.
         </p>
       </div>
 
