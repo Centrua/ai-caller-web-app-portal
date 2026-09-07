@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect } from 'react'
 import { useApproveDraft, type Conversation } from '../../../hooks/emailConversationHooks'
 import { useEditDraftBody } from '../../../hooks/outgoingHooks'
 import { formatFromEmail } from '../../../utils/formatFromEmailUtil'
@@ -36,36 +36,18 @@ export default function EmailConversationDetail({
   const [draftBodies, setDraftBodies] = useState<Record<number, string>>({})
   const [savingIds, setSavingIds] = useState<Record<number, boolean>>({})
 
-  // Keep track of textarea references to dynamically adjust height
-  const textareaRefs = useRef<Record<number, HTMLTextAreaElement | null>>({})
-
-  const adjustHeight = (element: HTMLTextAreaElement | null) => {
-    if (element) {
-      element.style.height = 'auto'
-      element.style.height = `${element.scrollHeight}px`
-    }
-  }
-
   useEffect(() => {
     const initialBodies: Record<number, string> = {}
     draftOutgoing.forEach(d => {
-      if (d.id) {
+      if (d.id !== undefined) {
         initialBodies[d.id] = parseHtmlToPlainText(d.body || '')
       }
     })
     setDraftBodies(initialBodies)
-
-    // Adjust height on initial load after text is populated
-    setTimeout(() => {
-      Object.keys(textareaRefs.current).forEach(id => {
-        adjustHeight(textareaRefs.current[Number(id)])
-      }, 0)
-    })
   }, [selectedConversation])
 
   const handleBodyChange = (draftId: number, value: string) => {
     setDraftBodies(prev => ({ ...prev, [draftId]: value }))
-    adjustHeight(textareaRefs.current[draftId])
 
     const timeoutKey = `timer_${draftId}`
     if ((window as any)[timeoutKey]) {
@@ -80,14 +62,13 @@ export default function EmailConversationDetail({
 
     (window as any)[timeoutKey] = setTimeout(async () => {
       try {
-        const htmlFormatted = value
-          .split('\n')
-          .map(line => (line.trim() ? `<p>${line}</p>` : '<br/>'))
-          .join('')
-        await editBody(draftId, htmlFormatted)
-      } catch (err) {
-        // Error handled in hook
-      } finally {
+        // Convert text newlines into HTML break tags for correct email rendering
+        const htmlBody = value.replace(/\r?\n/g, '<br/>')
+        await editBody(draftId, htmlBody)
+      } 
+      catch (err) {
+      } 
+      finally {
         setSavingIds(prev => ({ ...prev, [draftId]: false }))
       }
     }, 600)
@@ -199,7 +180,7 @@ export default function EmailConversationDetail({
               </span>
             </h3>
             {draftOutgoing.map((draft, idx) => {
-              const draftId = draft.id || idx
+              const draftId = draft.id ?? idx
               const currentText = draftBodies[draft.id] ?? parseHtmlToPlainText(draft.body || '')
               const isSaving = savingIds[draft.id]
 
@@ -226,9 +207,15 @@ export default function EmailConversationDetail({
                   <div className="mb-4">
                     <textarea
                       value={currentText}
+                      ref={(node) => {
+                        if (node) {
+                          node.style.height = 'auto'
+                          node.style.height = `${node.scrollHeight}px`
+                        }
+                      }}
                       onChange={(e) => handleBodyChange(draft.id, e.target.value)}
                       rows={1}
-                      className="w-full bg-white rounded-lg border border-amber-200 focus:border-amber-400 focus:ring-1 focus:ring-amber-400 p-4 text-sm text-slate-800 leading-relaxed outline-none transition-all resize-none overflow-hidden shadow-inner"
+                      className="w-full bg-white rounded-lg border border-amber-200 focus:border-amber-400 focus:ring-1 focus:ring-amber-400 p-4 text-sm text-slate-800 leading-relaxed outline-none transition-all resize-none overflow-hidden shadow-inner whitespace-pre-wrap"
                       placeholder="Type your reply here..."
                     />
                   </div>

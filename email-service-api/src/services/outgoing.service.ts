@@ -5,7 +5,8 @@ export class OutgoingService {
     if (!id) return null
     try {
       return await outgoingRepository.editBody(id, body)
-    } catch (err: any) {
+    } 
+    catch (err: any) {
       console.error(`Failed to edit body for draft ID ${id}:`, err?.message || err)
       return null
     }

@@ -1,10 +1,6 @@
 import { useState, useCallback } from 'react'
 
-const EMAIL_SERIVCE_API_BASE_URL = import.meta.env.VITE_EMAIL_SERVICE_API_BASE_URL || 'http://localhost:3002'
-
-export interface EditDraftBodyPayload {
-  body: string
-}
+const EMAIL_SERIVCE_API_BASE_URL = import.meta.env.VITE_EMAIL_SERVICE_API_BASE_URL || 'http://localhost:3001'
 
 export const useEditDraftBody = () => {
   const [loading, setLoading] = useState<boolean>(false)
@@ -19,10 +15,11 @@ export const useEditDraftBody = () => {
         throw new Error('VITE_EMAIL_SERVICE_API_BASE_URL is not defined')
       }
 
-      const response = await fetch(`${EMAIL_SERIVCE_API_BASE_URL}/outgoing/${draftId}/body`, {
+      const response = await fetch(`${EMAIL_SERIVCE_API_BASE_URL}/outgoing/drafts/${draftId}/body`, {
         method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',
+          'Accept': 'application/json',
         },
         body: JSON.stringify({ body }),
       })
