@@ -68,3 +68,4 @@ jobs:
             NYLAS_API_URI=${{ secrets.NYLAS_API_URI }}
             NYLAS_WEBHOOK_SECRET=${{ secrets.NYLAS_WEBHOOK_SECRET }}
             PROD_DATABASE_URL=${{ secrets.PROD_DATABASE_URL }}
+            ELEVENLABS_API_KEY=${{ secrets.ELEVENLABS_API_KEY }}
