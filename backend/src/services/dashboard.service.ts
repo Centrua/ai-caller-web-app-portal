@@ -1,14 +1,17 @@
 import { ElevenLabsRepository } from '../repositories/http/eleven-labs.repository'
 import { VenueService } from './venue.service'
+import EmailConversationService from './email-conversation.service'
 
 export interface DashboardMetrics {
   callsToday: number
   callsThisWeek: number
   totalCalls: number
   averageCallDurationFormatted: string
-  successfulCalls: number
-  successRate: string
   callsOverTime: Array<{ date: string; count: number }>
+  emailsToday: number
+  emailsThisWeek: number
+  totalEmailConversations: number
+  emailsOverTime: Array<{ date: string; count: number }>
 }
 
 export class DashboardService {
@@ -75,6 +78,48 @@ export class DashboardService {
       }
     })
 
+    // Email stats: query conversations/messages from DB via EmailConversationService
+    let emailsToday = 0
+    let emailsThisWeek = 0
+    let totalEmailConversations = 0
+    let totalEmailMessages = 0
+    const emailBuckets: Record<string, number> = {}
+    for (let i = 6; i >= 0; i--) {
+      const d = new Date()
+      d.setDate(d.getDate() - i)
+      const dateKey = d.toISOString().split('T')[0]
+      emailBuckets[dateKey] = 0
+    }
+
+    try {
+      const emailConvs: any[] = await EmailConversationService.getConversationsByUserId(userId as number)
+      totalEmailConversations = Array.isArray(emailConvs) ? emailConvs.length : 0
+
+      emailConvs.forEach((conv) => {
+        const messages = Array.isArray(conv.messages) ? conv.messages : []
+        totalEmailMessages += messages.length
+
+        messages.forEach((msg: any) => {
+          const createdAt = msg.createdAt ? new Date(msg.createdAt) : null
+          if (!createdAt) return
+          const tsSecs = Math.floor(createdAt.getTime() / 1000)
+          if (tsSecs >= oneDayAgoSecs) emailsToday++
+          if (tsSecs >= oneWeekAgoSecs) emailsThisWeek++
+
+          const dateKey = createdAt.toISOString().split('T')[0]
+          if (emailBuckets[dateKey] !== undefined) {
+            emailBuckets[dateKey] += 1
+          }
+        })
+      })
+    } catch (err) {
+      // swallow DB errors and return zeros for email metrics
+      emailsToday = 0
+      emailsThisWeek = 0
+      totalEmailConversations = 0
+      totalEmailMessages = 0
+    }
+
     const totalCalls = conversations.length
     const avgDurationSecs = totalCalls > 0 ? Math.round(totalDurationSecs / totalCalls) : 0
     const minutes = Math.floor(avgDurationSecs / 60)
@@ -87,6 +132,11 @@ export class DashboardService {
       count,
     }))
 
+    const emailsOverTime = Object.entries(emailBuckets).map(([date, count]) => ({
+      date: new Date(date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
+      count,
+    }))
+
     return {
       callsToday,
       callsThisWeek,
@@ -95,6 +145,12 @@ export class DashboardService {
       successfulCalls: successfulCallsCount,
       successRate: `${successRateValue}%`,
       callsOverTime,
+      // email metrics
+      emailsToday,
+      emailsThisWeek,
+      totalEmailConversations,
+      totalEmailMessages,
+      emailsOverTime,
     }
   }
 }

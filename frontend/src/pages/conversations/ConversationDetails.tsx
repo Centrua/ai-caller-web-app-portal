@@ -1,5 +1,5 @@
 import { useParams, useNavigate } from 'react-router-dom'
-import { useConversationDetails, useConversationAudio, useConversationActions } from '../../hooks/useConversationDetails'
+import { useConversationDetails, useConversationAudio } from '../../hooks/useConversationDetails'
 import DataCollectionResults from '../../components/conversations/DataCollectionResults'
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL
@@ -37,7 +37,6 @@ export default function ConversationDetails() {
   const navigate = useNavigate()
   const { conv, setConv, loading, error } = useConversationDetails(id)
   const { audioUrl, audioLoading } = useConversationAudio(id, conv?.hasAudio)
-  const { action, setAction } = useConversationActions(id)
 
   if (loading) return <div className="p-8">Loading...</div>
   if (error) return <div className="p-8 text-red-600">{error}</div>
@@ -48,8 +47,6 @@ export default function ConversationDetails() {
     : Array.isArray(conv.transcript)
       ? conv.transcript
       : []
-  const nextActionText = action?.value || action?.label || 'Next actionable step'
-
   return (
     <div className="p-8">
       <div className="flex items-center justify-between mb-4">
@@ -59,40 +56,6 @@ export default function ConversationDetails() {
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <div className="lg:col-span-2">
-          {action && (
-            <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden mb-4">
-              <div className="p-4 flex items-start justify-between gap-3">
-                <div className="text-slate-800 text-base font-medium leading-relaxed">
-                  {nextActionText}
-                </div>
-                <button
-                  className={`px-2 py-1 text-sm rounded ${action.completed ? 'bg-slate-200 text-slate-800 hover:bg-slate-300' : 'bg-amber-100 text-amber-800 hover:bg-amber-200'}`}
-                  onClick={async (e) => {
-                    e.stopPropagation()
-                    const nextCompleted = !action.completed
-                    try {
-                      const token = localStorage.getItem('token')
-                      const base = API_BASE_URL || ''
-                      const res = await fetch(`${base}/api/conversations/${id}/complete`, {
-                        method: 'PATCH',
-                        headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ completed: nextCompleted }),
-                      })
-                      const j = await res.json()
-                      if (j.success) {
-                        setAction((prev: any) => prev ? { ...prev, completed: nextCompleted } : prev)
-                        setConv((prev: any) => prev ? { ...prev, hasUnacknowledgedActions: !nextCompleted } : prev)
-                      }
-                    } catch (err) {
-                      console.error(err)
-                    }
-                  }}
-                >
-                  {action.completed ? 'Mark Undone' : 'Mark Done'}
-                </button>
-              </div>
-            </div>
-          )}
 
           <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden mb-4">
             <div className="p-6">
