@@ -62,7 +62,7 @@ jobs:
           flags: '--allow-unauthenticated --port=8080'
           env_vars: |
             GEMINI_API_KEY=${{ secrets.GEMINI_API_KEY }}
-            GEMINI_MODEL=gemini-2.5-flash
+            GEMINI_MODEL=${{ secrets.GEMINI_MODEL }}
             CLASSIFIER_CONFIDENCE_THRESHOLD=${{ secrets.CLASSIFIER_CONFIDENCE_THRESHOLD }}
             NYLAS_API_KEY=${{ secrets.NYLAS_API_KEY }}
             NYLAS_API_URI=${{ secrets.NYLAS_API_URI }}
