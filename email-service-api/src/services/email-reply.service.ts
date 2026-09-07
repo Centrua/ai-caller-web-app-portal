@@ -15,15 +15,20 @@ async function appendKnowledgeBaseToSystemInstruction(systemInstruction: { parts
   if (!agentId) return
 
   try {
-    const kbResp = await elevenLabsRepo.getKnowledgeBaseFiles()
-    console.log(kbResp)
-    const docs = kbResp.documents || []
-    const matching = docs.filter((d: any) => {
-      const deps = Array.isArray(d.dependent_agents) ? d.dependent_agents : []
-      return deps.some((x: any) => x && x.id === agentId)
-    })
+    const agentConfig: any = await elevenLabsRepo.getAgentConfig(agentId)
+    const attachedKbList: Array<{ id: string; name?: string; type?: string }> =
+      agentConfig?.conversation_config?.agent?.prompt?.knowledge_base || agentConfig?.knowledge_base || []
 
-    console.log('Matching knowledge base documents for agent:', matching)
+    if (!Array.isArray(attachedKbList) || attachedKbList.length === 0) {
+      console.log(`No attached knowledge-base list for agent ${agentId}`)
+      return
+    }
+
+    const attachedIds = new Set(attachedKbList.map((doc) => doc.id))
+
+    const allFilesResp = await elevenLabsRepo.getKnowledgeBaseFiles()
+    const docs = allFilesResp.documents || []
+    const matching = docs.filter((d: any) => attachedIds.has(d.id))
 
     for (const doc of matching) {
       try {
@@ -37,10 +42,8 @@ async function appendKnowledgeBaseToSystemInstruction(systemInstruction: { parts
         console.warn('Failed to fetch KB content for', doc.id, (e as any)?.message || e)
       }
     }
-
-    console.log('Updated system instruction with knowledge base content:', systemInstruction)
   } catch (e) {
-    console.warn('Failed to fetch knowledge-base documents:', (e as any)?.message || e)
+    console.warn('Failed to fetch knowledge-base documents or agent config:', (e as any)?.message || e)
   }
 }
 
