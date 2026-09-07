@@ -82,6 +82,15 @@ export default function Login() {
                     >
                         {loading ? 'Signing in...' : 'Sign in'}
                     </button>
+
+                    <div className="flex justify-center items-center mb-6">
+                        <Link
+                            to="/register"
+                            className="text-sm font-medium text-slate-500 hover:text-[#2B3528] transition-colors border border-slate-200 px-4 py-2 rounded-xl hover:border-slate-300"
+                        >
+                            Don't have an account? <span className="text-[#2B3528] font-semibold">Register</span>
+                        </Link>
+                    </div>
                 </form>
             </div>
         </div>
