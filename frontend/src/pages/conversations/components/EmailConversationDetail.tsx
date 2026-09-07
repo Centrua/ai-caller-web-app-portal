@@ -1,4 +1,6 @@
+import { useState, useEffect, useRef } from 'react'
 import { useApproveDraft, type Conversation } from '../../../hooks/emailConversationHooks'
+import { useEditDraftBody } from '../../../hooks/outgoingHooks'
 import { formatFromEmail } from '../../../utils/formatFromEmailUtil'
 
 interface EmailConversationDetailProps {
@@ -7,18 +9,89 @@ interface EmailConversationDetailProps {
   onRefreshConversations: () => Promise<any>
 }
 
+function parseHtmlToPlainText(html: string): string {
+  if (!html) return ''
+  const processedHtml = html
+    .replace(/<\/p>/gi, '\n')
+    .replace(/<br\s*[\/]?>/gi, '\n')
+    .replace(/<\/div>/gi, '\n')
+  const doc = new DOMParser().parseFromString(processedHtml, 'text/html')
+  return doc.body.textContent || ''
+}
+
 export default function EmailConversationDetail({
   selectedConversation,
   onBack,
   onRefreshConversations,
 }: EmailConversationDetailProps) {
   const { approveDraft, loading: approvingId } = useApproveDraft()
+  const { editBody } = useEditDraftBody()
 
   const draftOutgoing = selectedConversation.outgoing?.filter(o => o.status === 'draft') || []
   const sentOutgoing = selectedConversation.outgoing?.filter(o => o.status === 'sent') || []
 
   const firstMessage = selectedConversation.messages?.[0]
   const conversationName = firstMessage?.subject || selectedConversation.subject || 'No Subject'
+
+  const [draftBodies, setDraftBodies] = useState<Record<number, string>>({})
+  const [savingIds, setSavingIds] = useState<Record<number, boolean>>({})
+
+  // Keep track of textarea references to dynamically adjust height
+  const textareaRefs = useRef<Record<number, HTMLTextAreaElement | null>>({})
+
+  const adjustHeight = (element: HTMLTextAreaElement | null) => {
+    if (element) {
+      element.style.height = 'auto'
+      element.style.height = `${element.scrollHeight}px`
+    }
+  }
+
+  useEffect(() => {
+    const initialBodies: Record<number, string> = {}
+    draftOutgoing.forEach(d => {
+      if (d.id) {
+        initialBodies[d.id] = parseHtmlToPlainText(d.body || '')
+      }
+    })
+    setDraftBodies(initialBodies)
+
+    // Adjust height on initial load after text is populated
+    setTimeout(() => {
+      Object.keys(textareaRefs.current).forEach(id => {
+        adjustHeight(textareaRefs.current[Number(id)])
+      }, 0)
+    })
+  }, [selectedConversation])
+
+  const handleBodyChange = (draftId: number, value: string) => {
+    setDraftBodies(prev => ({ ...prev, [draftId]: value }))
+    adjustHeight(textareaRefs.current[draftId])
+
+    const timeoutKey = `timer_${draftId}`
+    if ((window as any)[timeoutKey]) {
+      clearTimeout((window as any)[timeoutKey])
+    }
+
+    setSavingIds((prev) => { 
+      const updated = { ...prev }; 
+      updated[draftId] = true; 
+      return updated; 
+    });
+
+    (window as any)[timeoutKey] = setTimeout(async () => {
+      try {
+        const htmlFormatted = value
+          .split('\n')
+          .map(line => (line.trim() ? `<p>${line}</p>` : '<br/>'))
+          .join('')
+        await editBody(draftId, htmlFormatted)
+      } catch (err) {
+        // Error handled in hook
+      } finally {
+        setSavingIds(prev => ({ ...prev, [draftId]: false }))
+      }
+    }, 600)
+  }
 
   const allConversationItems = [
     ...(selectedConversation.messages || []).map(m => ({ ...m, type: 'message' as const })),
@@ -33,8 +106,7 @@ export default function EmailConversationDetail({
     try {
       await approveDraft(draftId)
       await onRefreshConversations()
-    }
-    catch (err) {
+    } catch (err) {
       // Error handled within hook
     }
   }
@@ -93,8 +165,7 @@ export default function EmailConversationDetail({
                 </div>
               </div>
             )
-          } 
-          else {
+          } else {
             const sent = item
             return (
               <div key={sent.id || idx} className="bg-white rounded-xl border border-slate-200 shadow-sm p-6">
@@ -121,44 +192,64 @@ export default function EmailConversationDetail({
 
         {draftOutgoing.length > 0 && (
           <div className="mb-6 space-y-4 mt-10">
-            <h3 className="text-sm font-semibold text-amber-900 px-1 flex items-center gap-2">
-              <span>Pending Automation Response Waiting to be Sent</span>
-              <span className="px-2 py-0.5 text-xs bg-amber-100 text-amber-800 rounded-full">{draftOutgoing.length}</span>
+            <h3 className="text-sm font-semibold text-amber-900 px-1 flex items-center justify-between">
+              <span className="flex items-center gap-2">
+                <span>Pending Automation Response Waiting to be Sent</span>
+                <span className="px-2 py-0.5 text-xs bg-amber-100 text-amber-800 rounded-full">{draftOutgoing.length}</span>
+              </span>
             </h3>
-            {draftOutgoing.map((draft, idx) => (
-              <div key={draft.id || idx} className="bg-amber-50/60 rounded-xl border border-amber-200 shadow-sm p-6">
-                <div className="flex items-center justify-between mb-4 pb-3 border-b border-amber-200/60 text-xs text-amber-900/70">
-                  <div>
-                    <span className="font-semibold text-amber-900/90 mr-2">Suggested Reply</span>
+            {draftOutgoing.map((draft, idx) => {
+              const draftId = draft.id || idx
+              const currentText = draftBodies[draft.id] ?? parseHtmlToPlainText(draft.body || '')
+              const isSaving = savingIds[draft.id]
+
+              return (
+                <div key={draftId} className="bg-amber-50/60 rounded-xl border border-amber-200 shadow-sm p-6 relative">
+                  <div className="flex items-center justify-between mb-4 pb-3 border-b border-amber-200/60 text-xs text-amber-900/70">
+                    <div className="flex items-center gap-2.5">
+                      <span className="font-semibold text-amber-900/90">Suggested Reply (Editable)</span>
+                      {isSaving && (
+                        <span className="inline-flex items-center text-xs text-amber-700 gap-1.5 font-medium">
+                          <svg className="animate-spin h-3.5 w-3.5 text-amber-700" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                          </svg>
+                          Saving...
+                        </span>
+                      )}
+                    </div>
+                    <div>
+                      {draft.createdAt ? new Date(draft.createdAt).toLocaleString() : ''}
+                    </div>
                   </div>
-                  <div>
-                    {draft.createdAt ? new Date(draft.createdAt).toLocaleString() : ''}
+
+                  <div className="mb-4">
+                    <textarea
+                      value={currentText}
+                      onChange={(e) => handleBodyChange(draft.id, e.target.value)}
+                      rows={1}
+                      className="w-full bg-white rounded-lg border border-amber-200 focus:border-amber-400 focus:ring-1 focus:ring-amber-400 p-4 text-sm text-slate-800 leading-relaxed outline-none transition-all resize-none overflow-hidden shadow-inner"
+                      placeholder="Type your reply here..."
+                    />
+                  </div>
+
+                  <div className="flex justify-center pt-2">
+                    <button
+                      onClick={() => handleApprove(draft.id)}
+                      disabled={Boolean(approvingId || isSaving)}
+                      className="flex items-center gap-2 bg-[#2B3528] hover:bg-[#444B38] disabled:opacity-50 text-white text-sm font-medium px-5 py-2.5 rounded-lg transition-colors shadow-sm cursor-pointer"
+                    >
+                      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                        <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z" />
+                        <polyline points="17 21 17 13 7 13 7 21" />
+                        <polyline points="7 3 7 8 15 8" />
+                      </svg>
+                      {approvingId ? 'Sending...' : 'Approve & Send'}
+                    </button>
                   </div>
                 </div>
-                {draft.body ? (
-                  <div
-                    className="text-sm text-slate-800 whitespace-pre-wrap leading-relaxed mb-4"
-                    dangerouslySetInnerHTML={{ __html: draft.body }}
-                  />
-                ) : (
-                  <div className="text-sm text-slate-400 italic mb-4">No draft content available.</div>
-                )}
-                <div className="flex justify-center pt-2">
-                  <button
-                    onClick={() => handleApprove(draft.id)}
-                    disabled={approvingId}
-                    className="flex items-center gap-2 bg-[#2B3528] hover:bg-[#444B38] disabled:opacity-50 text-white text-sm font-medium px-5 py-2.5 rounded-lg transition-colors shadow-sm cursor-pointer"
-                  >
-                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                      <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z" />
-                      <polyline points="17 21 17 13 7 13 7 21" />
-                      <polyline points="7 3 7 8 15 8" />
-                    </svg>
-                    {approvingId ? 'Sending...' : 'Approve & Send'}
-                  </button>
-                </div>
-              </div>
-            ))}
+              )
+            })}
           </div>
         )}
       </div>
