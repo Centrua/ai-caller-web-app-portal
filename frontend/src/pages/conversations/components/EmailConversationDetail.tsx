@@ -35,6 +35,9 @@ export default function EmailConversationDetail({
 
   const [draftBodies, setDraftBodies] = useState<Record<number, string>>({})
   const [savingIds, setSavingIds] = useState<Record<number, boolean>>({})
+  const [leadInfo, setLeadInfo] = useState<any | null>(null)
+  const [leadLoading, setLeadLoading] = useState(false)
+  const [leadError, setLeadError] = useState<string | null>(null)
 
   useEffect(() => {
     const initialBodies: Record<number, string> = {}
@@ -44,6 +47,37 @@ export default function EmailConversationDetail({
       }
     })
     setDraftBodies(initialBodies)
+    // fetch lead info when conversation changes
+    const fetchLead = async () => {
+      setLeadInfo(null)
+      setLeadError(null)
+      if (!selectedConversation?.thread_id) return
+      setLeadLoading(true)
+      try {
+        const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3001'
+        const token = localStorage.getItem('token')
+        if (!token) throw new Error('No authentication token')
+        const res = await fetch(`${API_BASE_URL}/api/lead-inquiries/${selectedConversation.thread_id}`, {
+          headers: { 'Authorization': `Bearer ${token}` }
+        })
+        if (!res.ok) {
+          if (res.status === 404) {
+            setLeadInfo(null)
+            return
+          }
+          const json = await res.json().catch(() => ({}))
+          throw new Error(json.error || 'Failed to fetch lead info')
+        }
+        const json = await res.json()
+        setLeadInfo(json)
+      } catch (err: any) {
+        console.error('[FetchLead Error]', err)
+        setLeadError(err.message || 'Failed to fetch lead info')
+      } finally {
+        setLeadLoading(false)
+      }
+    }
+    fetchLead()
   }, [selectedConversation])
 
   const handleBodyChange = (draftId: number, value: string) => {
@@ -119,6 +153,21 @@ export default function EmailConversationDetail({
       </div>
 
       <div className="space-y-4">
+        {leadLoading && (
+          <div className="bg-white rounded-xl border border-slate-200 p-4 text-sm text-slate-500">Loading lead info...</div>
+        )}
+        {leadInfo && (
+          <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden px-6 py-4 mb-6">
+            <h4 className="text-sm font-semibold text-slate-700">Lead Information</h4>
+            <div className="mt-2 text-sm text-slate-800 space-y-1">
+              <div><span className="font-semibold">Name:</span> {leadInfo.lead_name || leadInfo.name || '-'}</div>
+              <div><span className="font-semibold">Phone:</span> {leadInfo.lead_phone || leadInfo.phone || '-'}</div>
+              <div><span className="font-semibold">Guest Count:</span> {leadInfo.guest_count ?? (leadInfo.guestCount ?? '-')}</div>
+              <div><span className="font-semibold">Wedding Date:</span> {leadInfo.wedding_date || leadInfo.weddingDate || '-'}</div>
+              <div><span className="font-semibold">Tour Requested:</span> {typeof leadInfo.tour_requested === 'boolean' ? (leadInfo.tour_requested ? 'Yes' : 'No') : (leadInfo.tourRequested === true ? 'Yes' : (leadInfo.tourRequested === false ? 'No' : '-'))}</div>
+            </div>
+          </div>
+        )}
         <h3 className="text-sm font-semibold text-slate-700 px-1">Message Transaction ({allConversationItems.length})</h3>
 
         {allConversationItems.length === 0 && (
