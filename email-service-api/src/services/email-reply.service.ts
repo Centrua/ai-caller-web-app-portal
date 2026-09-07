@@ -83,6 +83,14 @@ export async function generateReply(opts: GenerateReplyOpts) {
       }
 
       await appendKnowledgeBaseToSystemInstruction(systemInstruction, agentId)
+
+      // Highest-priority safeguard: prevent the model from repeatedly asking
+      // the same clarifying questions. This will be prepended so it takes
+      // precedence over an agent-configured system prompt.
+      systemInstruction.parts.unshift({
+        text:
+          'TOP PRIORITY: Do not ask repeated clarifying questions. Always examine the full conversation history provided in the snippet and do not request information already present. If information is missing, include at most one concise request for the missing fields and then finish the reply. If the assistant previously asked a clarifying question in this thread and the sender did not provide new information, do NOT repeat that question; instead conclude the reply and state the next steps (e.g., notify the team). Do not loop asking for the same information.'
+      })
     } catch (e) {
       // Fail gracefully and continue with default system instruction
       console.warn('Failed to fetch venue system prompt/procedures:', (e as any)?.message || e)
@@ -102,7 +110,7 @@ export async function generateReply(opts: GenerateReplyOpts) {
     if (snippetText) extractUserParts.push({ text: `Message snippet: ${snippetText}` })
     extractUserParts.push({ text: 'You will ONLY output JSON. DO NOT HALLUCINATE OR GUESS. Determine whether the sender is a potential event lead (true/false).'
     })
-    extractUserParts.push({ text: 'If they are a potential lead, extract ONLY explicitly-provided fields from the thread into a JSON object with these keys: lead_name, lead_phone, lead_email, wedding_date, guest_count, event_type, interested_in, tour_requested. Use null or omit keys that are not explicitly present. Also include a boolean `is_potential_lead` and an array `missing_fields` listing which of the above fields are missing and would be useful to collect. Return a single valid JSON object and nothing else.' })
+    extractUserParts.push({ text: 'If they are a potential lead, extract ONLY explicitly-provided fields from the thread into a JSON object with these keys: lead_name, lead_phone, wedding_date, guest_count, tour_requested. Use null or omit keys that are not explicitly present. Also include a boolean `is_potential_lead` and an array `missing_fields` listing which of the above fields are missing and would be useful to collect. Return a single valid JSON object and nothing else.' })
 
     const extractPayload: GeminiRequestDto = {
       system_instruction: extractSystem,
@@ -139,15 +147,40 @@ export async function generateReply(opts: GenerateReplyOpts) {
     leadExtractionResult = extracted
 
     // If sender is a potential lead and there are missing fields, ask model to request only those fields naturally
-    const missing = Array.isArray(extracted.missing_fields) ? extracted.missing_fields : []
+    // Consult DB for any existing lead info to avoid asking for fields already stored
+    let existingLead: any = null
+    try {
+      existingLead = await leadRepo.findLeadInquiryByThreadAndGrant(threadId || null, grantId || null)
+    } catch (e) {
+      console.warn('Failed to fetch existing lead inquiry:', (e as any)?.message || e)
+    }
+
+    const requiredFields = ['lead_name', 'lead_phone', 'wedding_date', 'guest_count', 'tour_requested']
+    const existingInfo = (existingLead && existingLead.lead_info) ? existingLead.lead_info : {}
+
+    // Determine which fields are present either in DB or in the extracted parse
+    const present = new Set<string>()
+    // Do not collect lead email, 'interested_in', or 'event_type' from the assistant.
+    for (const f of requiredFields) {
+      const valInDb = existingInfo && existingInfo[f]
+      const valInExtract = extracted && (extracted[f] !== undefined && extracted[f] !== null && String(extracted[f]).trim() !== '')
+      if (valInDb !== undefined && valInDb !== null && String(valInDb).trim() !== '') present.add(f)
+      if (valInExtract) present.add(f)
+    }
+
+    const missing = requiredFields.filter(f => !present.has(f))
+
     if (missing.length > 0) {
-      userParts.push({ text: `The sender appears to be a potential event lead. Collect only the missing information naturally and politely: ${missing.join(', ')}. Do NOT ask for information already provided in the thread. Ask only what's needed to move the inquiry forward.` })
+      userParts.push({ text: `The sender appears to be a potential event lead. Collect only the missing information naturally and politely: ${missing.join(', ')}. Do NOT ask for information already provided in the thread or already stored in the system. Do NOT repeat a clarifying question that already appears earlier in the conversation if the sender did not answer; instead, offer next steps or state you'll notify the team.` })
+    } else {
+      // No missing fields: ensure the model does not ask any follow-ups
+      userParts.push({ text: 'All required lead fields are present in the thread or in system records. Do not ask any follow-up questions. If no additional information is present beyond what is in the snippet, conclude the reply and state next steps.' })
     }
 
     // Also instruct model to include any explicitly-provided lead fields in a machine-readable JSON block
     // wrapped between <!--LEAD_JSON--> markers so the system can capture them. The visible reply should remain
     // natural and human-facing; we'll strip the machine-readable block before saving/sending to the recipient.
-    userParts.push({ text: 'If you include any lead contact details in the reply, also include a JSON object containing only the explicitly-provided lead fields wrapped between <!--LEAD_JSON--> and <!--LEAD_JSON-->. The JSON should use keys: lead_name, lead_phone, lead_email, wedding_date, guest_count, event_type, interested_in, tour_requested. Do not fabricate values.' })
+    userParts.push({ text: 'If you include any lead contact details in the reply, also include a JSON object containing only the explicitly-provided lead fields wrapped between <!--LEAD_JSON--> and <!--LEAD_JSON-->. The JSON should use keys: lead_name, lead_phone, wedding_date, guest_count, tour_requested. Do not fabricate values.' })
   }
 
   const payload: GeminiRequestDto = {
@@ -192,11 +225,13 @@ export async function generateReply(opts: GenerateReplyOpts) {
       if (!merged.lead_info) merged.lead_info = {}
       if (embeddedLead && typeof embeddedLead === 'object') {
         // Merge only explicitly-provided keys from embeddedLead
-        for (const k of Object.keys(embeddedLead)) {
-          if (embeddedLead[k] !== null && embeddedLead[k] !== undefined && String(embeddedLead[k]).trim() !== '') {
-            merged.lead_info[k] = embeddedLead[k]
+          for (const k of Object.keys(embeddedLead)) {
+            // Do not collect lead_email, interested_in, or event_type
+            if (k === 'lead_email' || k === 'interested_in' || k === 'event_type') continue
+            if (embeddedLead[k] !== null && embeddedLead[k] !== undefined && String(embeddedLead[k]).trim() !== '') {
+              merged.lead_info[k] = embeddedLead[k]
+            }
           }
-        }
       }
 
       // Attach to the Gemini response so it's persisted with the draft
@@ -211,7 +246,7 @@ export async function generateReply(opts: GenerateReplyOpts) {
   let sanitizedHtml = html.replace(/<!--LEAD_JSON-->[\s\S]*?<!--LEAD_JSON-->/g, '').trim()
 
   // Remove any top-level JSON object that contains any of the lead keys.
-  const leadKeysPattern = /\b(?:lead_name|lead_phone|lead_email|wedding_date|guest_count|event_type|interested_in|tour_requested)\b/i
+  const leadKeysPattern = /\b(?:lead_name|lead_phone|wedding_date|guest_count|tour_requested)\b/i
   sanitizedHtml = sanitizedHtml.replace(/\{[\s\S]*?\}/g, (match) => {
     return leadKeysPattern.test(match) ? '' : match
   }).trim()
@@ -231,7 +266,14 @@ export async function generateReply(opts: GenerateReplyOpts) {
     const leadExtraction = (response as any)?.lead_extraction
     if (leadExtraction) {
       const leadInfo = leadExtraction.lead_info || leadExtraction.parsed || leadExtraction
-      await leadRepo.createLeadInquiry({
+      // Sanitize: never persist lead_email or interested_in
+      if (leadInfo && typeof leadInfo === 'object') {
+        delete leadInfo.lead_email
+        delete leadInfo.interested_in
+        delete leadInfo.event_type
+      }
+
+      await leadRepo.upsertLeadInquiryByThreadAndGrant({
         grant_id: grantId || null,
         thread_id: threadId || null,
         original_message_id: originalMessage.id || null,
