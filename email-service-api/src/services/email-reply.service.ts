@@ -2,11 +2,14 @@ import { GeminiRepository, GeminiRequestDto } from '../repositories/http/gemini.
 import outgoingRepo from '../repositories/outgoing.repository'
 import messageRepo from '../repositories/message.repository'
 import { NylasRepository } from '../repositories/http/nylas.repository'
-import elevenlabsRepo from '../repositories/http/elevenlabs.repository'
-import venueRepo from '../repositories/venue.repository'
+import VenueService from './venue.service'
+import ProcedureService from './agent-procedure.service'
+import PromptService from './agent-prompt.service'
 
 const gemini = new GeminiRepository()
 const nylasRepo = new NylasRepository()
+const procedureService = new ProcedureService()
+const promptService = new PromptService()
 
 export interface GenerateReplyOpts {
   originalMessage: any
@@ -28,19 +31,20 @@ export async function generateReply(opts: GenerateReplyOpts) {
   // and procedures into the system instruction so Gemini has venue context.
   if (grantId) {
     try {
-      const sysPrompt = await elevenlabsRepo.getSystemPromptByGrant(grantId)
-      const procedures = await elevenlabsRepo.getProceduresByGrant(grantId)
+      const agentId = await VenueService.getAgentIdByGrant(grantId)
+      const sysPrompt = agentId ? await promptService.getSystemPrompt(agentId) : null
+      const procedures = agentId ? await procedureService.getAllProceduresForAgent(grantId) : null
       if (sysPrompt) {
         // Prepend venue/system prompt so it takes precedence
         systemInstruction.parts.unshift({ text: sysPrompt })
       }
       try {
-        const venueName = await venueRepo.getVenueNameByGrant(grantId)
+        const venueName = await VenueService.getVenueNameByGrant(grantId)
         if (venueName) {
           systemInstruction.parts.unshift({ text: `VENUE_NAME: ${venueName}\nThis is the venue name only use this when using VENUE_NAME` })
         }
       } catch (e) {
-        console.warn('Failed to fetch venue name:', e?.message || e)
+        console.warn('Failed to fetch venue name:', (e as any)?.message || e)
       }
       if (procedures && Array.isArray(procedures) && procedures.length > 0) {
         const procParts = procedures.map((p) => ({ text: `Procedure:\n${p}` }))
@@ -48,7 +52,7 @@ export async function generateReply(opts: GenerateReplyOpts) {
       }
     } catch (e) {
       // Fail gracefully and continue with default system instruction
-      console.warn('Failed to fetch venue system prompt/procedures:', e?.message || e)
+      console.warn('Failed to fetch venue system prompt/procedures:', (e as any)?.message || e)
     }
   }
 

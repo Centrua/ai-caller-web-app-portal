@@ -32,6 +32,18 @@ export class VenueRepository {
     // @ts-ignore
     return (v as any).name || null
   }
+
+  async getAgentIdByGrant(grantId: string): Promise<string | null> {
+    const v = await Venue.findOne({
+      where: { nylas_grant_id: grantId },
+      attributes: ['id'],
+      include: [{ association: 'settings', attributes: ['elevenlabs_agent_id'] }],
+    })
+    if (!v) return null
+    const s = (v as any).settings
+    if (!s) return null
+    return s.elevenlabs_agent_id || null
+  }
 }
 
 export default new VenueRepository()
