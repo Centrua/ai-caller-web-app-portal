@@ -1,0 +1,11 @@
+User-agent: *
+Allow: /
+Allow: /login
+Allow: /register
+Disallow: /dashboard
+Disallow: /conversations
+Disallow: /knowledge-base
+Disallow: /invite-participants
+Disallow: /settings
+
+Sitemap: https://centruaai.com/sitemap.xml
