@@ -196,8 +196,8 @@ export default function EmailConversationDetail({
           <div className="bg-white rounded-xl border border-red-200 p-4 text-sm text-red-600">Error loading lead info: {leadError}</div>
         )}
         {leadInfo && (
-          <div className="space-y-2">
-            <h3 className="text-sm font-semibold text-slate-700 px-1">Lead Information</h3>
+          <>
+            <h3 className="text-sm font-semibold text-slate-700 px-1 pt-2">Lead Information</h3>
             <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden px-6 py-4 mb-6">
               <div className="mt-2 text-sm text-slate-800 space-y-1">
                 <div><span className="font-semibold">Name:</span> {leadInfo.lead_name || leadInfo.name || '-'}</div>
@@ -207,9 +207,9 @@ export default function EmailConversationDetail({
                 <div><span className="font-semibold">Tour Requested:</span> {typeof leadInfo.tour_requested === 'boolean' ? (leadInfo.tour_requested ? 'Yes' : 'No') : (leadInfo.tourRequested === true ? 'Yes' : (leadInfo.tourRequested === false ? 'No' : '-'))}</div>
               </div>
             </div>
-          </div>
+          </>
         )}
-        <h3 className="text-sm font-semibold text-slate-700 px-1">Message Transaction ({allConversationItems.length})</h3>
+        <h3 className="text-sm font-semibold text-slate-700 px-1 pt-2">Message Transaction ({allConversationItems.length})</h3>
 
         {allConversationItems.length === 0 && (
           <div className="bg-white rounded-xl border border-slate-200 p-8 text-center text-sm text-slate-400">
