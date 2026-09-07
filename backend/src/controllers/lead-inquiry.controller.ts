@@ -12,20 +12,8 @@ export class LeadInquiryController {
       if (!userId) {
         return res.status(401).json({ error: 'No user ID provided' })
       }
-
-      const lead = await LeadInquiryService.getByThreadId(userId, String(conversationId))
-      if (!lead) return res.status(404).json({})
-
-      // merge lead_info JSONB into top-level for frontend convenience
-      const leadInfo = (lead as any).lead_info || {}
-      const payload = {
-        id: (lead as any).id,
-        grant_id: (lead as any).grant_id,
-        thread_id: (lead as any).thread_id,
-        original_message_id: (lead as any).original_message_id,
-        status: (lead as any).status,
-        ...leadInfo,
-      }
+      const payload = await LeadInquiryService.getByThreadId(userId, String(conversationId))
+      if (!payload) return res.status(404).json({})
 
       return res.status(200).json(payload)
     } catch (error: any) {

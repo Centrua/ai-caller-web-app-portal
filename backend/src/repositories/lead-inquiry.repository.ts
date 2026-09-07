@@ -6,12 +6,6 @@ export class LeadInquiryRepository {
     if (grantId) where.grant_id = grantId
     return models.LeadInquiry.findOne({ where })
   }
-
-  async getByEmail(email: string, grantId?: string) {
-    const where: any = { email }
-    if (grantId) where.grant_id = grantId
-    return models.LeadInquiry.findOne({ where })
-  }
 }
 
 export default new LeadInquiryRepository()

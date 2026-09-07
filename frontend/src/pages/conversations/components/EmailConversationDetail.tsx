@@ -156,6 +156,9 @@ export default function EmailConversationDetail({
         {leadLoading && (
           <div className="bg-white rounded-xl border border-slate-200 p-4 text-sm text-slate-500">Loading lead info...</div>
         )}
+        {leadError && (
+          <div className="bg-white rounded-xl border border-red-200 p-4 text-sm text-red-600">Error loading lead info: {leadError}</div>
+        )}
         {leadInfo && (
           <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden px-6 py-4 mb-6">
             <h4 className="text-sm font-semibold text-slate-700">Lead Information</h4>
