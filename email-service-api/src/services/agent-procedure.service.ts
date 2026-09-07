@@ -10,18 +10,16 @@ export class ProcedureService {
     this.venueService = venueService || new VenueService()
   }
 
-  private async resolveAgentId(agentId?: string, userId?: number): Promise<string> {
-    let targetAgentId = agentId
-
-    if (!targetAgentId && userId) {
-      targetAgentId = (await this.venueService.getAgentIdFromUserId(userId)) || undefined
+  private async resolveAgentId(grantId?: string): Promise<string> {
+    if (!grantId) {
+      throw new Error('Grant ID is required.')
+    }
+    const agentId = await this.venueService.getAgentIdByGrant(grantId)
+    if (!agentId) {
+      throw new Error(`Agent ID could not be found for the given grant: ${grantId}`)
     }
 
-    if (!targetAgentId) {
-      throw new Error('Agent ID could not be found for the given user or request.')
-    }
-
-    return targetAgentId
+    return agentId
   }
 
   async getMainBranchId(agentId: string): Promise<string | null> {
@@ -36,8 +34,8 @@ export class ProcedureService {
     return mainBranch?.id || null
   }
 
-  async getAllProceduresForAgent(agentId?: string, userId?: number): Promise<any[]> {
-    const targetAgentId = await this.resolveAgentId(agentId, userId)
+  async getAllProceduresForAgent(grantId?: string): Promise<any[]> {
+    const targetAgentId = await this.resolveAgentId(grantId)
 
     const mainBranchId = await this.getMainBranchId(targetAgentId)
     if (!mainBranchId) return []
