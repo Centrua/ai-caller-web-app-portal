@@ -1,10 +1,11 @@
 import Outgoing from '../models/outgoing.model'
+import outgoingRepository from '../repositories/outgoing.repository'
 
 export class OutgoingService {
   async editBody(id: number, body: string) {
     if (!id) return null
     try {
-      const draft = await Outgoing.findByPk(id)
+      const draft = await outgoingRepository.findDraftById(id)
       if (!draft) return null
 
       draft.body = body
