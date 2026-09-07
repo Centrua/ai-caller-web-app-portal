@@ -3,6 +3,7 @@ import dotenv from 'dotenv';
 import express, { NextFunction, Request, Response } from 'express';
 import nylasWebhookRouter from './routes/nylas-webhook.route';
 import replyRouter from './routes/reply.route';
+import outgoingRouter from './routes/outgoing.route';
 import './models'
 
 dotenv.config();
@@ -12,12 +13,13 @@ const PORT = process.env.PORT || 3002;
 
 app.use(cors({ origin: process.env.CORS_ORIGIN || '*' }));
 
+app.use(express.json());
+
 // Register Nylas webhook route before global JSON parser so route-level
 // `express.raw` middleware receives the original raw request body buffer.
 app.use('/nylas-webhook', nylasWebhookRouter)
 app.use('/reply', replyRouter)
-
-app.use(express.json());
+app.use('/outgoing', outgoingRouter)
 
 app.use((err: Error, _req: Request, res: Response, _next: NextFunction) => {
   console.error('[Error]:', err.message);
