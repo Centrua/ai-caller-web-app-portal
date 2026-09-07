@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useNavigate, useSearchParams, Link } from 'react-router-dom'
+import { Helmet } from 'react-helmet-async'
 import { useRegister } from '../../hooks/authHooks'
 
 export default function Register() {
@@ -67,6 +68,16 @@ export default function Register() {
 
     return (
         <div className="min-h-screen bg-slate-50 flex items-center justify-center p-4 relative">
+            <Helmet>
+                <title>Create Venue Account | Centrua AI</title>
+                <meta name="description" content="Register your user account with your venue token to access your Centrua AI voice automation and booking management portal." />
+                <meta property="og:title" content="Create Venue Account | Centrua AI" />
+                <meta property="og:description" content="Register your user account with your venue token to access your Centrua AI voice automation and booking management portal." />
+                <meta property="og:type" content="website" />
+                <meta property="og:url" content="https://centruaai.com/register" />
+                <link rel="canonical" href="https://centruaai.com/register" />
+            </Helmet>
+
             <Link
                 to="/"
                 className="absolute top-6 left-6 inline-flex items-center gap-1.5 text-sm font-medium text-slate-500 hover:text-slate-900 transition-colors"

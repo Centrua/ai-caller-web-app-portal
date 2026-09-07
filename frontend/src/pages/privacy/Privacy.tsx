@@ -1,8 +1,19 @@
 import { Link } from 'react-router-dom'
+import { Helmet } from 'react-helmet-async'
 
 export default function Privacy() {
   return (
     <div className="min-h-screen bg-white text-slate-900">
+      <Helmet>
+        <title>Privacy Policy & Terms | Centrua AI</title>
+        <meta name="description" content="Read Centrua AI's terms of service and privacy policy governing our AI-powered receptionist and venue communication services." />
+        <meta property="og:title" content="Privacy Policy & Terms | Centrua AI" />
+        <meta property="og:description" content="Read Centrua AI's terms of service and privacy policy governing our AI-powered receptionist and venue communication services." />
+        <meta property="og:type" content="website" />
+        <meta property="og:url" content="https://centruaai.com/privacy" />
+        <link rel="canonical" href="https://centruaai.com/privacy" />
+      </Helmet>
+
       <div className="max-w-4xl mx-auto px-8 py-20">
         <h1 className="text-3xl font-bold mb-4">Privacy Policy</h1>
         <p className="text-slate-600 mb-4">Last updated: September 2026</p>
