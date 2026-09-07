@@ -5,7 +5,6 @@ interface VenueAttributes {
   id: number;
   name: string;
   email: string | null;
-  phone: string | null;
   elevenlabs_agent_id: string | null;
   nylas_grant_id?: string | null;
   kb_document_id: string | null;
@@ -13,13 +12,12 @@ interface VenueAttributes {
   created_at?: Date;
 }
 
-interface VenueCreationAttributes extends Optional<VenueAttributes, 'id' | 'email' | 'phone' | 'elevenlabs_agent_id' | 'kb_document_id' | 'associated_user_ids' | 'created_at'> {}
+interface VenueCreationAttributes extends Optional<VenueAttributes, 'id' | 'email' | 'elevenlabs_agent_id' | 'kb_document_id' | 'associated_user_ids' | 'created_at'> {}
 
 export class Venue extends Model<VenueAttributes, VenueCreationAttributes> implements VenueAttributes {
   public declare id: number;
   public declare name: string;
   public declare email: string | null;
-  public declare phone: string | null;
   public declare elevenlabs_agent_id: string | null;
   public declare nylas_grant_id: string | null;
   public declare kb_document_id: string | null;
@@ -40,10 +38,6 @@ Venue.init(
       allowNull: false,
     },
     email: {
-      type: DataTypes.STRING,
-      allowNull: true,
-    },
-    phone: {
       type: DataTypes.STRING,
       allowNull: true,
     },

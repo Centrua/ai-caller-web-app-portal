@@ -27,7 +27,6 @@ export async function upsertLeadInquiryByThreadAndGrant(payload: any) {
 
   existing.lead_info = mergedInfo
   if (original_message_id) existing.original_message_id = original_message_id
-  if (status) existing.status = status
 
   await existing.save()
   return existing

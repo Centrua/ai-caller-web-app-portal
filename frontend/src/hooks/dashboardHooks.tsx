@@ -5,10 +5,12 @@ export interface DashboardMetrics {
   callsThisWeek: number
   totalCalls: number
   averageCallDurationFormatted: string
-  successfulCalls: number
-  successRate: string
   recentConversations: any[]
   callsOverTime: Array<{ date: string; count: number }>
+  emailsToday: number
+  emailsThisWeek: number
+  totalEmailConversations: number
+  emailsOverTime: Array<{ date: string; count: number }>
 }
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL

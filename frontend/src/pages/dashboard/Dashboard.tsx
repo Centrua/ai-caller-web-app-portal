@@ -4,6 +4,7 @@ import { useDashboard } from '../../hooks/dashboardHooks'
 export default function Dashboard() {
     const { metrics, getMetrics, loading, error } = useDashboard()
     const [hoveredBar, setHoveredBar] = useState<{ date: string; count: number } | null>(null)
+    const [hoveredEmailBar, setHoveredEmailBar] = useState<{ date: string; count: number } | null>(null)
 
     useEffect(() => {
         getMetrics()
@@ -14,8 +15,9 @@ export default function Dashboard() {
         { label: 'Calls This Week', value: metrics ? metrics.callsThisWeek.toLocaleString() : '—' },
         { label: 'Total Calls', value: metrics ? metrics.totalCalls.toLocaleString() : '—' },
         { label: 'Avg Call Duration', value: metrics ? metrics.averageCallDurationFormatted : '—' },
-        { label: 'Successful Calls', value: metrics ? metrics.successfulCalls.toLocaleString() : '—' },
-        { label: 'Success Rate', value: metrics ? metrics.successRate : '—' },
+        { label: 'Emails Today', value: metrics ? metrics.emailsToday.toLocaleString() : '—' },
+        { label: 'Emails This Week', value: metrics ? metrics.emailsThisWeek.toLocaleString() : '—' },
+        { label: 'Total Email Convos', value: metrics ? metrics.totalEmailConversations.toLocaleString() : '—' },
     ]
 
     return (
@@ -100,6 +102,63 @@ export default function Dashboard() {
                         </p>
                     )}
                 </div>
+                </div>
+
+                {/* Emails-Over-Time Chart Section */}
+                    <div className="bg-white rounded-xl border border-slate-200 p-6 shadow-sm mb-10">
+                        <div className="flex items-center justify-between mb-4">
+                            <h2 className="text-sm font-semibold text-slate-700">Emails-Over-Time — Last 7 Days</h2>
+                            <div className="text-xs font-medium text-slate-600 bg-slate-100 px-3 py-1 rounded-md min-w-[140px] text-center">
+                                {hoveredEmailBar ? (
+                                    <span className="text-[#2B3528] font-semibold">{hoveredEmailBar.date}: {hoveredEmailBar.count} emails</span>
+                                ) : (
+                                    <span className="text-slate-400">Hover a bar for details</span>
+                                )}
+                            </div>
+                        </div>
+                        <div className="h-52 flex items-center justify-center bg-slate-50 rounded-lg border border-dashed border-slate-200 p-4">
+                            {metrics?.emailsOverTime && metrics.emailsOverTime.length > 0 ? (
+                                <div className="flex items-end gap-6 h-36 px-4 w-full justify-around pt-6">
+                                    {metrics.emailsOverTime.map((item) => {
+                                        const maxCount = Math.max(...metrics.emailsOverTime.map(c => c.count), 1)
+                                        const heightPercent = Math.max((item.count / maxCount) * 100, 10)
+                                        const isHovered = hoveredEmailBar?.date === item.date
+
+                                        return (
+                                            <div 
+                                                key={item.date} 
+                                                className="flex flex-col items-center gap-2 h-full justify-end cursor-pointer group flex-1"
+                                                onMouseEnter={() => setHoveredEmailBar(item)}
+                                                onMouseLeave={() => setHoveredEmailBar(null)}
+                                            >
+                                                <div className="relative flex flex-col items-center w-full h-full justify-end">
+                                                    {isHovered && (
+                                                        <div className="absolute -top-7 bg-slate-900 text-white text-[11px] font-semibold py-1 px-2.5 rounded shadow-md whitespace-nowrap z-10">
+                                                            {item.count} {item.count === 1 ? 'email' : 'emails'}
+                                                        </div>
+                                                    )}
+                                                    <div 
+                                                        className={`w-10 rounded-t transition-all duration-200 ${
+                                                            isHovered 
+                                                                ? 'bg-[#2B3528] shadow-lg scale-y-[1.03]' 
+                                                                : 'bg-[#444B38] hover:bg-[#2B3528]'
+                                                        }`} 
+                                                        style={{ height: `${heightPercent}%` }}
+                                                    ></div>
+                                                </div>
+                                                <span className={`text-[11px] transition-colors ${isHovered ? 'text-[#2B3528] font-bold' : 'text-slate-500'}`}>
+                                                    {item.date}
+                                                </span>
+                                            </div>
+                                        )
+                                    })}
+                                </div>
+                            ) : (
+                                <p className="text-slate-400 text-sm">
+                                    {loading ? 'Loading chart data...' : 'No chart data available'}
+                                </p>
+                            )}
+                        </div>
             </div>
 
             {/* See Conversations Button */}

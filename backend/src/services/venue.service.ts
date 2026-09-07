@@ -12,7 +12,6 @@ export class VenueService {
   async createVenue(data: {
     name: string;
     email?: string | null;
-    phone?: string | null;
     kb_document_id?: string | null;
     nylas_grant_id?: string | null;
     associated_user_ids?: number[];
@@ -34,7 +33,6 @@ export class VenueService {
     const venuePayload = {
       name: data.name,
       email: data.email ?? null,
-      phone: data.phone ?? null,
       nylas_grant_id: data.nylas_grant_id ?? null,
       elevenlabs_agent_id: agentId,
       kb_document_id: data.kb_document_id ?? null,

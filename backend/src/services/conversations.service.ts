@@ -1,31 +1,14 @@
 import { ElevenLabsRepository } from '../repositories/http/eleven-labs.repository'
 import { VenueService } from '../services/venue.service'
-import ActionItemsService from '../services/action-items.service'
 import { conversationBelongsToAgent, normalizeConversation } from '../utils/conversation'
 
 export class ConversationService {
   private elevenLabsRepo: ElevenLabsRepository
   private venueService: VenueService
-  private actionItemsService = ActionItemsService
 
   constructor(elevenLabsRepo?: ElevenLabsRepository, venueService?: VenueService) {
     this.elevenLabsRepo = elevenLabsRepo || new ElevenLabsRepository()
     this.venueService = venueService || new VenueService()
-  }
-
-  private async enrichConversationList(conversations: any[]): Promise<any[]> {
-    return Promise.all(
-      conversations.map(async (conversation) => {
-        try {
-          const flags = await this.actionItemsService.getConversationFlags(String(conversation.id))
-          const hasPending = flags ? !flags.completed : false
-          return { ...conversation, hasUnacknowledgedActions: hasPending }
-        } 
-        catch {
-          return { ...conversation, hasUnacknowledgedActions: false }
-        }
-      })
-    )
   }
 
   private async resolveAgentId(userId?: number): Promise<string> {
@@ -52,10 +35,9 @@ export class ConversationService {
 
     const repoResp = await this.elevenLabsRepo.getConversations(filters)
     const normalized = (repoResp.conversations || []).map(normalizeConversation)
-    const enriched = await this.enrichConversationList(normalized)
 
     return {
-      conversations: enriched,
+      conversations: normalized,
       hasMore: !!repoResp.has_more,
       nextCursor: repoResp.next_cursor,
     }
@@ -71,17 +53,6 @@ export class ConversationService {
 
     const normalized = normalizeConversation(data)
     const normalizedAny: any = normalized
-
-    try {
-      const dcr = data.analysis?.data_collection_results ?? data.data_collection_results ?? normalizedAny.dataCollectionResults
-      const items = await this.actionItemsService.getActionItems(String(normalizedAny.id), dcr)
-      normalizedAny.actionItems = items
-      normalizedAny.hasUnacknowledgedActions = items.some((it: any) => it.actionable && !it.completed)
-    } 
-    catch {
-      normalizedAny.actionItems = []
-      normalizedAny.hasUnacknowledgedActions = false
-    }
 
     return normalizedAny
   }

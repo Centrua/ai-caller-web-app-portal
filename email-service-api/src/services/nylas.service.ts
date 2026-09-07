@@ -108,8 +108,24 @@ export async function handleNylasWebhook(req: Request, res: Response): Promise<v
     const subject = obj.subject || null
     const snippet = obj.snippet || null
 
-    // Classify: should we store as wedding inquiry?
-    const isWedding = await classifier.shouldStoreAsWedding({ subject, snippet })
+    // Prefer to skip LLM classification if this thread already exists
+    const threadId = obj.thread_id || obj.threadId || null
+    let existingConversation: any = null
+    let isWedding = false
+
+    if (threadId && grantId) {
+      existingConversation = await conversationRepo.findConversationByThreadAndGrant(threadId, grantId)
+      if (existingConversation) {
+        // If we already have a conversation for this thread+grant, treat as relevant
+        isWedding = true
+      } else {
+        // Otherwise run the classifier as before
+        isWedding = await classifier.shouldStoreAsWedding({ subject, snippet })
+      }
+    } else {
+      // No thread/grant context: fall back to classifier
+      isWedding = await classifier.shouldStoreAsWedding({ subject, snippet })
+    }
 
     // If not a wedding inquiry, drop (do not persist)
     if (!isWedding) {
@@ -118,18 +134,14 @@ export async function handleNylasWebhook(req: Request, res: Response): Promise<v
       return
     }
 
-    if (!res.headersSent) {
-      res.status(200).json({ received: true })
-    }
+    res.status(200).json({ received: true })
 
     // Persist message and conversation only for wedding inquiries
     await messageRepo.upsertMessageFromNylas(obj)
 
-    const threadId = obj.thread_id || obj.threadId || null
     if (threadId && grantId) {
-      const existing = await conversationRepo.findConversationByThreadAndGrant(threadId, grantId)
-      if (existing) {
-        await conversationRepo.updateConversationFromMessage(existing, obj)
+      if (existingConversation) {
+        await conversationRepo.updateConversationFromMessage(existingConversation, obj)
       } else {
         await conversationRepo.createConversationFromMessage({ ...obj, id: obj.id })
       }

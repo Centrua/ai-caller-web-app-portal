@@ -143,9 +143,7 @@ export default function PhoneCallConversationsTab() {
                     {isTodayIso(c.startTime) && (
                       <span title="New conversation today" className="ml-3 inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-[#20241C]/10 text-[#2B3528]">New</span>
                     )}
-                    {c.hasUnacknowledgedActions && (
-                      <span title="Action items pending" className="ml-2 inline-block w-2 h-2 rounded-full bg-red-500" />
-                    )}
+                    
                   </div>
                 </td>
                 <td className="px-6 py-4 text-slate-500">{c.durationDisplay || '—'}</td>

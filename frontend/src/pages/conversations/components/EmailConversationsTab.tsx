@@ -1,4 +1,12 @@
 import { useEffect, useState, useMemo } from 'react'
+
+function isTodayIso(iso?: string) {
+  if (!iso) return false
+  const d = new Date(iso)
+  if (isNaN(d.getTime())) return false
+  const now = new Date()
+  return d.getFullYear() === now.getFullYear() && d.getMonth() === now.getMonth() && d.getDate() === now.getDate()
+}
 import { useEmailConversations } from '../../../hooks/emailConversationHooks'
 import EmailConversationDetail from './EmailConversationDetail'
 import type { Conversation } from '../../../hooks/emailConversationHooks'
@@ -125,7 +133,10 @@ export default function EmailConversationsTab() {
                     {hasDrafts && (
                       <span className="w-2.5 h-2.5 bg-red-500 rounded-full flex-shrink-0" title="Draft pending"></span>
                     )}
-                    <span>{conversationName}</span>
+                      <span>{conversationName}</span>
+                      {isTodayIso(firstMsg?.createdAt || c.createdAt) && (
+                        <span title="New conversation today" className="ml-3 inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-[#20241C]/10 text-[#2B3528]">New</span>
+                      )}
                   </td>
                   <td className="px-6 py-4 text-slate-500 font-mono text-xs">{c.thread_id}</td>
                   <td className="px-6 py-4 text-slate-500">{c.messages?.length || 0}</td>
