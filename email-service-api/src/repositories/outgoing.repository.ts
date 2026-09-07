@@ -21,12 +21,4 @@ export async function updateDraftStatus(id: number, status: string, extra: any =
   return draft
 }
 
-export async function editBody(id: number, body: string) {
-  const draft = await findDraftById(id)
-  if (!draft) return null
-  ;(draft as any).body = body
-  await draft.save()
-  return draft
-}
-
-export default { createDraft, findDraftById, updateDraftStatus, editBody }
+export default { createDraft, findDraftById, updateDraftStatus }

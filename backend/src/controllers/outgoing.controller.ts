@@ -5,7 +5,13 @@ export class OutgoingController {
   editBody = async (req: Request, res: Response): Promise<void> => {
     try {
       const draftId = Number(req.params.id || req.params.draftId)
-      const { body } = req.body
+      const body = req.body?.body
+
+      if (body === undefined) {
+        res.status(400).json({ error: 'Request body is missing the "body" property' })
+        return
+      }
+
       const result = await outgoingService.editBody(draftId, body)
       if (!result) {
         res.status(404).json({ error: 'Draft not found' })
