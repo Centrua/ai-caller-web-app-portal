@@ -19,6 +19,12 @@ export default function Navbar() {
                 ) : (
                     <>
                         <Link
+                            to="/register"
+                            className="text-sm font-medium text-slate-600 hover:text-slate-900 transition-colors"
+                        >
+                            Register
+                        </Link>
+                        <Link
                             to="/login"
                             className="text-sm font-medium text-slate-600 hover:text-slate-900 transition-colors"
                         >

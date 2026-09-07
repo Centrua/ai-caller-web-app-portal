@@ -100,7 +100,6 @@ export const RegisterVenue: React.FC = () => {
       const email = params.get('nylas_email')
       if (grant) {
         setNylasGrantId(grant)
-        // remove param from URL for cleanliness
         params.delete('nylas_grant_id')
         const newUrl = `${window.location.pathname}?${params.toString()}`
         window.history.replaceState({}, '', newUrl)
@@ -131,7 +130,6 @@ export const RegisterVenue: React.FC = () => {
 
   const isDisabled = submitting || isSuccess || showTokenModal
   const readyToSubmit = (formData.name || '').trim() !== '' && (formData.email || '').trim() !== '' && !!nylasGrantId
-  // final disabled state: also disable when not readyToSubmit
   const finalDisabled = isDisabled || !readyToSubmit
 
   return (
@@ -148,10 +146,10 @@ export const RegisterVenue: React.FC = () => {
         Back to home
       </Link>
 
-      <div className="w-full max-w-6xl bg-white border border-slate-200/80 rounded-[2.5rem] shadow-xl overflow-hidden grid grid-cols-1 lg:grid-cols-12 min-h-[700px]">
+      <div className="w-full max-w-6xl bg-white border border-slate-200/80 rounded-[2.5rem] shadow-xl overflow-hidden grid grid-cols-1 lg:grid-cols-12 h-auto lg:h-[700px]">
 
         {/* Left Side: Exactly half (col-span-6) with Centrua AI, backdrop image, and right-shifted cut-off venue image */}
-        <div className="lg:col-span-6 relative overflow-hidden flex items-center justify-end p-8 lg:p-12 bg-slate-900">
+        <div className="lg:col-span-6 relative overflow-hidden flex items-center justify-end p-8 lg:p-12 bg-slate-900 h-64 lg:h-full">
           {/* Centrua AI in Times New Roman at the top left */}
           <div className="absolute top-8 left-8 z-20 font-serif text-white text-lg tracking-wide select-none">
             Centrua AI
@@ -171,13 +169,13 @@ export const RegisterVenue: React.FC = () => {
           <div className="absolute inset-0 bg-black/10 pointer-events-none" />
 
           {/* Framed card shifted right to get nicely cut off by the center dividing line */}
-          <div className="relative w-[120%] h-[380px] lg:h-[500px] rounded-l-[2rem] rounded-r-none overflow-hidden shadow-2xl group border-l border-y border-white/20 bg-slate-800 z-10 translate-x-10 lg:translate-x-12">
+          <div className="relative w-[120%] h-[260px] lg:h-[500px] rounded-l-[2rem] rounded-r-none overflow-hidden shadow-2xl group border-l border-y border-white/20 bg-slate-800 z-10 translate-x-10 lg:translate-x-12">
             <img
-              src={`${import.meta.env.BASE_URL}register-venue.jpg`}
+              src={`${import.meta.env.BASE_URL}register-venue-2.jpg`}
               alt="Register Venue"
               onError={(e) => {
-                if (e.currentTarget.src !== window.location.origin + '/register-venue.jpg') {
-                  e.currentTarget.src = '/register-venue.jpg'
+                if (e.currentTarget.src !== window.location.origin + '/register-venue-2.jpg') {
+                  e.currentTarget.src = '/register-venue-2.jpg'
                 }
               }}
               className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 ease-out group-hover:scale-105"
@@ -244,7 +242,6 @@ export const RegisterVenue: React.FC = () => {
               </div>
 
               {/* Nylas OAuth buttons */}
-              {/* Nylas connection status or buttons */}
               <div>
                 <label className="block text-xs font-semibold text-slate-700 mb-1.5 uppercase tracking-wider mt-2">Venue Inquiry Email *</label>
                 {nylasGrantId ? (
@@ -262,7 +259,6 @@ export const RegisterVenue: React.FC = () => {
                       <button
                         type="button"
                         onClick={() => {
-                          // allow re-connecting by clearing grant id and leaving email
                           setNylasGrantId(null)
                         }}
                         className="text-xs px-3 py-1 rounded-xl border border-slate-200 bg-white cursor-pointer"

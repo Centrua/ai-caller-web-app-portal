@@ -2,8 +2,8 @@ import { motion } from 'framer-motion'
 
 const steps = [
     { number: '01', title: 'Set up your venue', description: 'Add your venue details and upload your knowledge documents in minutes.' },
-    { number: '02', title: 'Configure your agent', description: 'Connect your ElevenLabs agent and phone number — no coding required.' },
-    { number: '03', title: 'Start taking calls', description: 'Your AI agent goes live and handles every inquiry, around the clock.' },
+    { number: '02', title: 'Configure your agent', description: 'Connect your Centrua AI agent and phone number — no coding required.' },
+    { number: '03', title: 'Start taking calls and emails', description: 'Your AI agent goes live and handles every inquiry, around the clock.' },
 ]
 
 export default function HowItWorks() {
