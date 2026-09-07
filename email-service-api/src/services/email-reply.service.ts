@@ -5,11 +5,41 @@ import { NylasRepository } from '../repositories/http/nylas.repository'
 import VenueService from './venue.service'
 import ProcedureService from './agent-procedure.service'
 import PromptService from './agent-prompt.service'
+import { ElevenLabsRepository } from '../repositories/http/eleven-labs.repository'
 
 const gemini = new GeminiRepository()
 const nylasRepo = new NylasRepository()
 const procedureService = new ProcedureService()
 const promptService = new PromptService()
+const elevenLabsRepo = new ElevenLabsRepository()
+
+async function appendKnowledgeBaseToSystemInstruction(systemInstruction: { parts: Array<{ text: string }> }, agentId?: string | null) {
+  if (!agentId) return
+
+  try {
+    const kbResp = await elevenLabsRepo.getKnowledgeBaseFiles(100)
+    const docs = kbResp.documents || []
+    const matching = docs.filter((d: any) => {
+      const deps = Array.isArray(d.dependent_agents) ? d.dependent_agents : []
+      return deps.some((x: any) => x && x.id === agentId)
+    })
+
+    for (const doc of matching) {
+      try {
+        const content = await elevenLabsRepo.getKnowledgeBaseContent(doc.id)
+        if (content) {
+          systemInstruction.parts.push({ text: `Knowledge Base (${doc.name}):\n${content}` })
+        } else {
+          systemInstruction.parts.push({ text: `Knowledge Base (${doc.name}): no inline content available` })
+        }
+      } catch (e) {
+        console.warn('Failed to fetch KB content for', doc.id, (e as any)?.message || e)
+      }
+    }
+  } catch (e) {
+    console.warn('Failed to fetch knowledge-base documents:', (e as any)?.message || e)
+  }
+}
 
 export interface GenerateReplyOpts {
   originalMessage: any
@@ -24,16 +54,14 @@ export async function generateReply(opts: GenerateReplyOpts) {
   const snippet = originalMessage.snippet || ''
 
   const systemInstruction = {
-    parts: [{ text: 'You are an assistant that composes concise, professional email replies.' }],
+    parts: [{ text: 'You are an assistant that composes concise, professional email replies. DO NOT HALLUCINATE INFORMATION. IF THE INFORMATION IS NOT FOUND IN THE KNOWLEDGE BASE INFORMATION IN THIS SYSTEM PROMPT THEN SAY YOU DONT KNOW FOR CERTAIN AND WILL NOTIFY THE TEAM OF THEIR REQUEST' }],
   }
 
-  // If a grantId is provided, try to include the venue-specific system prompt
-  // and procedures into the system instruction so Gemini has venue context.
   if (grantId) {
     try {
       const agentId = await VenueService.getAgentIdByGrant(grantId)
       const sysPrompt = agentId ? await promptService.getSystemPrompt(agentId) : null
-      const procedures = agentId ? await procedureService.getAllProceduresForAgent(grantId) : null
+
       if (sysPrompt) {
         // Prepend venue/system prompt so it takes precedence
         systemInstruction.parts.unshift({ text: sysPrompt })
@@ -46,10 +74,8 @@ export async function generateReply(opts: GenerateReplyOpts) {
       } catch (e) {
         console.warn('Failed to fetch venue name:', (e as any)?.message || e)
       }
-      if (procedures && Array.isArray(procedures) && procedures.length > 0) {
-        const procParts = procedures.map((p) => ({ text: `Procedure:\n${p}` }))
-        systemInstruction.parts.push(...procParts)
-      }
+
+      await appendKnowledgeBaseToSystemInstruction(systemInstruction, agentId)
     } catch (e) {
       // Fail gracefully and continue with default system instruction
       console.warn('Failed to fetch venue system prompt/procedures:', (e as any)?.message || e)
@@ -74,8 +100,6 @@ export async function generateReply(opts: GenerateReplyOpts) {
       temperature: 0.2,
     },
   }
-
-  console.log('Gemini request payload:', systemInstruction)
 
   const response = await gemini.generateContent(payload)
   const candidate = response.candidates && response.candidates[0]

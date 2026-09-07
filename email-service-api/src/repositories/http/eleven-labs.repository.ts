@@ -130,6 +130,39 @@ export class ElevenLabsRepository {
 
     return await this.request(path)
   }
+
+  async getKnowledgeBaseFiles(pageSize: number = 100): Promise<{ documents: any[]; has_more?: boolean }> {
+    const query = pageSize ? `?page_size=${encodeURIComponent(String(pageSize))}` : ''
+    const data = await this.request(`/convai/knowledge-base${query}`)
+    return { documents: data?.documents || data?.knowledge_base_documents || [], has_more: data?.has_more || false }
+  }
+
+  async getKnowledgeBaseContent(documentId: string): Promise<string> {
+    if (!documentId) throw new Error('documentId is required')
+
+    const url = `${ELEVENLABS_API_URL}/convai/knowledge-base/${encodeURIComponent(documentId)}/content`
+    const apiKey = process.env.ELEVENLABS_API_KEY
+    if (!apiKey) throw new Error('Missing ELEVENLABS_API_KEY environment variable')
+
+    let res: Response
+    try {
+      res = await fetch(url, {
+        headers: {
+          'xi-api-key': apiKey,
+        },
+      })
+    } catch (err: any) {
+      throw new Error(`ElevenLabs request failed (network): ${url} - ${err?.message || err}`)
+    }
+
+    if (!res.ok) {
+      const body = await res.text().catch(() => '')
+      throw new Error(`ElevenLabs request failed (${res.status}) ${url}: ${body || res.statusText}`)
+    }
+
+    const raw = await res.text().catch(() => '')
+    return raw
+  }
 }
 
 export default new ElevenLabsRepository()

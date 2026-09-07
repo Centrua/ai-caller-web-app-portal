@@ -132,11 +132,12 @@ export async function handleNylasWebhook(req: Request, res: Response): Promise<v
       }
     }
 
+    res.status(200).json({ received: true })
+
     // Generate a concise reply draft via Gemini for wedding inquiries
     try {
       const { draft } = await geminiReply.generateReply({ originalMessage: obj, threadId, grantId })
       const shouldAuto = await decideAutoSend(grantId)
-      console.log('Should auto-send reply draft:', shouldAuto)
       if (shouldAuto) {
         await sendDraft(nylasRepo, draft, obj, grantId)
       }
