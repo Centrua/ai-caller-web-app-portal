@@ -46,8 +46,6 @@ export class ElevenLabsRepository {
   async getProcedures(agentId: string): Promise<string[] | null> {
     if (!agentId) return null
 
-    console.log('Fetching procedures for agentId:', agentId)
-
     const resp = await this.request(`/convai/agents/${encodeURIComponent(agentId)}`)
 
     if (!resp) return null

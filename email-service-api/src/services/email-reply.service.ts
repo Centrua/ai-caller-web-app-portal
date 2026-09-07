@@ -22,7 +22,7 @@ async function appendKnowledgeBaseToSystemInstruction(systemInstruction: { parts
       agentConfig?.conversation_config?.agent?.prompt?.knowledge_base || agentConfig?.knowledge_base || []
 
     if (!Array.isArray(attachedKbList) || attachedKbList.length === 0) {
-      console.log(`No attached knowledge-base list for agent ${agentId}`)
+      console.error(`No attached knowledge-base list for agent ${agentId}`)
       return
     }
 

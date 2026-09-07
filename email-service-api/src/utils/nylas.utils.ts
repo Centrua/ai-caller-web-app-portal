@@ -7,7 +7,6 @@ export async function isFromConnectedAccount(nylasRepo: NylasRepository, grantId
     const account = await nylasRepo.getGrantAccount(grantId)
     // The Nylas v3 response may be wrapped as { request_id, data: { ...grant... } }
     const grant = (account && (account.data || account)) || account
-    console.log('Fetched account for grant:', grantId)
     const accountEmails: string[] = []
 
     const pushNormalized = (s?: string | null) => {

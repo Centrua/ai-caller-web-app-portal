@@ -98,8 +98,7 @@ export async function handleNylasWebhook(req: Request, res: Response): Promise<v
     } catch (e: any) {
       console.warn('Failed to check venue settings for AI routing:', e?.message || e)
     }
-
-    console.log('Processing inbound message for grant:', grantId, 'from addresses:', fromAddresses)
+    
     if (await isFromConnectedAccount(nylasRepo, grantId, fromAddresses)) {
       console.log('Dropping inbound message from connected account email for grant:', grantId, fromAddresses)
       res.status(200).json({ received: true, stored: false, reason: 'self_address' })

@@ -1,18 +1,5 @@
 import LeadInquiry from '../models/lead-inquiry.model'
 
-export async function createLeadInquiry(payload: any) {
-  const rec = await LeadInquiry.create(payload)
-  return rec
-}
-
-export async function findLeadInquiryById(id: number) {
-  return LeadInquiry.findByPk(id)
-}
-
-export async function findLeadInquiriesByThread(threadId: string) {
-  return LeadInquiry.findAll({ where: { thread_id: threadId } })
-}
-
 export async function findLeadInquiryByThreadAndGrant(threadId: string | null, grantId: string | null) {
   return LeadInquiry.findOne({ where: { thread_id: threadId, grant_id: grantId } })
 }
@@ -47,9 +34,6 @@ export async function upsertLeadInquiryByThreadAndGrant(payload: any) {
 }
 
 export default {
-  createLeadInquiry,
-  findLeadInquiryById,
-  findLeadInquiriesByThread,
   findLeadInquiryByThreadAndGrant,
   upsertLeadInquiryByThreadAndGrant,
 }
