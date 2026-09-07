@@ -19,6 +19,23 @@ function parseHtmlToPlainText(html: string): string {
   return doc.body.textContent || ''
 }
 
+function sanitizeHtmlSpacing(html: string): string {
+  if (!html) return html
+  // normalize CRLF to LF
+  let out = html.replace(/\r\n/g, '\n')
+  // Remove inline top/bottom margins that create extra vertical spacing
+  out = out.replace(/margin-(top|bottom)\s*:\s*[^;"']+;?/gi, '')
+  // Collapse multiple <br/> (or variants) into a single <br/>
+  out = out.replace(/(<br\s*\/?>(?:\s|&nbsp;)*){2,}/gi, '<br/>')
+  // Remove empty paragraphs/divs that only contain whitespace, &nbsp; or break tags
+  out = out.replace(/<(?:p|div)[^>]*>(?:\s|&nbsp;|<br\s*\/?>)*<\/(?:p|div)>/gi, '')
+  // Collapse multiple consecutive newlines in text nodes
+  out = out.replace(/\n{2,}/g, '\n')
+  // Remove stray whitespace between tags
+  out = out.replace(/>\s+</g, '><')
+  return out
+}
+
 export default function EmailConversationDetail({
   selectedConversation,
   onBack,
@@ -199,11 +216,14 @@ export default function EmailConversationDetail({
                     if (!body) return <div className="text-sm text-slate-400 italic">No message content available.</div>
                     const looksLikeHtml = /<\/?(p|br|div|a|span|strong|em|ul|ol|li)/i.test(body)
                     if (looksLikeHtml) {
+                      const sanitized = sanitizeHtmlSpacing(body)
                       return (
-                        <div className="text-sm text-slate-800 whitespace-pre-wrap leading-relaxed" dangerouslySetInnerHTML={{ __html: body }} />
+                        <div className="text-sm text-slate-800 whitespace-pre-wrap leading-relaxed" dangerouslySetInnerHTML={{ __html: sanitized }} />
                       )
                     }
-                    return <div className="text-sm text-slate-800 whitespace-pre-wrap leading-relaxed">{body}</div>
+                    // Collapse excessive blank lines in plain text bodies
+                    const collapsed = body.replace(/\n{2,}/g, '\n')
+                    return <div className="text-sm text-slate-800 whitespace-pre-wrap leading-relaxed">{collapsed}</div>
                   })()
                 }
               </div>
@@ -221,10 +241,17 @@ export default function EmailConversationDetail({
                   </div>
                 </div>
                 {sent.body ? (
-                  <div
-                    className="text-sm text-slate-800 whitespace-pre-wrap leading-relaxed"
-                    dangerouslySetInnerHTML={{ __html: sent.body }}
-                  />
+                  (() => {
+                    const raw = sent.body || ''
+                    const looksLikeHtml = /<\/?(p|br|div|a|span|strong|em|ul|ol|li)/i.test(raw)
+                    if (looksLikeHtml) {
+                      return (
+                        <div className="text-sm text-slate-800 whitespace-pre-wrap leading-relaxed" dangerouslySetInnerHTML={{ __html: sanitizeHtmlSpacing(raw) }} />
+                      )
+                    }
+                    const collapsed = raw.replace(/\n{2,}/g, '\n')
+                    return <div className="text-sm text-slate-800 whitespace-pre-wrap leading-relaxed">{collapsed}</div>
+                  })()
                 ) : (
                   <div className="text-sm text-slate-400 italic">No content available.</div>
                 )}
