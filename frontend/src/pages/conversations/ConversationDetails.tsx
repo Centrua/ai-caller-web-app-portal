@@ -2,7 +2,6 @@ import { useParams, useNavigate } from 'react-router-dom'
 import { useConversationDetails, useConversationAudio } from '../../hooks/useConversationDetails'
 import DataCollectionResults from '../../components/conversations/DataCollectionResults'
 
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL
 
 function formatDate(iso?: string) {
   if (!iso) return '—'
@@ -35,7 +34,7 @@ function displayableValue(raw: any): string | null {
 export default function ConversationDetails() {
   const { id } = useParams()
   const navigate = useNavigate()
-  const { conv, setConv, loading, error } = useConversationDetails(id)
+  const { conv, loading, error } = useConversationDetails(id)
   const { audioUrl, audioLoading } = useConversationAudio(id, conv?.hasAudio)
 
   if (loading) return <div className="p-8">Loading...</div>

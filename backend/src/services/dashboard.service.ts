@@ -142,14 +142,10 @@ export class DashboardService {
       callsThisWeek,
       totalCalls,
       averageCallDurationFormatted: `${minutes}m ${seconds}s`,
-      successfulCalls: successfulCallsCount,
-      successRate: `${successRateValue}%`,
       callsOverTime,
-      // email metrics
       emailsToday,
       emailsThisWeek,
       totalEmailConversations,
-      totalEmailMessages,
       emailsOverTime,
     }
   }

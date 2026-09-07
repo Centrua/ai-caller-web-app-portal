@@ -134,7 +134,7 @@ export default function EmailConversationsTab() {
                       <span className="w-2.5 h-2.5 bg-red-500 rounded-full flex-shrink-0" title="Draft pending"></span>
                     )}
                       <span>{conversationName}</span>
-                      {isTodayIso(firstMsg?.createdAt || c.createdAt || c.startTime) && (
+                      {isTodayIso(firstMsg?.createdAt || c.createdAt) && (
                         <span title="New conversation today" className="ml-3 inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-[#20241C]/10 text-[#2B3528]">New</span>
                       )}
                   </td>
