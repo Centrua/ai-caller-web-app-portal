@@ -122,6 +122,50 @@ export default function Privacy() {
           <p>CENTRUA does not use an individual customer&#39;s call recordings, transcripts, or Customer Data to train a general-purpose AI model.</p>
           <p>CENTRUA may use third-party service providers to operate the Services, including telecommunications providers, cloud infrastructure providers, artificial intelligence providers, analytics providers, hosting providers, and other technology providers.</p>
           <p>Additional information about data practices is available in our Privacy Policy.</p>
+          <h2 id="8-google-user-data">8.1 GOOGLE USER DATA, ACCESS, USE, AND LIMITED USE</h2>
+          <p>When you connect or authorize a Google account or otherwise provide Google-related information to CENTRUA, we may access and process Google user data as necessary to provide the Services and integrations you enable.</p>
+          <p>Categories of Google user data we may access (as applicable and only with your consent) include:</p>
+          <ul>
+            <li>Account profile information (name, email address, profile photo);</li>
+            <li>Contact information (phone numbers, postal addresses) you have provided in your Google account;</li>
+            <li>Calendar events and availability information when you enable calendar integrations;</li>
+            <li>Email metadata and content when you enable email integrations (for example, to provide email routing, conversation summaries, or notifications);</li>
+            <li>Drive files or attachments you explicitly share with CENTRUA for use by the Services;</li>
+            <li>Other Google Workspace or Google Account data you explicitly consent to share.</li>
+          </ul>
+          <p>How we use Google user data:</p>
+          <ul>
+            <li>To provide, operate, and maintain the Services you request (for example, fetching calendar availability, routing messages, or summarizing emails);</li>
+            <li>To improve and personalize user-facing features for your account and configured integrations;</li>
+            <li>To provide notifications, alerts, and other communications you opt into;</li>
+            <li>To detect, prevent, and investigate security, fraud, or abuse;</li>
+            <li>To comply with legal obligations.</li>
+          </ul>
+          <p>Sharing, transfer, and disclosure:</p>
+          <ul>
+            <li>We will not sell your Google user data or disclose it to third parties for advertising, data brokering, or other disallowed purposes;</li>
+            <li>We may share Google user data with trusted service providers and partners who perform services on our behalf (for example, hosting, analytics, telephony, or email providers). Such subprocessors are contractually bound to only process data as instructed and to maintain appropriate safeguards;</li>
+            <li>We do not transfer or disclose Google user data to third parties for purposes prohibited by Google’s API Services User Data Policy (including targeted advertising, data broker sales, or training generalized/non-personalized AI models).</li>
+          </ul>
+          <p>Security and protection:</p>
+          <ul>
+            <li>We implement administrative, physical, and technical safeguards to protect Google user data, including encryption in transit (HTTPS/TLS) and encryption at rest where practicable;</li>
+            <li>Access to Google user data is limited to authorized personnel and service providers who need access to perform their duties;</li>
+            <li>We review and monitor our security practices and require subprocessors to maintain reasonable security measures.</li>
+          </ul>
+          <p>Data retention and deletion:</p>
+          <ul>
+            <li>We retain Google user data only as long as necessary to provide the Services and to satisfy legitimate business, legal, or audit requirements;</li>
+            <li>When the retention period expires or you request deletion, we will delete or anonymize your data unless otherwise required by law or backup/technical constraints;</li>
+            <li>You may request deletion of your Google-related data by contacting us at the email addresses in the Contact section; we will comply with valid deletion requests in a timely manner and will disclose the scope and timing of deletion.</li>
+          </ul>
+          <p>Limited use and AI/ML restrictions:</p>
+          <ul>
+            <li>We limit the use of Google user data to providing, maintaining, and improving user-facing features and integrations as permitted by Google’s API Services User Data Policy;</li>
+            <li>We do not use Google Workspace APIs or Google user data to develop, improve, or train non-personalized or generalized AI/ML models for purposes outside of your account-specific, user-facing features;</li>
+            <li>We do not use Google user data for targeted advertising, selling to data brokers, providing to information resellers, determining credit-worthiness, lending, or other prohibited activities listed in Google’s policy.</li>
+          </ul>
+          <p>For more information about Google’s requirements and our compliance, see Google’s OAuth Verification Help Center and Google Workspace API Policy Protections.</p>
           <h2 id="9-data-retention">9. DATA RETENTION</h2>
           <p>Unless otherwise agreed in writing, CENTRUA generally retains call recordings, transcripts, summaries, and related conversation information for the period necessary to provide the Services and, after termination, for up to 90 days.</p>
           <p>After the applicable retention period, information may be deleted in the ordinary course, subject to:</p>
