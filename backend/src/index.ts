@@ -10,6 +10,7 @@ import venueRouter from './routes/venue.route';
 import nylasAuthRouter from './routes/nylas-auth.route';
 import registerTokenRouter from './routes/register-token.route';
 import emailConversationRouter from './routes/email-conversation.route';
+import outgoingRouter from './routes/outgoing.route';
 import './models'
 
 const app = express();
@@ -29,6 +30,7 @@ app.use('/api/dashboard', dashboardRouter);
 app.use('/api/auth', authRouter);
 app.use('/api/conversations', conversationsRouter);
 app.use('/api/conversations', actionItemsRouter);
+app.use('/api/outgoing-emails', outgoingRouter);
 app.use('/api/knowledge-base', knowledgeBaseRouter);
 app.use('/api/venue', venueRouter);
 app.use('/api/nylas', nylasAuthRouter);
