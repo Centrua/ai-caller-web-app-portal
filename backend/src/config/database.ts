@@ -13,7 +13,7 @@ else {
 export const sequelize = new Sequelize(databaseUrl, {
   dialect: 'postgres',
   dialectModule: pg,
-  logging: process.env.NODE_ENV === 'development' ? console.log : false,
+  logging: false,
   dialectOptions: process.env.NODE_ENV === 'production'
     ? {
         ssl: {

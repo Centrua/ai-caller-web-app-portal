@@ -33,12 +33,24 @@ export default function EmailConversationsTab() {
     })
   }, [conversations, searchQuery])
 
+  // Sort filtered conversations by the most recent activity (newest first)
+  const sortedConversations = useMemo(() => {
+    const getLatestTime = (c: any) => {
+      const msgTimes = (c.messages || []).map((m: any) => new Date(m.createdAt || 0).getTime())
+      const outTimes = (c.outgoing || []).map((o: any) => new Date(o.updatedAt || o.createdAt || 0).getTime())
+      const all = [...msgTimes, ...outTimes]
+      return all.length ? Math.max(...all) : 0
+    }
+
+    return [...filteredConversations].sort((a, b) => getLatestTime(b) - getLatestTime(a))
+  }, [filteredConversations])
+
   useEffect(() => {
     setCurrentPage(1)
   }, [searchQuery])
 
-  const totalPages = Math.ceil(filteredConversations.length / itemsPerPage) || 1
-  const paginatedConversations = filteredConversations.slice(
+  const totalPages = Math.ceil(sortedConversations.length / itemsPerPage) || 1
+  const paginatedConversations = sortedConversations.slice(
     (currentPage - 1) * itemsPerPage,
     currentPage * itemsPerPage
   )
