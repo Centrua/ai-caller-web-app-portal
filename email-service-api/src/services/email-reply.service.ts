@@ -62,7 +62,10 @@ export async function generateReply(opts: GenerateReplyOpts) {
   const snippet = originalMessage.snippet || ''
 
   const systemInstruction = {
-    parts: [{ text: 'You are an assistant that composes concise, professional email replies. DO NOT HALLUCINATE INFORMATION. IF THE INFORMATION IS NOT FOUND IN THE KNOWLEDGE BASE INFORMATION IN THIS SYSTEM PROMPT THEN SAY YOU DONT KNOW FOR CERTAIN AND WILL NOTIFY THE TEAM OF THEIR REQUEST' }],
+    parts: [
+      { text: 'You are an assistant that composes concise, professional email replies. DO NOT HALLUCINATE INFORMATION. IF THE INFORMATION IS NOT FOUND IN THE KNOWLEDGE BASE INFORMATION IN THIS SYSTEM PROMPT THEN SAY YOU DONT KNOW FOR CERTAIN AND WILL NOTIFY THE TEAM OF THEIR REQUEST' },
+      { text: 'Do not repeat closing phrases (for example, "thank you for reaching out" or similar) multiple times. If including a closing, include it at most once.' },
+    ],
   }
 
   if (grantId) {
