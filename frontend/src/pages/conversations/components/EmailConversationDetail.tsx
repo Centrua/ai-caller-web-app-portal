@@ -334,7 +334,6 @@ export default function EmailConversationDetail({
                       value={currentText}
                       ref={(node) => {
                         if (node) {
-                          node.style.height = 'auto'
                           node.style.height = `${node.scrollHeight}px`
                         }
                       }}
