@@ -196,14 +196,16 @@ export default function EmailConversationDetail({
           <div className="bg-white rounded-xl border border-red-200 p-4 text-sm text-red-600">Error loading lead info: {leadError}</div>
         )}
         {leadInfo && (
-          <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden px-6 py-4 mb-6">
-            <h4 className="text-sm font-semibold text-slate-700">Lead Information</h4>
-            <div className="mt-2 text-sm text-slate-800 space-y-1">
-              <div><span className="font-semibold">Name:</span> {leadInfo.lead_name || leadInfo.name || '-'}</div>
-              <div><span className="font-semibold">Phone:</span> {leadInfo.lead_phone || leadInfo.phone || '-'}</div>
-              <div><span className="font-semibold">Guest Count:</span> {leadInfo.guest_count ?? (leadInfo.guestCount ?? '-')}</div>
-              <div><span className="font-semibold">Wedding Date:</span> {leadInfo.wedding_date || leadInfo.weddingDate || '-'}</div>
-              <div><span className="font-semibold">Tour Requested:</span> {typeof leadInfo.tour_requested === 'boolean' ? (leadInfo.tour_requested ? 'Yes' : 'No') : (leadInfo.tourRequested === true ? 'Yes' : (leadInfo.tourRequested === false ? 'No' : '-'))}</div>
+          <div className="space-y-2">
+            <h3 className="text-sm font-semibold text-slate-700 px-1">Lead Information</h3>
+            <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden px-6 py-4 mb-6">
+              <div className="mt-2 text-sm text-slate-800 space-y-1">
+                <div><span className="font-semibold">Name:</span> {leadInfo.lead_name || leadInfo.name || '-'}</div>
+                <div><span className="font-semibold">Phone:</span> {leadInfo.lead_phone || leadInfo.phone || '-'}</div>
+                <div><span className="font-semibold">Guest Count:</span> {leadInfo.guest_count ?? (leadInfo.guestCount ?? '-')}</div>
+                <div><span className="font-semibold">Wedding Date:</span> {leadInfo.wedding_date || leadInfo.weddingDate || '-'}</div>
+                <div><span className="font-semibold">Tour Requested:</span> {typeof leadInfo.tour_requested === 'boolean' ? (leadInfo.tour_requested ? 'Yes' : 'No') : (leadInfo.tourRequested === true ? 'Yes' : (leadInfo.tourRequested === false ? 'No' : '-'))}</div>
+              </div>
             </div>
           </div>
         )}
