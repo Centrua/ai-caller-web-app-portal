@@ -33,6 +33,7 @@ export interface Conversation {
   thread_id: string
   grant_id: string
   subject?: string | null
+  next_action?: string | null
   messages?: Message[]
   outgoing?: Outgoing[]
   createdAt?: string

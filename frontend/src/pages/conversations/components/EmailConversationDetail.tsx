@@ -55,6 +55,9 @@ export default function EmailConversationDetail({
   const [leadInfo, setLeadInfo] = useState<any | null>(null)
   const [leadLoading, setLeadLoading] = useState(false)
   const [leadError, setLeadError] = useState<string | null>(null)
+  const [nextAction, setNextAction] = useState<string | null>(null)
+  const [nextActionLoading, setNextActionLoading] = useState(false)
+  const [nextActionError, setNextActionError] = useState<string | null>(null)
 
   useEffect(() => {
     const initialBodies: Record<number, string> = {}
@@ -95,6 +98,39 @@ export default function EmailConversationDetail({
       }
     }
     fetchLead()
+  }, [selectedConversation])
+
+  useEffect(() => {
+    const fetchNextAction = async () => {
+      setNextAction(null)
+      setNextActionError(null)
+      if (!selectedConversation?.thread_id) return
+      setNextActionLoading(true)
+      try {
+        const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3001'
+        const token = localStorage.getItem('token')
+        if (!token) throw new Error('No authentication token')
+        const res = await fetch(`${API_BASE_URL}/api/email-conversations/${selectedConversation.thread_id}/next-action`, {
+          headers: { 'Authorization': `Bearer ${token}` }
+        })
+        if (!res.ok) {
+          if (res.status === 404) {
+            setNextAction(null)
+            return
+          }
+          const json = await res.json().catch(() => ({}))
+          throw new Error(json.error || 'Failed to fetch next action')
+        }
+        const json = await res.json()
+        setNextAction(json?.next_action ?? null)
+      } catch (err: any) {
+        console.error('[FetchNextAction Error]', err)
+        setNextActionError(err.message || 'Failed to fetch next action')
+      } finally {
+        setNextActionLoading(false)
+      }
+    }
+    fetchNextAction()
   }, [selectedConversation])
 
   const handleBodyChange = (draftId: number, value: string) => {
@@ -160,6 +196,12 @@ export default function EmailConversationDetail({
           <h2 className="text-xl font-semibold text-slate-900 leading-snug">
             {conversationName}
           </h2>
+          {/* Display machine-friendly next action if present */}
+          {((nextAction ?? selectedConversation?.next_action)) && (
+            <div className="ml-6 text-sm text-slate-700 px-3 py-2 rounded-md bg-amber-50 border border-amber-100">
+              <strong className="mr-1">Next Action:</strong> {nextAction ?? selectedConversation?.next_action}
+            </div>
+          )}
           {draftOutgoing.length > 0 && (
             <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-amber-50 text-amber-800 border border-amber-200">
               <span className="w-2 h-2 mr-1.5 bg-red-500 rounded-full animate-pulse"></span>

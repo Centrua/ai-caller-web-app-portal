@@ -2,6 +2,8 @@ import { ElevenLabsRepository } from '../repositories/http/eleven-labs.repositor
 import { GeminiRepository, GeminiRequestDto } from '../repositories/http/gemini.repository'
 import { NylasRepository } from '../repositories/http/nylas.repository'
 import messageRepo from '../repositories/message.repository'
+import conversationRepo from '../repositories/conversation.repository'
+import { determineNextAction } from './email-next-action.service'
 import outgoingRepo from '../repositories/outgoing.repository'
 import leadRepo from '../repositories/lead-inquiry.repository'
 import leadService from './lead-extraction.service'
@@ -174,6 +176,39 @@ export async function generateReply(opts: GenerateReplyOpts) {
     }
   } catch (e) {
     console.warn('Failed to persist lead inquiry:', (e as any)?.message || e)
+  }
+
+  // Determine and persist a machine-friendly next action for the conversation
+  try {
+    const latest = await messageRepo.findLatestMessageInThread(threadId || null, grantId || null)
+    const nextActionValue = await determineNextAction({
+      latestMessageBody: latest && (latest as any).body ? (latest as any).body : null,
+      originalMessage: body || null,
+      assistantReplyHtml: html || null,
+    })
+
+    if (nextActionValue && threadId) {
+      try {
+        try {
+          const convo = await conversationRepo.findConversationByThreadAndGrant(threadId, grantId)
+          if (convo) {
+            ;(convo as any).next_action = nextActionValue
+            await convo.save()
+          } else {
+            // create a minimal conversation record and set next_action
+            const newConvo = await conversationRepo.createConversationFromMessage({ thread_id: threadId, grant_id: grantId || null, subject: originalMessage?.subject || null })
+            ;(newConvo as any).next_action = nextActionValue
+            await newConvo.save()
+          }
+        } catch (e) {
+          console.warn('Failed to persist next_action to local conversations table:', (e as any)?.message || e)
+        }
+      } catch (e) {
+        console.warn('Failed to persist conversation next_action:', (e as any)?.message || e)
+      }
+    }
+  } catch (e) {
+    console.warn('Failed to determine next_action for conversation:', (e as any)?.message || e)
   }
 
   return { draft, html, response }

@@ -6,6 +6,7 @@ interface ConversationAttributes {
   thread_id: string
   grant_id: string
   subject?: string | null
+  next_action?: string | null
 }
 
 type ConversationCreationAttributes = Optional<ConversationAttributes, 'id'>
@@ -15,6 +16,7 @@ export class Conversation extends Model<ConversationAttributes, ConversationCrea
   public thread_id!: string
   public grant_id!: string
   public subject!: string | null
+  public next_action!: string | null
 }
 
 Conversation.init(
@@ -23,6 +25,7 @@ Conversation.init(
     thread_id: { type: DataTypes.STRING, allowNull: false },
     grant_id: { type: DataTypes.STRING, allowNull: false },
     subject: { type: DataTypes.STRING },
+    next_action: { type: DataTypes.TEXT },
   },
   {
     tableName: 'conversations',

@@ -1,7 +1,9 @@
 import Conversation from '../models/conversation.model'
 
-export async function findConversationByThreadAndGrant(threadId: string, grantId: string) {
-  return Conversation.findOne({ where: { thread_id: threadId, grant_id: grantId } })
+export async function findConversationByThreadAndGrant(threadId: string, grantId?: string | null) {
+  const where: any = { thread_id: threadId }
+  if (grantId !== undefined && grantId !== null) where.grant_id = grantId
+  return Conversation.findOne({ where })
 }
 
 export async function createConversationFromMessage(message: any) {

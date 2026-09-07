@@ -5,5 +5,6 @@ import { authenticateToken } from '../middleware/auth.middleware'
 const router = Router()
 
 router.get('/', authenticateToken, EmailConversationController.getConversations)
+router.get('/:threadId/next-action', authenticateToken, EmailConversationController.getNextAction)
 
 export default router
