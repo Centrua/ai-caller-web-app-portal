@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
+import { Helmet } from 'react-helmet-async'
 import { useLogin } from '../../hooks/authHooks'
 
 export default function Login() {
@@ -18,6 +19,16 @@ export default function Login() {
 
     return (
         <div className="min-h-screen bg-slate-50 flex items-center justify-center p-4 relative">
+            <Helmet>
+                <title>Sign In to Venue Portal | Centrua AI</title>
+                <meta name="description" content="Sign in to your Centrua AI venue portal to manage inbound calls, voice AI interactions, and automated booking inquiries." />
+                <meta property="og:title" content="Sign In to Venue Portal | Centrua AI" />
+                <meta property="og:description" content="Sign in to your Centrua AI venue portal to manage inbound calls, voice AI interactions, and automated booking inquiries." />
+                <meta property="og:type" content="website" />
+                <meta property="og:url" content="https://centruaai.com/login" />
+                <link rel="canonical" href="https://centruaai.com/login" />
+            </Helmet>
+
             <Link
                 to="/"
                 className="absolute top-6 left-6 inline-flex items-center gap-1.5 text-sm font-medium text-slate-500 hover:text-slate-900 transition-colors"

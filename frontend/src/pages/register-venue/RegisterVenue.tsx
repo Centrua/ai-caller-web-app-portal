@@ -1,5 +1,6 @@
 import React, { useState } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
+import { Helmet } from 'react-helmet-async'
 import { useCreateVenue } from '../../hooks/venueHooks'
 
 interface RegisterVenueForm {
@@ -134,6 +135,19 @@ export const RegisterVenue: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-slate-100 flex items-center justify-center p-4 lg:p-8 relative">
+      {/* Metadata */}
+      <Helmet>
+        <title>Register Your Wedding Venue | Centrua AI</title>
+        <meta name="description" content="Register your wedding or event venue with Centrua AI to automate your inbound phone calls, voice routing, and email inquiries." />
+        <meta property="og:title" content="Register Your Wedding Venue | Centrua AI" />
+        <meta property="og:description" content="Register your wedding or event venue with Centrua AI to automate your inbound phone calls, voice routing, and email inquiries." />
+        <meta property="og:type" content="website" />
+        <meta property="og:url" content="https://centruaai.com/register-venue" />
+        <meta property="og:image" content="https://centruaai.com/logo.png" />
+        <meta name="twitter:card" content="summary_large_image" />
+        <link rel="canonical" href="https://centruaai.com/register-venue" />
+      </Helmet>
+
       {/* Back button */}
       <Link
         to="/"

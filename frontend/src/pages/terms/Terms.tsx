@@ -1,8 +1,19 @@
 import { Link } from 'react-router-dom'
+import { Helmet } from 'react-helmet-async'
 
 export default function Terms() {
   return (
     <div className="min-h-screen bg-white text-slate-900">
+      <Helmet>
+        <title>Terms & Conditions | Centrua AI</title>
+        <meta name="description" content="Review Centrua AI's privacy policy detailing our data collection, security, usage, and privacy rights regarding our AI receptionist services." />
+        <meta property="og:title" content="Terms & Conditions | Centrua AI" />
+        <meta property="og:description" content="Review Centrua AI's privacy policy detailing our data collection, security, usage, and privacy rights regarding our AI receptionist services." />
+        <meta property="og:type" content="website" />
+        <meta property="og:url" content="https://centruaai.com/terms" />
+        <link rel="canonical" href="https://centruaai.com/terms" />
+      </Helmet>
+
       <div className="max-w-4xl mx-auto px-8 py-20">
         <h1 className="text-3xl font-bold mb-4">Terms & Conditions</h1>
         <p className="text-slate-600 mb-4">Last updated: September 2026</p>
