@@ -113,6 +113,20 @@ export async function handleNylasWebhook(req: Request, res: Response): Promise<v
     let existingConversation: any = null
     let isWedding = false
 
+    // Dedupe: if we already created a draft for this exact original message + thread + grant, skip generation
+    try {
+      if (threadId && obj.id) {
+        const existing = await outgoingRepo.findDraftByOriginalThreadGrant(String(obj.id), String(threadId), grantId || null)
+        if (existing) {
+          console.info(`[Nylas] existing draft found for message ${obj.id}, thread ${threadId}, grant ${grantId}; skipping reply generation`)
+          return
+        }
+      }
+    } catch (e) {
+      console.warn('Failed to check existing drafts for dedupe:', (e as any)?.message || e)
+      // On error, continue to avoid blocking processing
+    }
+
     if (threadId && grantId) {
       existingConversation = await conversationRepo.findConversationByThreadAndGrant(threadId, grantId)
       if (existingConversation) {
@@ -149,20 +163,6 @@ export async function handleNylasWebhook(req: Request, res: Response): Promise<v
 
     // Generate a concise reply draft via Gemini for wedding inquiries
     try {
-      // Dedupe: if we already created a draft for this exact original message + thread + grant, skip generation
-      try {
-        if (threadId && obj.id) {
-          const existing = await outgoingRepo.findDraftByOriginalThreadGrant(String(obj.id), String(threadId), grantId || null)
-          if (existing) {
-            console.info(`[Nylas] existing draft found for message ${obj.id}, thread ${threadId}, grant ${grantId}; skipping reply generation`)
-            return
-          }
-        }
-      } catch (e) {
-        console.warn('Failed to check existing drafts for dedupe:', (e as any)?.message || e)
-        // On error, continue to avoid blocking processing
-      }
-
       const { draft } = await geminiReply.generateReply({ originalMessage: obj, threadId, grantId })
       const shouldAuto = await decideAutoSend(grantId)
       if (shouldAuto) {
