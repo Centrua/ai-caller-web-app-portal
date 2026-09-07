@@ -59,7 +59,7 @@ export async function generateReply(opts: GenerateReplyOpts) {
   const { originalMessage, threadId, grantId } = opts
 
   const subject = originalMessage.subject || ''
-  const snippet = originalMessage.snippet || ''
+  const body = originalMessage.body
 
   const systemInstruction = {
     parts: [
@@ -93,7 +93,7 @@ export async function generateReply(opts: GenerateReplyOpts) {
       // precedence over an agent-configured system prompt.
       systemInstruction.parts.unshift({
         text:
-          'TOP PRIORITY: Do not ask repeated clarifying questions. Always examine the full conversation history provided in the snippet and do not request information already present. If information is missing, include at most one concise request for the missing fields and then finish the reply. If the assistant previously asked a clarifying question in this thread and the sender did not provide new information, do NOT repeat that question; instead conclude the reply and state the next steps (e.g., notify the team). Do not loop asking for the same information.'
+          'TOP PRIORITY: Do not ask repeated clarifying questions. Always examine the full conversation history provided in the message body and do not request information already present. If information is missing, include at most one concise request for the missing fields and then finish the reply. If the assistant previously asked a clarifying question in this thread and the sender did not provide new information, do NOT repeat that question; instead conclude the reply and state the next steps (e.g., notify the team). Do not loop asking for the same information.'
       })
     } catch (e) {
       // Fail gracefully and continue with default system instruction
@@ -102,13 +102,13 @@ export async function generateReply(opts: GenerateReplyOpts) {
   }
 
   const userParts = [] as Array<{ text: string }>
-  if (snippet) userParts.push({ text: `Message snippet: ${snippet}` })
+  if (body) userParts.push({ text: `Message body: ${body}` })
   userParts.push({ text: 'Compose a concise reply of 3-5 sentences addressing the sender and answering any obvious questions. Do not include attachments. Keep it polite and clear.' })
   // Request HTML output from the model so we can send properly formatted email bodies
   userParts.push({ text: 'Respond with HTML only: produce an HTML fragment suitable for an email body (use <p> for paragraphs and <br/> for line breaks). Do not include <html>, <head>, or <body> tags. Avoid external CSS and inline styles; simple semantic HTML only.' })
 
   // Lead extraction and prompts delegated to leadService
-  const leadPrep = await leadService.prepareLeadForReply({ systemParts: systemInstruction.parts, snippet, originalMessage, threadId, grantId })
+  const leadPrep = await leadService.prepareLeadForReply({ systemParts: systemInstruction.parts, body, originalMessage, threadId, grantId })
   const extracted = leadPrep.leadExtractionResult
   let leadExtractionResult: any = null
   if (extracted) {

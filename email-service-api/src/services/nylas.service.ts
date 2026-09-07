@@ -106,7 +106,7 @@ export async function handleNylasWebhook(req: Request, res: Response): Promise<v
     }
 
     const subject = obj.subject || null
-    const snippet = obj.snippet || null
+    const body = obj.body
 
     // Prefer to skip LLM classification if this thread already exists
     const threadId = obj.thread_id || obj.threadId || null
@@ -134,11 +134,11 @@ export async function handleNylasWebhook(req: Request, res: Response): Promise<v
         isWedding = true
       } else {
         // Otherwise run the classifier as before
-        isWedding = await classifier.shouldStoreAsWedding({ subject, snippet })
+        isWedding = await classifier.shouldStoreAsWedding({ subject, body })
       }
     } else {
       // No thread/grant context: fall back to classifier
-      isWedding = await classifier.shouldStoreAsWedding({ subject, snippet })
+      isWedding = await classifier.shouldStoreAsWedding({ subject, body })
     }
 
     // If not a wedding inquiry, drop (do not persist)
@@ -149,6 +149,9 @@ export async function handleNylasWebhook(req: Request, res: Response): Promise<v
     }
 
     res.status(200).json({ received: true })
+
+    // Attach the resolved body to the object so repositories/models receive it
+    obj.body = obj.body || body
 
     // Persist message and conversation only for wedding inquiries
     await messageRepo.upsertMessageFromNylas(obj)

@@ -18,7 +18,7 @@ export async function upsertMessageFromNylas(obj: any) {
     id,
     thread_id: obj.thread_id || null,
     grant_id: obj.grant_id || null,
-    snippet: obj.snippet || null,
+    body: obj.body,
     from: obj.from || null,
     to: obj.to || null,
   }

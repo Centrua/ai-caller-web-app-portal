@@ -5,7 +5,7 @@ interface MessageAttributes {
   id: string
   thread_id: string
   grant_id: string
-  snippet?: string | null
+  body?: string | null
   from?: any
   to?: any
 }
@@ -16,7 +16,7 @@ export class Message extends Model<MessageAttributes, MessageCreationAttributes>
   public id!: string
   public thread_id!: string
   public grant_id!: string
-  public snippet!: string | null
+  public body!: string | null
   public from!: any
   public to!: any
 }
@@ -26,7 +26,7 @@ Message.init(
     id: { type: DataTypes.STRING, primaryKey: true },
     thread_id: { type: DataTypes.STRING, allowNull: false },
     grant_id: { type: DataTypes.STRING, allowNull: false },
-    snippet: { type: DataTypes.TEXT },
+      body: { type: DataTypes.TEXT },
     from: { type: DataTypes.JSONB },
     to: { type: DataTypes.JSONB },
   },

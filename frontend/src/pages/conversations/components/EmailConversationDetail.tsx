@@ -193,9 +193,19 @@ export default function EmailConversationDetail({
                     {msg.createdAt ? new Date(msg.createdAt).toLocaleString() : ''}
                   </div>
                 </div>
-                <div className="text-sm text-slate-800 whitespace-pre-wrap leading-relaxed">
-                  {msg.snippet || 'No message content available.'}
-                </div>
+                {
+                    (() => {
+                    const body = (msg as any).body || ''
+                    if (!body) return <div className="text-sm text-slate-400 italic">No message content available.</div>
+                    const looksLikeHtml = /<\/?(p|br|div|a|span|strong|em|ul|ol|li)/i.test(body)
+                    if (looksLikeHtml) {
+                      return (
+                        <div className="text-sm text-slate-800 whitespace-pre-wrap leading-relaxed" dangerouslySetInnerHTML={{ __html: body }} />
+                      )
+                    }
+                    return <div className="text-sm text-slate-800 whitespace-pre-wrap leading-relaxed">{body}</div>
+                  })()
+                }
               </div>
             )
           } else {
