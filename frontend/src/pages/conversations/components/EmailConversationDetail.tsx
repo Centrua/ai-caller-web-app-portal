@@ -56,8 +56,6 @@ export default function EmailConversationDetail({
   const [leadLoading, setLeadLoading] = useState(false)
   const [leadError, setLeadError] = useState<string | null>(null)
   const [nextAction, setNextAction] = useState<string | null>(null)
-  const [nextActionLoading, setNextActionLoading] = useState(false)
-  const [nextActionError, setNextActionError] = useState<string | null>(null)
 
   useEffect(() => {
     const initialBodies: Record<number, string> = {}
@@ -103,9 +101,7 @@ export default function EmailConversationDetail({
   useEffect(() => {
     const fetchNextAction = async () => {
       setNextAction(null)
-      setNextActionError(null)
       if (!selectedConversation?.thread_id) return
-      setNextActionLoading(true)
       try {
         const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3001'
         const token = localStorage.getItem('token')
@@ -125,9 +121,7 @@ export default function EmailConversationDetail({
         setNextAction(json?.next_action ?? null)
       } catch (err: any) {
         console.error('[FetchNextAction Error]', err)
-        setNextActionError(err.message || 'Failed to fetch next action')
       } finally {
-        setNextActionLoading(false)
       }
     }
     fetchNextAction()
