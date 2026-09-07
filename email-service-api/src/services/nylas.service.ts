@@ -99,7 +99,6 @@ export async function handleNylasWebhook(req: Request, res: Response): Promise<v
       console.warn('Failed to check venue settings for AI routing:', e?.message || e)
     }
 
-    console.log('Processing inbound message for grant:', grantId, 'from addresses:', fromAddresses)
     if (await isFromConnectedAccount(nylasRepo, grantId, fromAddresses)) {
       console.log('Dropping inbound message from connected account email for grant:', grantId, fromAddresses)
       res.status(200).json({ received: true, stored: false, reason: 'self_address' })
@@ -119,6 +118,10 @@ export async function handleNylasWebhook(req: Request, res: Response): Promise<v
       return
     }
 
+    if (!res.headersSent) {
+      res.status(200).json({ received: true })
+    }
+
     // Persist message and conversation only for wedding inquiries
     await messageRepo.upsertMessageFromNylas(obj)
 
@@ -136,18 +139,20 @@ export async function handleNylasWebhook(req: Request, res: Response): Promise<v
     try {
       const { draft } = await geminiReply.generateReply({ originalMessage: obj, threadId, grantId })
       const shouldAuto = await decideAutoSend(grantId)
-      console.log('Should auto-send reply draft:', shouldAuto)
       if (shouldAuto) {
         await sendDraft(nylasRepo, draft, obj, grantId)
       }
     } catch (genErr: any) {
       console.error('Failed to generate reply draft:', genErr?.message || genErr)
     }
-
-    res.status(200).json({ received: true })
   } catch (err: any) {
     console.error('Error processing Nylas webhook:', err?.message || err)
-    res.status(400).json({ success: false, error: err?.message || 'Invalid payload' })
+    // If we've already sent a response (success or challenge), don't attempt to send another.
+    if (!res.headersSent) {
+      res.status(400).json({ success: false, error: err?.message || 'Invalid payload' })
+    } else {
+      console.warn('Response already sent to Nylas; cannot send error response')
+    }
   }
 }
 

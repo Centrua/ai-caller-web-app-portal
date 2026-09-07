@@ -3,12 +3,14 @@ import Conversation from './conversation.model'
 import Message from './message.model'
 import Venue from './venue.model'
 import Outgoing from './outgoing.model'
+import LeadInquiry from './lead-inquiry.model'
 
 const models = {
   Conversation,
   Message,
   Venue,
   Outgoing,
+  LeadInquiry,
 }
 
 Object.keys(models).forEach((modelName) => {
@@ -18,5 +20,5 @@ Object.keys(models).forEach((modelName) => {
   }
 })
 
-export { sequelize, Conversation, Message, Venue, Outgoing }
+export { sequelize, Conversation, Message, Venue, Outgoing, LeadInquiry }
 export default models

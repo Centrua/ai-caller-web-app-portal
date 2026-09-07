@@ -1,5 +1,4 @@
 import Venue from '../models/venue.model'
-import VenueSettings from '../models/venue-settings.model'
 
 export class VenueRepository {
   async getAutoSendByGrant(grantId: string): Promise<boolean | null> {
@@ -24,6 +23,20 @@ export class VenueRepository {
     const s = (v as any).settings
     if (!s) return null
     return { auto_send_replies: !!s.auto_send_replies, email_ai_routing: !!s.email_ai_routing }
+  }
+
+  async getVenueNameByGrant(grantId: string): Promise<string | null> {
+    const v = await Venue.findOne({ where: { nylas_grant_id: grantId }, attributes: ['name'] })
+    if (!v) return null
+    // @ts-ignore
+    return (v as any).name || null
+  }
+
+  async getAgentIdByGrant(grantId: string): Promise<string | null> {
+    const v = await Venue.findOne({ where: { nylas_grant_id: grantId }, attributes: ['elevenlabs_agent_id'] })
+    if (!v) return null
+    // @ts-ignore
+    return (v as any).elevenlabs_agent_id || null
   }
 }
 
