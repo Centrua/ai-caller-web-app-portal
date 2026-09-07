@@ -110,7 +110,7 @@ export default function PhoneCallConversationsTab() {
           <thead>
             <tr className="border-b border-slate-100 bg-slate-50">
               <th className="text-left px-6 py-3.5 text-xs font-semibold text-slate-500 uppercase tracking-wide">Date</th>
-              <th className="text-left px-6 py-3.5 text-xs font-semibold text-slate-500 uppercase tracking-wide">Caller</th>
+              <th className="text-left px-6 py-3.5 text-xs font-semibold text-slate-500 uppercase tracking-wide">Title</th>
               <th className="text-left px-6 py-3.5 text-xs font-semibold text-slate-500 uppercase tracking-wide">Duration</th>
               <th className="text-right px-6 py-3.5 text-xs font-semibold text-slate-500 uppercase tracking-wide"></th>
             </tr>
