@@ -128,16 +128,6 @@ export default function Register() {
 
             <div className="w-full max-w-md grid grid-cols-1 gap-6">
                 <div className="bg-white border border-slate-200 rounded-2xl shadow-sm p-8 flex flex-col justify-center">
-                    {/* Top helper link */}
-                    <div className="flex justify-end items-center mb-6">
-                        <Link
-                            to="/login"
-                            className="text-xs font-medium text-slate-500 hover:text-[#2B3528] transition-colors border border-slate-200 px-4 py-2 rounded-xl hover:border-slate-300"
-                        >
-                            Already registered? <span className="text-[#2B3528] font-semibold">Log in</span>
-                        </Link>
-                    </div>
-                    
                     <div className="flex justify-center mb-6">
                         <div className="w-12 h-12 rounded-xl bg-[#2B3528] flex items-center justify-center">
                             <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -253,6 +243,14 @@ export default function Register() {
                             {loading ? 'Creating account...' : 'Sign up'}
                         </button>
                     </form>
+                    <div className="flex justify-center items-center mt-6">
+                        <Link
+                            to="/login"
+                            className="text-sm font-medium text-slate-500 hover:text-[#2B3528] transition-colors border border-slate-200 px-4 py-2 rounded-xl hover:border-slate-300"
+                        >
+                            Already have an account? <span className="text-[#2B3528] font-semibold">Log in</span>
+                        </Link>
+                    </div>
                 </div>
             </div>
         </div>
