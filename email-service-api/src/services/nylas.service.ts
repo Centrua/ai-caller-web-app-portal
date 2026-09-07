@@ -119,6 +119,8 @@ export async function handleNylasWebhook(req: Request, res: Response): Promise<v
       return
     }
 
+    res.status(200).json({ received: true })
+
     // Persist message and conversation only for wedding inquiries
     await messageRepo.upsertMessageFromNylas(obj)
 
@@ -132,8 +134,6 @@ export async function handleNylasWebhook(req: Request, res: Response): Promise<v
       }
     }
 
-    res.status(200).json({ received: true })
-
     // Generate a concise reply draft via Gemini for wedding inquiries
     try {
       const { draft } = await geminiReply.generateReply({ originalMessage: obj, threadId, grantId })
@@ -144,8 +144,6 @@ export async function handleNylasWebhook(req: Request, res: Response): Promise<v
     } catch (genErr: any) {
       console.error('Failed to generate reply draft:', genErr?.message || genErr)
     }
-
-    res.status(200).json({ received: true })
   } catch (err: any) {
     console.error('Error processing Nylas webhook:', err?.message || err)
     res.status(400).json({ success: false, error: err?.message || 'Invalid payload' })

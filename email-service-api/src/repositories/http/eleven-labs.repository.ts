@@ -131,10 +131,9 @@ export class ElevenLabsRepository {
     return await this.request(path)
   }
 
-  async getKnowledgeBaseFiles(pageSize: number = 100): Promise<{ documents: any[]; has_more?: boolean }> {
-    const query = pageSize ? `?page_size=${encodeURIComponent(String(pageSize))}` : ''
-    const data = await this.request(`/convai/knowledge-base${query}`)
-    return { documents: data?.documents || data?.knowledge_base_documents || [], has_more: data?.has_more || false }
+  async getKnowledgeBaseFiles(): Promise<{ documents: any[]; has_more?: boolean }> {
+    const data = await this.request(`/convai/knowledge-base`)
+    return { documents: data?.documents}
   }
 
   async getKnowledgeBaseContent(documentId: string): Promise<string> {

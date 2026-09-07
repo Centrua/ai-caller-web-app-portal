@@ -1,15 +1,13 @@
-import { GeminiRepository, GeminiRequestDto } from '../repositories/http/gemini.repository'
-import outgoingRepo from '../repositories/outgoing.repository'
-import messageRepo from '../repositories/message.repository'
-import { NylasRepository } from '../repositories/http/nylas.repository'
-import VenueService from './venue.service'
-import ProcedureService from './agent-procedure.service'
-import PromptService from './agent-prompt.service'
 import { ElevenLabsRepository } from '../repositories/http/eleven-labs.repository'
+import { GeminiRepository, GeminiRequestDto } from '../repositories/http/gemini.repository'
+import { NylasRepository } from '../repositories/http/nylas.repository'
+import messageRepo from '../repositories/message.repository'
+import outgoingRepo from '../repositories/outgoing.repository'
+import PromptService from './agent-prompt.service'
+import VenueService from './venue.service'
 
 const gemini = new GeminiRepository()
 const nylasRepo = new NylasRepository()
-const procedureService = new ProcedureService()
 const promptService = new PromptService()
 const elevenLabsRepo = new ElevenLabsRepository()
 
@@ -17,12 +15,15 @@ async function appendKnowledgeBaseToSystemInstruction(systemInstruction: { parts
   if (!agentId) return
 
   try {
-    const kbResp = await elevenLabsRepo.getKnowledgeBaseFiles(100)
+    const kbResp = await elevenLabsRepo.getKnowledgeBaseFiles()
+    console.log(kbResp)
     const docs = kbResp.documents || []
     const matching = docs.filter((d: any) => {
       const deps = Array.isArray(d.dependent_agents) ? d.dependent_agents : []
       return deps.some((x: any) => x && x.id === agentId)
     })
+
+    console.log('Matching knowledge base documents for agent:', matching)
 
     for (const doc of matching) {
       try {
@@ -36,6 +37,8 @@ async function appendKnowledgeBaseToSystemInstruction(systemInstruction: { parts
         console.warn('Failed to fetch KB content for', doc.id, (e as any)?.message || e)
       }
     }
+
+    console.log('Updated system instruction with knowledge base content:', systemInstruction)
   } catch (e) {
     console.warn('Failed to fetch knowledge-base documents:', (e as any)?.message || e)
   }
