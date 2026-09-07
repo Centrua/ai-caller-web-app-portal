@@ -5,16 +5,16 @@ const gemini = new GeminiRepository()
 
 export interface LeadPrepOpts {
   systemParts: Array<{ text: string }>
-  snippet?: string
+  body?: string
   originalMessage?: any
   threadId?: string | null
   grantId?: string | null
 }
 
-export async function extractLeadInfo(systemParts: Array<{ text: string }>, snippetText: string) {
+export async function extractLeadInfo(systemParts: Array<{ text: string }>, bodyText: string) {
   const extractSystem = { parts: systemParts }
   const extractUserParts = [] as Array<{ text: string }>
-  if (snippetText) extractUserParts.push({ text: `Message snippet: ${snippetText}` })
+  if (bodyText) extractUserParts.push({ text: `Message body: ${bodyText}` })
   extractUserParts.push({ text: 'You will ONLY output JSON. DO NOT HALLUCINATE OR GUESS. Determine whether the sender is a potential event lead (true/false).' })
   extractUserParts.push({ text: 'If they are a potential lead, extract ONLY explicitly-provided fields from the thread into a JSON object with these keys: lead_name, lead_phone, wedding_date, guest_count, tour_requested. Use null or omit keys that are not explicitly present. Also include a boolean `is_potential_lead` and an array `missing_fields` listing which of the above fields are missing and would be useful to collect. Return a single valid JSON object and nothing else.' })
 
@@ -44,8 +44,8 @@ export async function extractLeadInfo(systemParts: Array<{ text: string }>, snip
 }
 
 export async function prepareLeadForReply(opts: LeadPrepOpts) {
-  const { systemParts, snippet, originalMessage, threadId, grantId } = opts
-  const extraction = await extractLeadInfo(systemParts, snippet || '')
+  const { systemParts, body, originalMessage, threadId, grantId } = opts
+  const extraction = await extractLeadInfo(systemParts, body || '')
   const extracted = extraction.parsed
 
   const result: { leadExtractionResult: any; userPrompts: string[] } = { leadExtractionResult: null, userPrompts: [] }
@@ -76,7 +76,7 @@ export async function prepareLeadForReply(opts: LeadPrepOpts) {
   if (missing.length > 0) {
     result.userPrompts.push(`The sender appears to be a potential event lead. Collect only the missing information naturally and politely: ${missing.join(', ')}. Do NOT ask for information already provided in the thread or already stored in the system. Do NOT repeat a clarifying question that already appears earlier in the conversation if the sender did not answer; instead, offer next steps or state you'll notify the team.`)
   } else {
-    result.userPrompts.push('All required lead fields are present in the thread or in system records. Do not ask any follow-up questions. If no additional information is present beyond what is in the snippet, conclude the reply and state next steps.')
+    result.userPrompts.push('All required lead fields are present in the thread or in system records. Do not ask any follow-up questions. If no additional information is present beyond what is in the message body, conclude the reply and state next steps.')
   }
 
   // Instruction to include machine-readable block if contact details are present

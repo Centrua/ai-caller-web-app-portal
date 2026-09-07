@@ -11,38 +11,38 @@ const DEFAULT_THRESHOLD = parseFloat(process.env.CLASSIFIER_CONFIDENCE_THRESHOLD
 
 const gemini = new GeminiRepository()
 
-function buildPrompt(subject: string, snippet: string) {
-  const system = `You are a wedding venue inquiry classifier. Analyze the email subject and snippet and determine if it's a wedding-related inquiry. Respond ONLY with valid JSON exactly matching the schema: {"is_wedding_inquiry": boolean, "confidence": number, "category": string ("wedding"|"catering"|"corporate_event"|"other"), "reasoning": string }`
+function buildPrompt(subject: string, body: string) {
+  const system = `You are a wedding venue inquiry classifier. Analyze the email subject and body and determine if it's a wedding-related inquiry. Respond ONLY with valid JSON exactly matching the schema: {"is_wedding_inquiry": boolean, "confidence": number, "category": string ("wedding"|"catering"|"corporate_event"|"other"), "reasoning": string }`
 
   const examples = [
     {
       subject: 'Wedding on June 15th - Question about availability',
-      snippet: "Hi, we're looking to host our wedding reception for 150 guests on June 15, 2025. Do you have that date available? We're interested in learning about your catering packages.",
+      body: "Hi, we're looking to host our wedding reception for 150 guests on June 15, 2025. Do you have that date available? We're interested in learning about your catering packages.",
       out: { is_wedding_inquiry: true, confidence: 0.99, category: 'wedding', reasoning: 'Mentions wedding reception, guest count and date.' },
     },
     {
       subject: 'Q3 Team Building Event',
-      snippet: 'We need to book your venue for a company off-site with 60 employees. Looking for a date in July that works for a 2-day event with breakout rooms.',
+      body: 'We need to book your venue for a company off-site with 60 employees. Looking for a date in July that works for a 2-day event with breakout rooms.',
       out: { is_wedding_inquiry: false, confidence: 0.98, category: 'corporate_event', reasoning: 'Company event language (employees, team building).' },
     },
   ]
 
   let prompt = system + '\n\n'
   examples.forEach((ex) => {
-    prompt += `Subject: ${ex.subject}\nSnippet: ${ex.snippet}\nResponse: ${JSON.stringify(ex.out)}\n\n`
+    prompt += `Subject: ${ex.subject}\nBody: ${ex.body}\nResponse: ${JSON.stringify(ex.out)}\n\n`
   })
 
-  prompt += `Subject: ${subject}\nSnippet: ${snippet}\nResponse:`
+  prompt += `Subject: ${subject}\nBody: ${body}\nResponse:`
 
   return { system, prompt }
 }
 
-export async function classifyWeddingInquiry(input: { subject?: string; snippet?: string }): Promise<ClassificationResult> {
+export async function classifyWeddingInquiry(input: { subject?: string; body?: string }): Promise<ClassificationResult> {
   const subject = (input.subject || '').trim()
-  const snippet = (input.snippet || '').trim()
+  const body = (input.body || '').trim()
 
   // Build prompt payload for Gemini
-  const { system, prompt } = buildPrompt(subject, snippet)
+  const { system, prompt } = buildPrompt(subject, body)
 
   const payload = {
     system_instruction: { parts: [{ text: system }] },
@@ -92,7 +92,7 @@ export async function classifyWeddingInquiry(input: { subject?: string; snippet?
   }
 }
 
-export async function shouldStoreAsWedding(input: { subject?: string; snippet?: string }): Promise<boolean> {
+export async function shouldStoreAsWedding(input: { subject?: string; body?: string }): Promise<boolean> {
   const res = await classifyWeddingInquiry(input)
   const threshold = DEFAULT_THRESHOLD || 0.8
   console.log('Classification result:', res, 'Threshold:', threshold)

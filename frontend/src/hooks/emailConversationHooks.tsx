@@ -8,7 +8,7 @@ export interface Message {
   thread_id: string
   grant_id: string
   subject?: string | null
-  snippet?: string | null
+  body?: string | null
   from?: any
   to?: any
   createdAt?: string
