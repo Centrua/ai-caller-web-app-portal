@@ -118,9 +118,7 @@ export async function handleNylasWebhook(req: Request, res: Response): Promise<v
       return
     }
 
-    if (!res.headersSent) {
-      res.status(200).json({ received: true })
-    }
+    res.status(200).json({ received: true })
 
     // Persist message and conversation only for wedding inquiries
     await messageRepo.upsertMessageFromNylas(obj)

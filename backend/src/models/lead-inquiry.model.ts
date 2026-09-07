@@ -7,7 +7,6 @@ interface LeadInquiryAttributes {
   thread_id?: string | null
   original_message_id?: string | null
   lead_info?: any
-  status?: string | null
 }
 
 type LeadInquiryCreationAttributes = Optional<LeadInquiryAttributes, 'id'>
@@ -18,7 +17,6 @@ export class LeadInquiry extends Model<LeadInquiryAttributes, LeadInquiryCreatio
   public thread_id!: string | null
   public original_message_id!: string | null
   public lead_info!: any
-  public status!: string | null
 
   public static associate(models: any) {
     // no associations for now
@@ -32,7 +30,6 @@ LeadInquiry.init(
     thread_id: { type: DataTypes.STRING },
     original_message_id: { type: DataTypes.STRING },
     lead_info: { type: DataTypes.JSONB },
-    status: { type: DataTypes.STRING, allowNull: true },
   },
   {
     tableName: 'lead_inquiries',

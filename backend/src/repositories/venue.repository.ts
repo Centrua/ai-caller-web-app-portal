@@ -5,7 +5,6 @@ export class VenueRepository {
   async createVenue(venueData: {
     name: string;
     email?: string | null;
-    phone?: string | null;
     elevenlabs_agent_id?: string | null;
     nylas_grant_id?: string | null;
     kb_document_id?: string | null;
