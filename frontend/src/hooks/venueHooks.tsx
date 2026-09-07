@@ -19,6 +19,7 @@ export interface CreateVenuePayload {
   elevenlabs_phone_number_id?: string | null
   kb_document_id?: string | null
   nylas_grant_id?: string | null
+  registration_code?: string | null
 }
 
 export const useVenue = () => {

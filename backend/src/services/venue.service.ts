@@ -15,7 +15,15 @@ export class VenueService {
     kb_document_id?: string | null;
     nylas_grant_id?: string | null;
     associated_user_ids?: number[];
+    registration_code?: string | null;
   }): Promise<{ venue: Venue; plainToken: string }> {
+    const expectedCode = process.env.VENUE_REGISTRATION_CODE as string;
+    if (expectedCode) {
+      if (!data.registration_code || data.registration_code !== expectedCode) {
+        throw new Error('Invalid venue registration code');
+      }
+    }
+
     let agentId: string | null = null;
 
     const templateAgentId = process.env.ELEVENLABS_TEMPLATE_AGENT_ID;
@@ -46,7 +54,7 @@ export class VenueService {
       // swallow setting creation errors so venue creation can still succeed;
       // higher-level logging/monitoring should capture this in production
     }
-    
+
     const { plainToken } = await this.registerTokenService.create(venue.id);
 
     return { venue, plainToken };
