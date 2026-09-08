@@ -8,6 +8,7 @@ interface RegisterVenueForm {
   email: string
   elevenlabs_phone_number_id: string
   kb_document_id: string
+  registration_code: string
 }
 
 const STORAGE_KEY = 'register_venue_form_backup'
@@ -26,6 +27,7 @@ export const RegisterVenue: React.FC = () => {
           email: '',
           elevenlabs_phone_number_id: '',
           kb_document_id: '',
+          registration_code: '',
         }
       } catch (e) {
         console.error('Failed to parse saved venue form data', e)
@@ -36,6 +38,7 @@ export const RegisterVenue: React.FC = () => {
       email: '',
       elevenlabs_phone_number_id: '',
       kb_document_id: '',
+      registration_code: '',
     }
   })
 
@@ -71,6 +74,7 @@ export const RegisterVenue: React.FC = () => {
         nylas_grant_id: nylasGrantId || undefined,
         elevenlabs_phone_number_id: formData.elevenlabs_phone_number_id || null,
         kb_document_id: formData.kb_document_id || null,
+        registration_code: formData.registration_code || undefined,
       })
 
       localStorage.removeItem(STORAGE_KEY)
@@ -198,7 +202,7 @@ export const RegisterVenue: React.FC = () => {
         </div>
 
         {/* Right Side: Exactly half (col-span-6) for form */}
-        <div className="lg:col-span-6 p-8 lg:p-12 flex flex-col justify-between bg-white relative z-20">
+        <div className="lg:col-span-6 p-8 lg:p-12 flex flex-col justify-between bg-white relative z-20 overflow-y-auto">
 
           <div className="my-auto max-w-md mx-auto w-full pt-6">
             {/* Header Icon */}
@@ -304,6 +308,20 @@ export const RegisterVenue: React.FC = () => {
                     Connect with Outlook
                   </button>
                 </div>
+              </div>
+
+              {/* Registration Code */}
+              <div>
+                <label className="block text-xs font-semibold text-slate-700 mb-1.5 uppercase tracking-wider mt-2">Registration Code Provided by Admin</label>
+                <input
+                  type="text"
+                  name="registration_code"
+                  disabled={isDisabled}
+                  placeholder="Enter registration code"
+                  value={formData.registration_code}
+                  onChange={handleChange}
+                  className="w-full border border-slate-200 rounded-2xl px-4 py-3 text-sm text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-[#20241C] focus:border-transparent transition disabled:bg-slate-100 disabled:cursor-not-allowed bg-slate-50/50"
+                />
               </div>
 
               {/* Submit Button */}
