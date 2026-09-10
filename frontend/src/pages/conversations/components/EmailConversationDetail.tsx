@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { useApproveDraft, type Conversation } from '../../../hooks/emailConversationHooks'
 import { useEditDraftBody } from '../../../hooks/outgoingHooks'
 import { formatFromEmail } from '../../../utils/formatFromEmailUtil'
+import { cleanSubject } from '../../../utils/cleanSubjectTextUtil'
 
 interface EmailConversationDetailProps {
   selectedConversation: Conversation
@@ -31,7 +32,8 @@ export default function EmailConversationDetail({
   const sentOutgoing = selectedConversation.outgoing?.filter(o => o.status === 'sent') || []
 
   const firstMessage = selectedConversation.messages?.[0]
-  const conversationName = firstMessage?.subject || selectedConversation.subject || 'No Subject'
+  const rawSubject = firstMessage?.subject || selectedConversation.subject || ''
+  const conversationName = cleanSubject(rawSubject)
 
   const [draftBodies, setDraftBodies] = useState<Record<number, string>>({})
   const [savingIds, setSavingIds] = useState<Record<number, boolean>>({})

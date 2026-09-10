@@ -1,4 +1,8 @@
 import { useEffect, useState, useMemo } from 'react'
+import { cleanSubject } from '../../../utils/cleanSubjectTextUtil'
+import { useEmailConversations } from '../../../hooks/emailConversationHooks'
+import EmailConversationDetail from './EmailConversationDetail'
+import type { Conversation } from '../../../hooks/emailConversationHooks'
 
 function isTodayIso(iso?: string) {
   if (!iso) return false
@@ -7,9 +11,6 @@ function isTodayIso(iso?: string) {
   const now = new Date()
   return d.getFullYear() === now.getFullYear() && d.getMonth() === now.getMonth() && d.getDate() === now.getDate()
 }
-import { useEmailConversations } from '../../../hooks/emailConversationHooks'
-import EmailConversationDetail from './EmailConversationDetail'
-import type { Conversation } from '../../../hooks/emailConversationHooks'
 
 export default function EmailConversationsTab() {
   const { conversations, getConversations, loading } = useEmailConversations()
@@ -36,7 +37,7 @@ export default function EmailConversationsTab() {
     try {
       setIsRefreshing(true)
       await getConversations()
-    } 
+    }
     finally {
       setIsRefreshing(false)
     }
@@ -45,7 +46,8 @@ export default function EmailConversationsTab() {
   const filteredConversations = useMemo(() => {
     return conversations.filter((c) => {
       const firstMsg = c.messages?.[0]
-      const conversationName = (firstMsg?.subject || c.subject || '').toLowerCase()
+      const rawSubject = firstMsg?.subject || c.subject || ''
+      const conversationName = cleanSubject(rawSubject).toLowerCase()
       const threadId = (c.thread_id || '').toLowerCase()
       const query = searchQuery.toLowerCase()
       return conversationName.includes(query) || threadId.includes(query)
@@ -155,7 +157,8 @@ export default function EmailConversationsTab() {
             {paginatedConversations.map((c) => {
               const hasDrafts = c.outgoing?.some(o => o.status === 'draft')
               const firstMsg = c.messages?.[0]
-              const conversationName = firstMsg?.subject || c.subject || 'No Subject'
+              const rawSubject = firstMsg?.subject || c.subject || ''
+              const conversationName = cleanSubject(rawSubject)
 
               return (
                 <tr
@@ -167,10 +170,10 @@ export default function EmailConversationsTab() {
                     {hasDrafts && (
                       <span className="w-2.5 h-2.5 bg-red-500 rounded-full flex-shrink-0" title="Draft pending"></span>
                     )}
-                      <span>{conversationName}</span>
-                      {isTodayIso(firstMsg?.createdAt || c.createdAt) && (
-                        <span title="New conversation today" className="ml-3 inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-[#20241C]/10 text-[#2B3528]">New</span>
-                      )}
+                    <span>{conversationName}</span>
+                    {isTodayIso(firstMsg?.createdAt || c.createdAt) && (
+                      <span title="New conversation today" className="ml-3 inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-[#20241C]/10 text-[#2B3528]">New</span>
+                    )}
                   </td>
                   <td className="px-6 py-4 text-slate-500 font-mono text-xs">{c.thread_id}</td>
                   <td className="px-6 py-4 text-slate-500">{c.messages?.length || 0}</td>
