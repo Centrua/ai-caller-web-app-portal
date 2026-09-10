@@ -15,13 +15,23 @@ export default function PhoneCallConversationsTab() {
   const navigate = useNavigate()
   
   const [searchQuery, setSearchQuery] = useState('')
-  const [timeFilter, setTimeFilter] = useState('all') // 'all', 'today', 'week', 'month'
+  const [timeFilter, setTimeFilter] = useState('all') 
   const [currentPage, setCurrentPage] = useState(1)
+  const [isRefreshing, setIsRefreshing] = useState(false)
   const itemsPerPage = 10
 
   useEffect(() => {
     refresh()
   }, [refresh])
+
+  const handleRefresh = async () => {
+    try {
+      setIsRefreshing(true)
+      await refresh()
+    } finally {
+      setIsRefreshing(false)
+    }
+  }
 
   const filteredConversations = useMemo(() => {
     const now = new Date().getTime()
@@ -98,7 +108,30 @@ export default function PhoneCallConversationsTab() {
 
       <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
         <div className="px-6 py-4 border-b border-slate-100 flex items-center justify-between">
-          <h2 className="text-sm font-semibold text-slate-700">All Conversations</h2>
+          <div className="flex items-center gap-3">
+            <h2 className="text-sm font-semibold text-slate-700">All Conversations</h2>
+            <button
+              onClick={handleRefresh}
+              disabled={loading || isRefreshing}
+              className="inline-flex items-center justify-center p-1.5 bg-white border border-slate-200 rounded-lg text-slate-600 hover:bg-slate-50 focus:outline-none focus:border-[#2B3528] focus:ring-1 focus:ring-[#2B3528] shadow-sm disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              title="Refresh conversations"
+            >
+              <svg
+                className={`w-3.5 h-3.5 ${(loading || isRefreshing) ? 'animate-spin' : ''}`}
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
+                />
+              </svg>
+            </button>
+          </div>
           {filteredConversations.length > 0 && (
             <span className="text-xs text-slate-400">
               Showing {(currentPage - 1) * itemsPerPage + 1}–{Math.min(currentPage * itemsPerPage, filteredConversations.length)} of {filteredConversations.length}
