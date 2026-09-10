@@ -146,10 +146,10 @@ export const RegisterVenue: React.FC = () => {
         <meta property="og:title" content="Register Your Wedding Venue | Centrua AI" />
         <meta property="og:description" content="Register your wedding or event venue with Centrua AI to automate your inbound phone calls, voice routing, and email inquiries." />
         <meta property="og:type" content="website" />
-        <meta property="og:url" content="https://centruaai.com/register-venue" />
-        <meta property="og:image" content="https://centruaai.com/logo.png" />
+        <meta property="og:url" content="https://www.centruaai.com/register-venue" />
+        <meta property="og:image" content="https://www.centruaai.com/logo.png" />
         <meta name="twitter:card" content="summary_large_image" />
-        <link rel="canonical" href="https://centruaai.com/register-venue" />
+        <link rel="canonical" href="https://www.centruaai.com/register-venue" />
       </Helmet>
 
       {/* Back button */}

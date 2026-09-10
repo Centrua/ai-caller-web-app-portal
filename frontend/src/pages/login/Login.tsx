@@ -25,8 +25,8 @@ export default function Login() {
                 <meta property="og:title" content="Sign In to Venue Portal | Centrua AI" />
                 <meta property="og:description" content="Sign in to your Centrua AI venue portal to manage inbound calls, voice AI interactions, and automated booking inquiries." />
                 <meta property="og:type" content="website" />
-                <meta property="og:url" content="https://centruaai.com/login" />
-                <link rel="canonical" href="https://centruaai.com/login" />
+                <meta property="og:url" content="https://www.centruaai.com/login" />
+                <link rel="canonical" href="https://www.centruaai.com/login" />
             </Helmet>
 
             <Link

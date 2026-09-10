@@ -15,29 +15,29 @@ export default function Landing() {
                 <meta property="og:title" content="Centrua AI | Automated Phone Calls & Email Handling for Wedding Venues" />
                 <meta property="og:description" content="Never miss a booking lead again. Centrua AI automates inbound phone calls, voice routing, and email management specifically designed for wedding and event venues." />
                 <meta property="og:type" content="website" />
-                <meta property="og:url" content="https://centruaai.com" />
-                <meta property="og:image" content="https://centruaai.com/logo.png" />
+                <meta property="og:url" content="https://www.centruaai.com" />
+                <meta property="og:image" content="https://www.centruaai.com/logo.png" />
                 <meta name="twitter:card" content="summary_large_image" />
-                <link rel="canonical" href="https://centruaai.com" />
+                <link rel="canonical" href="https://www.centruaai.com" />
                 <script type="application/ld+json">
                     {JSON.stringify({
                         "@context": "https://schema.org",
                         "@type": "WebSite",
-                        "@id": "https://centruaai.com",
+                        "@id": "https://www.centruaai.com",
                         "name": "Centrua AI",
-                        "url": "https://centruaai.com",
+                        "url": "https://www.centruaai.com",
                         "description": "AI-powered call automation and email management software for wedding and event venues.",
                         "publisher": {
                             "@type": "Organization",
                             "name": "Centrua AI",
                             "logo": {
                                 "@type": "ImageObject",
-                                "url": "https://centruaai.com/logo.png"
+                                "url": "https://www.centruaai.com/logo.png"
                             }
                         },
                         "potentialAction": {
                             "@type": "RegisterAction",
-                            "target": "https://centruaai.com/register-venue",
+                            "target": "https://www.centruaai.com/register-venue",
                             "name": "Register Venue"
                         }
                     })}

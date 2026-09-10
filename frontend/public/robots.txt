@@ -8,4 +8,4 @@ Disallow: /knowledge-base
 Disallow: /invite-participants
 Disallow: /settings
 
-Sitemap: https://centruaai.com/sitemap.xml
+Sitemap: https://www.centruaai.com/sitemap.xml

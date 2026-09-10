@@ -10,8 +10,8 @@ export default function Privacy() {
         <meta property="og:title" content="Privacy Policy & Terms | Centrua AI" />
         <meta property="og:description" content="Read Centrua AI's terms of service and privacy policy governing our AI-powered receptionist and venue communication services." />
         <meta property="og:type" content="website" />
-        <meta property="og:url" content="https://centruaai.com/privacy" />
-        <link rel="canonical" href="https://centruaai.com/privacy" />
+        <meta property="og:url" content="https://www.centruaai.com/privacy" />
+        <link rel="canonical" href="https://www.centruaai.com/privacy" />
       </Helmet>
 
       <div className="max-w-4xl mx-auto px-8 py-20">
