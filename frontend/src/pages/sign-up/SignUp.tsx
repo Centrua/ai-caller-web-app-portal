@@ -74,8 +74,8 @@ export default function Register() {
                 <meta property="og:title" content="Create Venue Account | Centrua AI" />
                 <meta property="og:description" content="Register your user account with your venue token to access your Centrua AI voice automation and booking management portal." />
                 <meta property="og:type" content="website" />
-                <meta property="og:url" content="https://centruaai.com/register" />
-                <link rel="canonical" href="https://centruaai.com/register" />
+                <meta property="og:url" content="https://www.centruaai.com/register" />
+                <link rel="canonical" href="https://www.centruaai.com/register" />
             </Helmet>
 
             <Link

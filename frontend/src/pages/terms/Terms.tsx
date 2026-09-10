@@ -10,8 +10,8 @@ export default function Terms() {
         <meta property="og:title" content="Terms & Conditions | Centrua AI" />
         <meta property="og:description" content="Review Centrua AI's privacy policy detailing our data collection, security, usage, and privacy rights regarding our AI receptionist services." />
         <meta property="og:type" content="website" />
-        <meta property="og:url" content="https://centruaai.com/terms" />
-        <link rel="canonical" href="https://centruaai.com/terms" />
+        <meta property="og:url" content="https://www.centruaai.com/terms" />
+        <link rel="canonical" href="https://www.centruaai.com/terms" />
       </Helmet>
 
       <div className="max-w-4xl mx-auto px-8 py-20">
