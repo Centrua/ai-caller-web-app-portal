@@ -39,6 +39,7 @@ export default function EmailConversationDetail({
   const [leadLoading, setLeadLoading] = useState(false)
   const [leadError, setLeadError] = useState<string | null>(null)
   const [nextAction, setNextAction] = useState<string | null>(null)
+  const [isRefreshing, setIsRefreshing] = useState(false)
 
   useEffect(() => {
     const initialBodies: Record<number, string> = {}
@@ -110,6 +111,16 @@ export default function EmailConversationDetail({
     fetchNextAction()
   }, [selectedConversation])
 
+  const handleRefresh = async () => {
+    try {
+      setIsRefreshing(true)
+      await onRefreshConversations()
+    } 
+    finally {
+      setIsRefreshing(false)
+    }
+  }
+
   const handleBodyChange = (draftId: number, value: string) => {
     setDraftBodies(prev => ({ ...prev, [draftId]: value }))
 
@@ -126,7 +137,6 @@ export default function EmailConversationDetail({
 
     (window as any)[timeoutKey] = setTimeout(async () => {
       try {
-        // Convert text newlines into HTML break tags for correct email rendering
         const htmlBody = value.replace(/\r?\n/g, '<br/>')
         await editBody(draftId, htmlBody)
       } 
@@ -173,7 +183,6 @@ export default function EmailConversationDetail({
           <h2 className="text-xl font-semibold text-slate-900 leading-snug">
             {conversationName}
           </h2>
-          {/* Display machine-friendly next action if present */}
           {((nextAction ?? selectedConversation?.next_action)) && (
             <div className="ml-6 text-sm text-slate-700 px-3 py-2 rounded-md bg-amber-50 border border-amber-100">
               <strong className="mr-1">Next Action:</strong> {nextAction ?? selectedConversation?.next_action}
@@ -209,7 +218,30 @@ export default function EmailConversationDetail({
             </div>
           </>
         )}
-        <h3 className="text-sm font-semibold text-slate-700 px-1 pt-2">Message Transaction ({allConversationItems.length})</h3>
+        <div className="flex items-center gap-3 px-1 pt-2">
+          <h3 className="text-sm font-semibold text-slate-700">Message Transaction ({allConversationItems.length})</h3>
+          <button
+            onClick={handleRefresh}
+            disabled={isRefreshing}
+            className="inline-flex items-center justify-center p-1.5 bg-white border border-slate-200 rounded-lg text-slate-600 hover:bg-slate-50 focus:outline-none focus:border-[#2B3528] focus:ring-1 focus:ring-[#2B3528] shadow-sm disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+            title="Refresh messages"
+          >
+            <svg
+              className={`w-3.5 h-3.5 ${isRefreshing ? 'animate-spin' : ''}`}
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
+              />
+            </svg>
+          </button>
+        </div>
 
         {allConversationItems.length === 0 && (
           <div className="bg-white rounded-xl border border-slate-200 p-8 text-center text-sm text-slate-400">
@@ -220,6 +252,9 @@ export default function EmailConversationDetail({
         {allConversationItems.map((item, idx) => {
           if (item.type === 'message') {
             const msg = item
+            const rawBody = (msg as any).body || ''
+            const plainTextBody = parseHtmlToPlainText(rawBody)
+
             return (
               <div key={msg.id || idx} className="bg-white rounded-xl border border-slate-200 shadow-sm p-6">
                 <div className="flex items-center justify-between mb-4 pb-3 border-b border-slate-100 text-xs text-slate-500">
@@ -231,23 +266,18 @@ export default function EmailConversationDetail({
                     {msg.createdAt ? new Date(msg.createdAt).toLocaleString() : ''}
                   </div>
                 </div>
-                {
-                    (() => {
-                    const body = (msg as any).body || ''
-                    if (!body) return <div className="text-sm text-slate-400 italic">No message content available.</div>
-                    const looksLikeHtml = /<\/?(p|br|div|a|span|strong|em|ul|ol|li)/i.test(body)
-                    if (looksLikeHtml) {
-                      return (
-                        <div className="text-sm text-slate-800 whitespace-pre-wrap leading-relaxed" dangerouslySetInnerHTML={{ __html: body }} />
-                      )
-                    }
-                    return <div className="text-sm text-slate-800 whitespace-pre-wrap leading-relaxed">{body}</div>
-                  })()
-                }
+                {plainTextBody ? (
+                  <div className="text-sm text-slate-800 whitespace-pre-wrap leading-relaxed">{plainTextBody}</div>
+                ) : (
+                  <div className="text-sm text-slate-400 italic">No message content available.</div>
+                )}
               </div>
             )
           } else {
             const sent = item
+            const rawBody = sent.body || ''
+            const plainTextBody = parseHtmlToPlainText(rawBody)
+
             return (
               <div key={sent.id || idx} className="bg-white rounded-xl border border-slate-200 shadow-sm p-6">
                 <div className="flex items-center justify-between mb-4 pb-3 border-b border-slate-100 text-xs text-slate-500">
@@ -258,17 +288,8 @@ export default function EmailConversationDetail({
                     {sent.updatedAt ? new Date(sent.updatedAt).toLocaleString() : ''}
                   </div>
                 </div>
-                {sent.body ? (
-                  (() => {
-                    const raw = sent.body || ''
-                    const looksLikeHtml = /<\/?(p|br|div|a|span|strong|em|ul|ol|li)/i.test(raw)
-                    if (looksLikeHtml) {
-                      return (
-                        <div className="text-sm text-slate-800 whitespace-pre-wrap leading-relaxed" dangerouslySetInnerHTML={{ __html: raw }} />
-                      )
-                    }
-                    return <div className="text-sm text-slate-800 whitespace-pre-wrap leading-relaxed">{raw}</div>
-                  })()
+                {plainTextBody ? (
+                  <div className="text-sm text-slate-800 whitespace-pre-wrap leading-relaxed">{plainTextBody}</div>
                 ) : (
                   <div className="text-sm text-slate-400 italic">No content available.</div>
                 )}
