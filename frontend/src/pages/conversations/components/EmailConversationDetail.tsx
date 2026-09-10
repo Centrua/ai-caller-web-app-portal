@@ -137,7 +137,6 @@ export default function EmailConversationDetail({
 
     (window as any)[timeoutKey] = setTimeout(async () => {
       try {
-        // Convert text newlines into HTML break tags for correct email rendering
         const htmlBody = value.replace(/\r?\n/g, '<br/>')
         await editBody(draftId, htmlBody)
       } 
@@ -184,7 +183,6 @@ export default function EmailConversationDetail({
           <h2 className="text-xl font-semibold text-slate-900 leading-snug">
             {conversationName}
           </h2>
-          {/* Display machine-friendly next action if present */}
           {((nextAction ?? selectedConversation?.next_action)) && (
             <div className="ml-6 text-sm text-slate-700 px-3 py-2 rounded-md bg-amber-50 border border-amber-100">
               <strong className="mr-1">Next Action:</strong> {nextAction ?? selectedConversation?.next_action}
@@ -254,6 +252,9 @@ export default function EmailConversationDetail({
         {allConversationItems.map((item, idx) => {
           if (item.type === 'message') {
             const msg = item
+            const rawBody = (msg as any).body || ''
+            const plainTextBody = parseHtmlToPlainText(rawBody)
+
             return (
               <div key={msg.id || idx} className="bg-white rounded-xl border border-slate-200 shadow-sm p-6">
                 <div className="flex items-center justify-between mb-4 pb-3 border-b border-slate-100 text-xs text-slate-500">
@@ -265,23 +266,18 @@ export default function EmailConversationDetail({
                     {msg.createdAt ? new Date(msg.createdAt).toLocaleString() : ''}
                   </div>
                 </div>
-                {
-                    (() => {
-                    const body = (msg as any).body || ''
-                    if (!body) return <div className="text-sm text-slate-400 italic">No message content available.</div>
-                    const looksLikeHtml = /<\/?(p|br|div|a|span|strong|em|ul|ol|li)/i.test(body)
-                    if (looksLikeHtml) {
-                      return (
-                        <div className="text-sm text-slate-800 whitespace-pre-wrap leading-relaxed" dangerouslySetInnerHTML={{ __html: body }} />
-                      )
-                    }
-                    return <div className="text-sm text-slate-800 whitespace-pre-wrap leading-relaxed">{body}</div>
-                  })()
-                }
+                {plainTextBody ? (
+                  <div className="text-sm text-slate-800 whitespace-pre-wrap leading-relaxed">{plainTextBody}</div>
+                ) : (
+                  <div className="text-sm text-slate-400 italic">No message content available.</div>
+                )}
               </div>
             )
           } else {
             const sent = item
+            const rawBody = sent.body || ''
+            const plainTextBody = parseHtmlToPlainText(rawBody)
+
             return (
               <div key={sent.id || idx} className="bg-white rounded-xl border border-slate-200 shadow-sm p-6">
                 <div className="flex items-center justify-between mb-4 pb-3 border-b border-slate-100 text-xs text-slate-500">
@@ -292,17 +288,8 @@ export default function EmailConversationDetail({
                     {sent.updatedAt ? new Date(sent.updatedAt).toLocaleString() : ''}
                   </div>
                 </div>
-                {sent.body ? (
-                  (() => {
-                    const raw = sent.body || ''
-                    const looksLikeHtml = /<\/?(p|br|div|a|span|strong|em|ul|ol|li)/i.test(raw)
-                    if (looksLikeHtml) {
-                      return (
-                        <div className="text-sm text-slate-800 whitespace-pre-wrap leading-relaxed" dangerouslySetInnerHTML={{ __html: raw }} />
-                      )
-                    }
-                    return <div className="text-sm text-slate-800 whitespace-pre-wrap leading-relaxed">{raw}</div>
-                  })()
+                {plainTextBody ? (
+                  <div className="text-sm text-slate-800 whitespace-pre-wrap leading-relaxed">{plainTextBody}</div>
                 ) : (
                   <div className="text-sm text-slate-400 italic">No content available.</div>
                 )}
