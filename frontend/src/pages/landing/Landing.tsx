@@ -43,7 +43,7 @@ export default function Landing() {
                     })}
                 </script>
             </Helmet>
-            <Navbar />
+            <Navbar page={"Landing"}/>
             <Hero />
             <Features />
             <HowItWorks />
