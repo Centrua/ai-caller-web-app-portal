@@ -10,6 +10,7 @@ import nylasAuthRouter from './routes/nylas-auth.route';
 import registerTokenRouter from './routes/register-token.route';
 import emailConversationRouter from './routes/email-conversation.route';
 import leadInquiryRouter from './routes/lead-inquiry.route';
+import subscriptionRequestRouter from './routes/subscription-request.route';
 import './models'
 
 const app = express();
@@ -34,6 +35,7 @@ app.use('/api/nylas', nylasAuthRouter);
 app.use('/api/register-token', registerTokenRouter);
 app.use('/api/email-conversations', emailConversationRouter);
 app.use('/api/lead-inquiries', leadInquiryRouter);
+app.use('/api/subscription-requests', subscriptionRequestRouter);
 
 app.listen(PORT, () => {
   console.log(`Server running on http://localhost:${PORT}`);
