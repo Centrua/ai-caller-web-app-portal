@@ -76,7 +76,7 @@ export default function Hero() {
                             className="flex items-center gap-5 pt-1"
                         >
                             <Link
-                                to="/register-venue"
+                                to="/request-or-register"
                                 className="bg-[#2B3528] hover:bg-[#444B38] text-white font-semibold px-7 py-3.5 rounded-xl transition-all duration-200 shadow-xl shadow-[#2B3528]/20 text-sm"
                             >
                                 Register venue

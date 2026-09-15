@@ -74,3 +74,4 @@ jobs:
             NODE_ENV=${{ secrets.NODE_ENV }}
             TOKEN_ENCRYPTION_SECRET=${{ secrets.TOKEN_ENCRYPTION_SECRET }}
             VENUE_REGISTRATION_CODE=${{ secrets.VENUE_REGISTRATION_CODE }}
+            EMAIL_SERVICE_API_URL=${{ secrets.EMAIL_SERVICE_API_URL }}

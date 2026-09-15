@@ -4,6 +4,7 @@ import express, { NextFunction, Request, Response } from 'express';
 import nylasWebhookRouter from './routes/nylas-webhook.route';
 import replyRouter from './routes/reply.route';
 import outgoingRouter from './routes/outgoing.route';
+import subscriptionRouter from './routes/subscription-request.route';
 import './models'
 
 dotenv.config();
@@ -21,6 +22,7 @@ app.use(express.json());
 
 app.use('/reply', replyRouter)
 app.use('/outgoing-emails', outgoingRouter)
+app.use('/subscription-requests', subscriptionRouter)
 
 app.use((err: Error, _req: Request, res: Response, _next: NextFunction) => {
   console.error('[Error]:', err.message);

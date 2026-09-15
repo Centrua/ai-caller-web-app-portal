@@ -13,11 +13,25 @@ import Terms from './pages/terms/Terms'
 import InviteParticipants from './pages/invite-participants/InviteParticipants'
 import VenueSettingsPage from './pages/Settings/VenueSettings'
 import Pricing from './pages/pricing/Pricing'
+import SubscriptionRequestForm from './pages/request-form/RequestForm'
+import SubscriptionApproval from './pages/subscription-approval/SubscriptionApproval'
+import RequestOrRegister from './pages/request-or-register/RequestOrRegister'
 
 const ProtectedRoute = () => {
   const token = localStorage.getItem('token')
 
   if (!token) {
+    return <Navigate to="/login" replace />
+  }
+
+  return <Outlet />
+}
+
+const AdminProtection = () => {
+  const token = localStorage.getItem('token')
+  const user = JSON.parse(localStorage.getItem('user') || '{}')
+
+  if (!token || user.role !== 'SUPER_ADMIN') {
     return <Navigate to="/login" replace />
   }
 
@@ -36,6 +50,8 @@ export default function App() {
         <Route path="/privacy" element={<Privacy />} />
         <Route path="/terms" element={<Terms />} />
         <Route path="/pricing" element={<Pricing />} />
+        <Route path="/request-form" element={<SubscriptionRequestForm />} />
+        <Route path="/request-or-register" element={<RequestOrRegister />} />
 
         {/* Protected Shell. */}
         <Route element={<ProtectedRoute />}>
@@ -49,6 +65,11 @@ export default function App() {
           </Route>
         </Route>
 
+        {/* Approval Route */}
+        <Route element={<AdminProtection />}>
+          <Route path="/subscription-approval" element={<SubscriptionApproval />} />
+        </Route>
+        
       </Routes>
     </BrowserRouter>
   )
