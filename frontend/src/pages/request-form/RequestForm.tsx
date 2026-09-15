@@ -109,7 +109,7 @@ export default function SubscriptionRequestForm() {
                         transition={{ duration: 0.6, delay: 0.1 }}
                         className="text-3xl lg:text-5xl font-extrabold tracking-tight text-slate-900"
                     >
-                        {formData.requesting_demo ? "Schedule Your Live Demo & Lock In 40% Off" : "Request Subscription from our Team"}
+                        {formData.requesting_demo ? "Schedule Your Live Demo & Lock In 40% Off" : "Request Subscription and Onboarding"}
                     </motion.h1>
 
                     <motion.p
@@ -136,7 +136,7 @@ export default function SubscriptionRequestForm() {
                             </div>
                             <h3 className="text-2xl font-bold text-slate-900">Request Submitted Successfully!</h3>
                             <p className="text-slate-600 max-w-md mx-auto">
-                                Thank you, {formData.name}. We have received your details for <strong className="text-slate-900">{formData.venue_name}</strong> and will be in touch shortly.
+                                Thank you, {formData.name}. We have received your details for <strong className="text-slate-900">{formData.venue_name}</strong> and will be in touch shortly. <br/><br/> <strong className="text-slate-700">Please check your inbox/spam folder for an email from us!</strong>
                             </p>
                             <div className="pt-4">
                                 <Link
