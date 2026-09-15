@@ -1,14 +1,24 @@
 import { Link } from 'react-router-dom'
 
-export default function Navbar() {
+export default function Navbar({ page }) {
     const token = localStorage.getItem('token')
 
     return (
         <nav className="flex items-center justify-between px-8 py-5 max-w-6xl mx-auto border-b border-slate-100">
             <div className="flex items-center gap-2.5">
-                <span className="font-serif text-lg tracking-wide text-slate-900 select-none">Centrua AI</span>
+                <Link to="/" className="font-serif text-lg tracking-wide text-slate-900 select-none hover:opacity-85 transition-opacity">
+                    Centrua AI
+                </Link>
             </div>
             <div className="flex items-center gap-4">
+                {page !== "Pricing" && (
+                    <Link
+                        to="/pricing"
+                        className="text-sm font-medium text-slate-600 hover:text-slate-900 transition-colors"
+                    >
+                        Pricing
+                    </Link>
+                )}
                 {token ? (
                     <Link
                         to="/dashboard"
