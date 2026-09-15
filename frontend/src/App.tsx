@@ -15,6 +15,7 @@ import VenueSettingsPage from './pages/Settings/VenueSettings'
 import Pricing from './pages/pricing/Pricing'
 import SubscriptionRequestForm from './pages/request-form/RequestForm'
 import SubscriptionApproval from './pages/subscription-approval/SubscriptionApproval'
+import RequestOrRegister from './pages/request-or-register/RequestOrRegister'
 
 const ProtectedRoute = () => {
   const token = localStorage.getItem('token')
@@ -50,6 +51,7 @@ export default function App() {
         <Route path="/terms" element={<Terms />} />
         <Route path="/pricing" element={<Pricing />} />
         <Route path="/request-form" element={<SubscriptionRequestForm />} />
+        <Route path="/request-or-register" element={<RequestOrRegister />} />
 
         {/* Protected Shell. */}
         <Route element={<ProtectedRoute />}>
