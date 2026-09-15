@@ -13,6 +13,7 @@ import Terms from './pages/terms/Terms'
 import InviteParticipants from './pages/invite-participants/InviteParticipants'
 import VenueSettingsPage from './pages/Settings/VenueSettings'
 import Pricing from './pages/pricing/Pricing'
+import SubscriptionRequestForm from './pages/request-form/RequestForm'
 
 const ProtectedRoute = () => {
   const token = localStorage.getItem('token')
@@ -36,6 +37,7 @@ export default function App() {
         <Route path="/privacy" element={<Privacy />} />
         <Route path="/terms" element={<Terms />} />
         <Route path="/pricing" element={<Pricing />} />
+        <Route path="/request-form" element={<SubscriptionRequestForm />} />
 
         {/* Protected Shell. */}
         <Route element={<ProtectedRoute />}>

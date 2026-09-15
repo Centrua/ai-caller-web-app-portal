@@ -80,7 +80,7 @@ export default function Pricing() {
                     </div>
 
                     <Link
-                        to="/register"
+                        to="/request-form"
                         className="w-full text-center bg-slate-100 hover:bg-slate-200 text-slate-900 font-semibold py-3.5 rounded-xl transition-all duration-200 text-sm block"
                     >
                         Get started
@@ -132,7 +132,7 @@ export default function Pricing() {
                     </div>
 
                     <Link
-                        to="/register-venue"
+                        to="/request-form?demo=true"
                         className="w-full text-center bg-white hover:bg-slate-100 text-[#2B3528] font-semibold py-3.5 rounded-xl transition-all duration-200 shadow-lg text-sm block"
                     >
                         Schedule a demo &amp; claim deal
