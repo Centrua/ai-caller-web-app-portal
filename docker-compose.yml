@@ -27,6 +27,8 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
+      email-service-api:
+        condition: service_started
 
   email-service-api:
     build:

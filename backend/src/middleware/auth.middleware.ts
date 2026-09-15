@@ -17,6 +17,17 @@ declare global {
   }
 }
 
+export const decodeToken = (token: string): JwtPayload | null => {
+  try {
+    const secret = process.env.JWT_SECRET || 'supersecret';
+    const decoded = jwt.verify(token, secret);
+    return decoded as JwtPayload;
+  } 
+  catch (error) {
+    return null;
+  }
+};
+
 export const authenticateToken = (req: Request, res: Response, next: NextFunction): void => {
   const authHeader = req.headers['authorization'];
   const token = authHeader && authHeader.split(' ')[1]; // Bearer <token>
@@ -26,15 +37,15 @@ export const authenticateToken = (req: Request, res: Response, next: NextFunctio
     return;
   }
 
-  jwt.verify(token, process.env.JWT_SECRET || 'supersecret', (err, user) => {
-    if (err) {
-      sendError(res, 403, 'Invalid or expired token');
-      return;
-    }
+  const user = decodeToken(token);
 
-    req.user = user as JwtPayload;
-    next();
-  });
+  if (!user) {
+    sendError(res, 403, 'Invalid or expired token');
+    return;
+  }
+
+  req.user = user;
+  next();
 };
 
 export const requireRole = (role: string) => {
@@ -45,4 +56,29 @@ export const requireRole = (role: string) => {
     }
     next();
   };
+};
+
+export const requireSuperAdmin = (req: Request, res: Response, next: NextFunction): void => {
+  const authHeader = req.headers['authorization'];
+  const token = authHeader && authHeader.split(' ')[1];
+
+  if (!token) {
+    sendError(res, 401, 'Access token missing or malformed');
+    return;
+  }
+
+  const user = decodeToken(token);
+
+  if (!user) {
+    sendError(res, 403, 'Invalid or expired token');
+    return;
+  }
+
+  if (user.role !== 'SUPER_ADMIN') {
+    sendError(res, 403, 'Forbidden: Insufficient permissions');
+    return;
+  }
+
+  req.user = user;
+  next();
 };
