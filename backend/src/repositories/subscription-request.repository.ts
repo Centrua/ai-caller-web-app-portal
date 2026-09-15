@@ -24,6 +24,35 @@ export class SubscriptionRequestRepository {
         }
     }
 
+    public static async findNonApproved(): Promise<SubscriptionRequest[]> {
+        try {
+            const requests = await SubscriptionRequest.findAll({
+                where: { approved: false },
+                order: [['created_at', 'DESC']]
+            });
+            return requests;
+        }
+        catch (error) {
+            throw new Error(`Failed to fetch non-approved subscription requests: ${(error as Error).message}`);
+        }
+    }
+
+    public static async approve(id: number): Promise<SubscriptionRequest | null> {
+        try {
+            const request = await SubscriptionRequest.findByPk(id);
+            if (!request) {
+                return null;
+            }
+
+            request.approved = true;
+            await request.save();
+            return request;
+        }
+        catch (error) {
+            throw new Error(`Failed to approve subscription request: ${(error as Error).message}`);
+        }
+    }
+
     public static async create(data: CreateSubscriptionRequestDTO): Promise<SubscriptionRequest> {
         try {
             const subscriptionRequest = await SubscriptionRequest.create({

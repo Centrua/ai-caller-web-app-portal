@@ -53,4 +53,49 @@ export class SubscriptionRequestController {
             });
         }
     }
+
+    public static async getNonApproved(req: Request, res: Response): Promise<Response> {
+        try {
+            const requests = await SubscriptionRequestService.getNonApprovedRequests();
+            return res.status(200).json({
+                data: requests,
+            });
+        } 
+        catch (error) {
+            const errorMessage = (error as Error).message;
+            return res.status(500).json({
+                error: `Internal server error: ${errorMessage}`,
+            });
+        }
+    }
+
+    public static async approve(req: Request, res: Response): Promise<Response> {
+        try {
+            const { id } = req.params;
+
+            if (!id || isNaN(Number(id))) {
+                return res.status(400).json({
+                    error: 'Valid subscription request ID is required.',
+                });
+            }
+
+            const updatedRequest = await SubscriptionRequestService.approveSubscriptionRequest(Number(id));
+
+            return res.status(200).json({
+                message: 'Subscription request approved successfully.',
+                data: updatedRequest,
+            });
+        } 
+        catch (error) {
+            const errorMessage = (error as Error).message;
+
+            if (errorMessage.includes('not found')) {
+                return res.status(404).json({ error: errorMessage });
+            }
+
+            return res.status(500).json({
+                error: `Internal server error: ${errorMessage}`,
+            });
+        }
+    }
 }

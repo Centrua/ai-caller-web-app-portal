@@ -1,6 +1,10 @@
 import { Link } from 'react-router-dom'
 
-export default function Navbar({ page }) {
+interface NavbarProps {
+    page?: string;
+}
+
+export default function Navbar({ page }: NavbarProps) {
     const token = localStorage.getItem('token')
 
     return (

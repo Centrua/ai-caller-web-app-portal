@@ -1,5 +1,5 @@
 import { Model, DataTypes, Optional } from 'sequelize';
-import { sequelize } from '../config/database'; // Adjust to your actual path
+import { sequelize } from '../config/database'; 
 
 interface SubscriptionRequestAttributes {
   id: number;
@@ -13,11 +13,11 @@ interface SubscriptionRequestAttributes {
   venue_zip_code: string;
   approved: boolean;
   requesting_demo: boolean;
-  createdAt?: Date;
-  updatedAt?: Date;
+  created_at?: Date;
+  updated_at?: Date;
 }
 
-interface SubscriptionRequestCreationAttributes extends Optional<SubscriptionRequestAttributes, 'id' | 'approved' | 'requesting_demo' | 'createdAt' | 'updatedAt'> {}
+interface SubscriptionRequestCreationAttributes extends Optional<SubscriptionRequestAttributes, 'id' | 'approved' | 'requesting_demo' | 'created_at' | 'updated_at'> {}
 
 export class SubscriptionRequest extends Model<SubscriptionRequestAttributes, SubscriptionRequestCreationAttributes> implements SubscriptionRequestAttributes {
   public declare id: number;
@@ -31,8 +31,8 @@ export class SubscriptionRequest extends Model<SubscriptionRequestAttributes, Su
   public declare venue_zip_code: string;
   public declare approved: boolean;
   public declare requesting_demo: boolean;
-  public declare readonly createdAt: Date;
-  public declare readonly updatedAt: Date;
+  public declare readonly created_at: Date;
+  public declare readonly updated_at: Date;
 
   public static associate(models: any) {
     // define associations here if needed
@@ -93,11 +93,24 @@ SubscriptionRequest.init(
       allowNull: false,
       defaultValue: false,
     },
+    created_at: {
+      type: DataTypes.DATE,
+      allowNull: false,
+      defaultValue: DataTypes.NOW,
+    },
+    updated_at: {
+      type: DataTypes.DATE,
+      allowNull: false,
+      defaultValue: DataTypes.NOW,
+    },
   },
   {
     sequelize,
     modelName: 'SubscriptionRequest',
     tableName: 'subscription_requests',
     underscored: true,
+    timestamps: true,
+    createdAt: 'created_at',
+    updatedAt: 'updated_at',
   }
 );

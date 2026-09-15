@@ -1,11 +1,11 @@
 import { useState, useEffect } from 'react'
-import { Link, useNavigate, useLocation } from 'react-router-dom'
+import { Link, useLocation } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import Navbar from '../landing/components/Navbar'
 import Footer from '../landing/components/Footer'
+import { useCreateSubscriptionRequest } from '../../hooks/subscriptionRequestHooks'
 
 export default function SubscriptionRequestForm() {
-    const navigate = useNavigate()
     const location = useLocation()
 
     const queryParams = new URLSearchParams(location.search)
@@ -23,7 +23,6 @@ export default function SubscriptionRequestForm() {
         requesting_demo: isDemoInitial,
     })
 
-    // Update form state if the URL query parameter changes while on the same component
     useEffect(() => {
         const demoParam = queryParams.get('demo') === 'true'
         setFormData((prev) => ({
@@ -32,12 +31,10 @@ export default function SubscriptionRequestForm() {
         }))
     }, [location.search])
 
-    const [loading, setLoading] = useState(false)
-    const [error, setError] = useState(null)
+    const { createSubscriptionRequest, loading, error } = useCreateSubscriptionRequest()
     const [success, setSuccess] = useState(false)
 
-    // Helper to format raw numbers into (xxx) xxx-xxxx
-    const formatPhoneNumber = (value) => {
+    const formatPhoneNumber = (value: string): string => {
         const numbers = value.replace(/\D/g, '').substring(0, 10)
         if (numbers.length === 0) return ''
         if (numbers.length <= 3) return `(${numbers}`
@@ -45,7 +42,7 @@ export default function SubscriptionRequestForm() {
         return `(${numbers.slice(0, 3)}) ${numbers.slice(3, 6)}-${numbers.slice(6, 10)}`
     }
 
-    const handleChange = (e) => {
+    const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const { name, value, type, checked } = e.target
 
         if (name === 'phone_number') {
@@ -76,33 +73,16 @@ export default function SubscriptionRequestForm() {
         }
     }
 
-    const handleSubmit = async (e) => {
+    const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault()
-        setLoading(true)
-        setError(null)
 
         try {
-            const response = await fetch('/api/subscription-requests', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify(formData),
-            })
-
-            const data = await response.json()
-
-            if (!response.ok) {
-                throw new Error(data.error || 'Failed to submit request.')
-            }
-
+            await createSubscriptionRequest(formData)
             setSuccess(true)
         }
         catch (err) {
-            setError(err.message)
-        }
-        finally {
-            setLoading(false)
+            // Error handling is managed and logged within the hook, 
+            // but `error` from the hook will display in the UI banner if configured.
         }
     }
 

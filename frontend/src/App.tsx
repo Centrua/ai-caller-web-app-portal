@@ -14,11 +14,23 @@ import InviteParticipants from './pages/invite-participants/InviteParticipants'
 import VenueSettingsPage from './pages/Settings/VenueSettings'
 import Pricing from './pages/pricing/Pricing'
 import SubscriptionRequestForm from './pages/request-form/RequestForm'
+import SubscriptionApproval from './pages/subscription-approval/SubscriptionApproval'
 
 const ProtectedRoute = () => {
   const token = localStorage.getItem('token')
 
   if (!token) {
+    return <Navigate to="/login" replace />
+  }
+
+  return <Outlet />
+}
+
+const AdminProtection = () => {
+  const token = localStorage.getItem('token')
+  const user = JSON.parse(localStorage.getItem('user') || '{}')
+
+  if (!token || user.role !== 'SUPER_ADMIN') {
     return <Navigate to="/login" replace />
   }
 
@@ -51,6 +63,11 @@ export default function App() {
           </Route>
         </Route>
 
+        {/* Approval Route */}
+        <Route element={<AdminProtection />}>
+          <Route path="/subscription-approval" element={<SubscriptionApproval />} />
+        </Route>
+        
       </Routes>
     </BrowserRouter>
   )

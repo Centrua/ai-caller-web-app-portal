@@ -69,3 +69,5 @@ jobs:
             NYLAS_WEBHOOK_SECRET=${{ secrets.NYLAS_WEBHOOK_SECRET }}
             PROD_DATABASE_URL=${{ secrets.PROD_DATABASE_URL }}
             ELEVENLABS_API_KEY=${{ secrets.ELEVENLABS_API_KEY }}
+            SUB_REQ_EMAIL=${{ secrets.SUB_REQ_EMAIL }}
+            SUB_REQ_EMAIL_PASS=${{ secrets.SUB_REQ_EMAIL_PASS }}
