@@ -72,6 +72,7 @@ export class SubscriptionRequestController {
     public static async approve(req: Request, res: Response): Promise<Response> {
         try {
             const { id } = req.params;
+            const { onboardingTimestamp } = req.body;
 
             if (!id || isNaN(Number(id))) {
                 return res.status(400).json({
@@ -79,7 +80,13 @@ export class SubscriptionRequestController {
                 });
             }
 
-            const updatedRequest = await SubscriptionRequestService.approveSubscriptionRequest(Number(id));
+            if (!onboardingTimestamp) {
+                return res.status(400).json({
+                    error: 'Onboarding timestamp is required to schedule the meeting.',
+                });
+            }
+
+            const updatedRequest = await SubscriptionRequestService.approveSubscriptionRequest(Number(id), onboardingTimestamp);
 
             return res.status(200).json({
                 message: 'Subscription request approved successfully.',

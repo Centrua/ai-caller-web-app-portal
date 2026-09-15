@@ -126,7 +126,7 @@ export const useApproveSubscriptionRequest = () => {
   const [loading, setLoading] = useState<boolean>(false)
   const [error, setError] = useState<string | null>(null)
 
-  const approveRequest = useCallback(async (id: number): Promise<SubscriptionRequest> => {
+  const approveRequest = useCallback(async (id: number, onboardingTimestamp: string): Promise<SubscriptionRequest> => {
     setLoading(true)
     setError(null)
 
@@ -142,6 +142,7 @@ export const useApproveSubscriptionRequest = () => {
           ...(token ? { 'Authorization': `Bearer ${token}` } : {}),
           'Content-Type': 'application/json',
         },
+        body: JSON.stringify({ onboardingTimestamp }),
       })
 
       const json = await response.json()

@@ -84,8 +84,23 @@ export class EmailService {
         }
     }
 
-    public async sendApprove(data: SubscriptionRequestPayload, onboardingDate: string, onboardingTime: string): Promise<{ success: boolean; messageId: string }> {
+    public async sendApprove(data: SubscriptionRequestPayload, onboardingTimestamp: string): Promise<{ success: boolean; messageId: string }> {
         try {
+            const dateObj = new Date(onboardingTimestamp);
+            const formattedDate = dateObj.toLocaleDateString('en-US', { 
+                weekday: 'long', 
+                year: 'numeric', 
+                month: 'long', 
+                day: 'numeric',
+                timeZone: 'America/New_York'
+            });
+            const formattedTime = dateObj.toLocaleTimeString('en-US', { 
+                hour: 'numeric', 
+                minute: '2-digit', 
+                timeZone: 'America/New_York',
+                timeZoneName: 'short' 
+            });
+
             const mailOptions = {
                 from: `"Centrua AI" <${process.env.SUB_REQ_EMAIL}>`,
                 to: data.email,
@@ -106,13 +121,13 @@ export class EmailService {
                             </h2>
                             
                             <p style="color: #475569; font-size: 15px; line-height: 1.6; margin-bottom: 24px;">
-                                Great news! Your request for <strong style="color: #0f172a;">${data.venue_name}</strong> has been approved. You are approved and are scheduled for an onboarding meeting on <strong style="color: #0f172a;">${onboardingDate}</strong> at <strong style="color: #0f172a;">${onboardingTime}</strong>.
+                                Great news! Your request for <strong style="color: #0f172a;">${data.venue_name}</strong> has been approved.
                             </p>
 
                             <!-- Notice Box -->
                             <div style="background-color: rgba(43, 53, 40, 0.03); border: 1px solid rgba(43, 53, 40, 0.15); border-radius: 16px; padding: 20px; margin-bottom: 24px;">
                                 <p style="margin: 0; font-size: 15px; color: #2B3528; font-weight: 500; line-height: 1.5;">
-                                    ${data.requesting_demo ? 'Your live demo and 40% off subscription lock-in have been processed. Keep an eye out for calendar invites and onboarding details.' : 'Your subscription setup is now active.'}
+                                    ${data.requesting_demo ? 'Your live demo and 40% off subscription lock-in have been processed. ' : ''}Your subscription setup is now active, scheduled for onboarding on <strong>${formattedDate} at ${formattedTime.replace(/EDT|EST/, 'EST')}</strong>. <br/><br/> You will receive a Google Meet link for this meeting shortly.
                                 </p>
                             </div>
 

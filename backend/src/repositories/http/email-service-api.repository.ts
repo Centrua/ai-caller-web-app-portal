@@ -50,7 +50,7 @@ export class EmailServiceApiHttpRepository {
         }
     }
 
-    public async sendApprove(data: SubscriptionRequestPayload): Promise<{ success: boolean; messageId?: string }> {
+    public async sendApprove(data: SubscriptionRequestPayload, onboardingTimestamp: string): Promise<{ success: boolean; messageId?: string }> {
         const endpoint = `${this.baseUrl}/subscription-requests/approve`;
 
         try {
@@ -59,7 +59,10 @@ export class EmailServiceApiHttpRepository {
                 headers: {
                     'Content-Type': 'application/json',
                 },
-                body: JSON.stringify(data),
+                body: JSON.stringify({
+                    ...data,
+                    onboardingTimestamp,
+                }),
             });
 
             const result = await response.json() as { success?: boolean; error?: string; messageId?: string };

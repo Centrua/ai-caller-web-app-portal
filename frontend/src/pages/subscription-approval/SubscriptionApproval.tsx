@@ -1,4 +1,4 @@
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { 
   useNonApprovedSubscriptionRequests, 
   useApproveSubscriptionRequest, 
@@ -8,18 +8,36 @@ import {
 export default function AdminSubscriptionRequests() {
   const { requests, fetchNonApprovedRequests, loading, error } = useNonApprovedSubscriptionRequests()
   const { approveRequest, loading: approvingLoading } = useApproveSubscriptionRequest()
+  
+  const [timestamps, setTimestamps] = useState<Record<number, string>>({})
+  const [validationError, setValidationError] = useState<string | null>(null)
 
   useEffect(() => {
     fetchNonApprovedRequests()
   }, [fetchNonApprovedRequests])
 
+  const handleTimestampChange = (id: number, value: string) => {
+    setTimestamps(prev => ({ ...prev, [id]: value }))
+    if (validationError) setValidationError(null)
+  }
+
   const handleApproveClick = async (id: number) => {
+    const localValue = timestamps[id]
+    if (!localValue) {
+      setValidationError('Please select an onboarding date and time for this request.')
+      return
+    }
+
+    setValidationError(null)
+
     try {
-      await approveRequest(id)
+      // Convert the datetime-local value to a full ISO string
+      const onboardingTimestamp = new Date(localValue).toISOString()
+      
+      await approveRequest(id, onboardingTimestamp)
       // Refresh the list after successful approval to remove the approved venue
       fetchNonApprovedRequests()
     } catch (err) {
-      // Error handling is managed within the hook, but we catch it here to prevent unhandled rejections
       console.error('Failed to approve request:', err)
     }
   }
@@ -49,6 +67,12 @@ export default function AdminSubscriptionRequests() {
         </div>
       )}
 
+      {validationError && (
+        <div className="bg-amber-50 border border-amber-200 text-amber-800 px-4 py-3 rounded-xl mb-6 text-sm">
+          {validationError}
+        </div>
+      )}
+
       {!loading && requests.length === 0 && !error && (
         <div className="text-center py-16 bg-white border border-slate-200 rounded-2xl shadow-sm">
           <p className="text-slate-600 font-medium">No pending subscription requests found.</p>
@@ -61,7 +85,7 @@ export default function AdminSubscriptionRequests() {
           {requests.map((req: SubscriptionRequest) => (
             <div
               key={req.id}
-              className="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm flex flex-col md:flex-row md:items-center md:justify-between gap-6 transition-all hover:shadow-md"
+              className="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6 transition-all hover:shadow-md"
             >
               <div className="space-y-2 flex-1">
                 <div className="flex items-center gap-3">
@@ -89,11 +113,20 @@ export default function AdminSubscriptionRequests() {
                 </div>
               </div>
 
-              <div className="flex items-center gap-3 self-end md:self-center">
+              <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 pt-4 lg:pt-0 border-t lg:border-t-0 border-slate-100">
+                <div className="flex flex-col">
+                  <label className="text-xs font-medium text-slate-500 mb-1">Onboarding Date & Time</label>
+                  <input
+                    type="datetime-local"
+                    value={timestamps[req.id] || ''}
+                    onChange={(e) => handleTimestampChange(req.id, e.target.value)}
+                    className="text-sm border border-slate-200 rounded-xl px-3 py-2 bg-slate-50 focus:outline-none focus:ring-2 focus:ring-[#2B3528]/20 focus:border-[#2B3528]"
+                  />
+                </div>
                 <button
                   onClick={() => handleApproveClick(req.id)}
                   disabled={approvingLoading}
-                  className="bg-[#2B3528] hover:bg-[#444B38] disabled:opacity-50 text-white text-sm font-semibold px-5 py-2.5 rounded-xl transition-all duration-200 shadow-sm"
+                  className="bg-[#2B3528] hover:bg-[#444B38] disabled:opacity-50 text-white text-sm font-semibold px-5 py-2.5 rounded-xl transition-all duration-200 shadow-sm self-end sm:self-auto mt-auto"
                 >
                   {approvingLoading ? 'Approving...' : 'Approve'}
                 </button>

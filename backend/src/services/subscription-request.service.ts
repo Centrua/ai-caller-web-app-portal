@@ -59,7 +59,7 @@ export class SubscriptionRequestService {
         }
     }
 
-    public static async approveSubscriptionRequest(id: number): Promise<SubscriptionRequest> {
+    public static async approveSubscriptionRequest(id: number, onboardingTimestamp: string): Promise<SubscriptionRequest> {
         try {
             const updatedRequest = await SubscriptionRequestRepository.approve(id);
             if (!updatedRequest) {
@@ -78,7 +78,7 @@ export class SubscriptionRequestService {
                     venue_zip_code: updatedRequest.venue_zip_code,
                     requesting_demo: updatedRequest.requesting_demo ?? false
                 }
-                await emailHttpRepository.sendApprove(payload);
+                await emailHttpRepository.sendApprove(payload, onboardingTimestamp);
             } 
             catch (emailError) {
                 console.error('Failed to trigger approval email:', (emailError as Error).message);

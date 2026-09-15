@@ -1,6 +1,10 @@
 import { Request, Response } from 'express'
 import emailService, { SubscriptionRequestPayload } from '../services/subscription-request.service'
 
+export interface ApprovalRequestPayload extends SubscriptionRequestPayload {
+    onboardingTimestamp: string;
+}
+
 export class SubscriptionController {
     public async handleAcknowledgment(req: Request<{}, {}, SubscriptionRequestPayload>, res: Response): Promise<void> {
         try {
@@ -28,16 +32,16 @@ export class SubscriptionController {
         }
     }
 
-    public async handleApproval(req: Request<{}, {}, SubscriptionRequestPayload>, res: Response): Promise<void> {
+    public async handleApproval(req: Request<{}, {}, ApprovalRequestPayload>, res: Response): Promise<void> {
         try {
-            const formData = req.body
+            const { onboardingTimestamp, ...formData } = req.body
 
-            if (!formData.email || !formData.name || !formData.venue_name) {
-                res.status(400).json({ error: 'Missing required fields (email, name, venue_name).' })
+            if (!formData.email || !formData.name || !formData.venue_name || !onboardingTimestamp) {
+                res.status(400).json({ error: 'Missing required fields (email, name, venue_name, onboardingTimestamp).' })
                 return
             }
 
-            const result = await emailService.sendApprove(formData)
+            const result = await emailService.sendApprove(formData, onboardingTimestamp)
 
             res.status(200).json({
                 success: true,
